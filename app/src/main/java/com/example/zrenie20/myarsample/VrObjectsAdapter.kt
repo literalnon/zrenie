@@ -95,6 +95,12 @@ class VrObjectsAdapter(
                             context, raw
                         )
                 } else {*/
+                val recentMode = if (vrDataClass.link.contains("f1") || vrDataClass.link.contains("f2") || vrDataClass.link.contains("f3")) {
+                    RenderableSource.RecenterMode.NONE
+                } else {
+                    RenderableSource.RecenterMode.ROOT
+                }
+
                     ModelRenderable.builder()
                         .setSource(
                             context, //Uri.parse(vrDataClass.link))
@@ -104,7 +110,7 @@ class VrObjectsAdapter(
                             RenderableSource.SourceType.GLB
                         )
                             .setScale(0.5f) // Scale the original model to 50%.
-                            .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                            .setRecenterMode(recentMode)
                             .build()
                         )
                 //}

@@ -16,6 +16,7 @@
 package com.example.zrenie20.augmentedFace.augmentedfaces
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -27,6 +28,7 @@ import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
@@ -98,6 +100,25 @@ class AugmentedFacesActivity : BaseArActivity() {
                     modelRenderable.isShadowReceiver = false
                 })*/
 
+        /*ModelRenderable.builder()
+            .setSource(
+                this,
+                //Uri.parse(resource)
+                RenderableSource.builder().setSource(
+                    this,
+                    Uri.parse("file:///android_asset/face/f1.glb"),
+                    RenderableSource.SourceType.GLB
+                )
+                    .setRecenterMode(RenderableSource.RecenterMode.NONE)
+                    .build()
+            )
+            //.setRegistryId(augmentedImage.name)
+            .build()
+            .thenApply {
+                faceRegionsRenderable = it
+                it
+            }*/
+
         sceneView?.cameraStreamRenderPriority = Renderable.RENDER_PRIORITY_FIRST
         val scene = sceneView?.scene
         scene?.addOnUpdateListener { frameTime: FrameTime? ->
@@ -116,9 +137,9 @@ class AugmentedFacesActivity : BaseArActivity() {
                     faceNode.setParent(scene)
                     
                     //faceNode = face.createAnchor(face.centerPose)
-                    faceNode.faceRegionsRenderable = currentRenderable?.vrRenderable
+                    //faceNode.faceRegionsRenderable = faceRegionsRenderable//currentRenderable?.vrRenderable
                     //faceRegionsRenderable = currentRenderable?.vrRenderable
-                    //faceNode.renderable = currentRenderable?.vrRenderable
+                    faceNode.renderable = currentRenderable?.vrRenderable
 
                     // Overlay the 3D assets on the face.
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable
