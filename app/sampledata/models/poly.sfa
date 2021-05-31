@@ -1,0 +1,114 @@
+{
+  animations: [
+    {
+      clips: [
+        {
+          name: 'Cube|Cube.002Action',
+        },
+        {
+          name: 'Cube|CubeAction',
+        },
+        {
+          name: 'Cube.002|Cube.002Action',
+        },
+        {
+          name: 'Cube.002|CubeAction',
+        },
+      ],
+      path: 'sampledata/models/poly.fbx',
+    },
+  ],
+  materials: [
+    {
+      name: 'main-texture',
+      parameters: [
+        {
+          baseColor: [
+            1,
+            1,
+            1,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+    {
+      name: 'video',
+      parameters: [
+        {
+          baseColor: [
+            0.80000000000000004,
+            0.80000000000000004,
+            0.80000000000000004,
+            1,
+          ],
+        },
+        {
+          baseColorMap: null,
+        },
+        {
+          normalMap: null,
+        },
+        {
+          interpolatedColor: null,
+        },
+        {
+          metallic: 0,
+        },
+        {
+          metallicMap: null,
+        },
+        {
+          roughness: 1,
+        },
+        {
+          roughnessMap: null,
+        },
+        {
+          opacity: null,
+        },
+      ],
+      source: 'build/sceneform_sdk/default_materials/fbx_material.sfm',
+    },
+  ],
+  model: {
+    attributes: [
+      'Position',
+      'TexCoord',
+      'Orientation',
+      'BoneIndices',
+      'BoneWeights',
+    ],
+    collision: {},
+    file: 'sampledata/models/poly.fbx',
+    name: 'poly',
+    recenter: 'root',
+    scale: 0.93253699999999995,
+  },
+  version: '0.54:2',
+}

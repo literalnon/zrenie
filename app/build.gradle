@@ -1,0 +1,111 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
+
+    defaultConfig {
+        applicationId "com.example.zrenie20"
+        minSdkVersion 24
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    api project(":sceneformux")
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.2'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.3.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+
+    implementation 'com.google.ar:core:1.23.0'
+
+    // Obj - a simple Wavefront OBJ file loader
+    // https://github.com/javagl/Obj
+    implementation 'de.javagl:obj:0.2.1'
+
+    implementation 'com.google.firebase:firebase-database:16.0.5'
+
+    implementation 'com.github.bumptech.glide:glide:4.6.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
+
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    implementation 'com.google.guava:guava:27.0.1-android'
+
+    implementation 'androidx.lifecycle:lifecycle-common-java8:2.0.0'
+
+    //implementation 'com.google.ar.sceneform.ux:sceneform-ux:1.17.1'
+    /*implementation "com.google.ar.sceneform.ux:sceneform-ux:1.15.0"*/
+
+    // Alternatively, use ArSceneView without the UX dependency.
+    /*implementation 'com.google.ar.sceneform:core:1.17.1'
+    implementation 'com.google.ar.sceneform:assets:1.17.1'
+    implementation "com.google.ar.sceneform:animation:1.17.1"*/
+
+    implementation 'com.google.code.gson:gson:2.8.5'
+
+}
+
+//apply plugin: 'com.google.ar.sceneform.plugin'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'kotlin-android-extensions'
+
+/*sceneform.asset('sampledata/models/poly.fbx', // 'Source Asset Path' specified during import.
+        'default',                    // 'Material Path' specified during import.
+        'sampledata/models/poly.sfa', // '.sfa Output Path' specified during import.
+        'src/main/res/raw/poly')*/
+
+/*
+sceneform.asset('sampledata/augmented_video_model.obj',
+        'sampledata/augmented_video_material.mat',
+        'sampledata/augmented_video_model.sfa',
+        'src/main/res/raw/augmented_video_model')
+
+sceneform.asset('sampledata/models/i6.glb', // 'Source Asset Path' specified during import.
+        'default',                    // 'Material Path' specified during import.
+        'sampledata/models/i6.sfb', // '.sfa Output Path' specified during import.
+        'src/main/res/raw/i6')
+
+sceneform.asset('sampledata/models/i7.glb', // 'Source Asset Path' specified during import.
+        'default',                    // 'Material Path' specified during import.
+        'sampledata/models/i7.sfb', // '.sfa Output Path' specified during import.
+        'src/main/res/raw/i7')*/
+
+/*
+sceneform.asset(
+        'sampledata/models/fox_face.fbx',
+        'sampledata/models/fox_face_material.mat',
+        'sampledata/models/fox_face.sfa',
+        'src/main/res/raw/fox_face'
+)*/

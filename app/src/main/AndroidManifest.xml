@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.zrenie20">
+
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+
+    <uses-feature
+        android:name="android.hardware.camera.flash"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.ar"
+        android:required="true" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Zrenie20">
+        <activity android:name=".SearchActivity"
+            android:theme="@style/Theme.Zrenie20.NoActionBar"/>
+        <activity
+            android:name=".LibActivity"
+            android:theme="@style/Theme.Zrenie20.NoActionBar" />
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_base"
+            android:theme="@style/Theme.Zrenie20.NoActionBar" />
+        <activity android:name=".myarsample.SpaceActivity" />
+        <activity
+            android:name=".SplashActivity"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Zrenie20.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".AugmentedImageActivity" />
+        <activity android:name=".augmentedfaces.AugmentedFacesActivity" />
+        <activity android:name=".augmentedFace.augmentedfaces.AugmentedFacesActivity" />
+        <activity android:name=".augmentedimage.AugmentedImageActivity" />
+        <activity android:name=".cloudanchor.CloudAnchorActivity" />
+        <activity android:name=".computervision.ComputerVisionActivity" />
+        <activity android:name=".helloar.HelloArActivity" />
+        <activity android:name=".persistentcloudanchor.CloudAnchorActivity" />
+        <activity android:name=".sharedcamera.SharedCameraActivity" />
+
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
+    </application>
+
+</manifest>
