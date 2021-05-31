@@ -16,13 +16,14 @@ import com.example.zrenie20.base.adapters.DelegationAdapter
 import com.example.zrenie20.myarsample.data.VrObject
 import com.example.zrenie20.myarsample.data.VrObjectId
 import com.example.zrenie20.myarsample.data.VrRenderableObject
-import com.google.android.filament.gltfio.Animator
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.animation.ModelAnimator
+import com.google.ar.sceneform.rendering.AnimationData
 import com.google.ar.sceneform.rendering.Color
 import com.google.ar.sceneform.rendering.Material
 import com.google.ar.sceneform.rendering.ModelRenderable
@@ -34,20 +35,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
-private class AnimationInstance internal constructor(
-    var animator: Animator?,
-    index: Int,
-    var startTime: Long
-) {
-    var duration: Float?
-    var index: Int
-
-    init {
-        duration = animator?.getAnimationDuration(index)
-        this.index = index
-    }
-}
-
 abstract class BaseArActivity : AppCompatActivity() {
     open var isNeedCreateAnchor: Boolean = true
     open var currentRenderable: VrRenderableObject? = null
@@ -55,7 +42,7 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     open val cashedAssets = hashMapOf<VrObjectId, VrRenderableObject>()
     open var assetsArray = arrayListOf<VrObject>()
-    private val animators: ArrayList<AnimationInstance> = arrayListOf()
+
     /*VrObject(
         id = 0,
         link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/1.glb"
@@ -245,26 +232,6 @@ abstract class BaseArActivity : AppCompatActivity() {
         var anchorNode: AnchorNode? = null
         var node: TransformableNode? = null
 
-        arFragment
-            ?.arSceneView
-            ?.scene
-            ?.addOnUpdateListener { frameTime: FrameTime? ->
-
-                Log.e("ANIMATION_ACT", "addOnUpdateListener animators.size : ${animators.size}")
-
-                val time = System.nanoTime()
-                for (animator: AnimationInstance in animators) {
-                    Log.e("ANIMATION_ACT", "addOnUpdateListener : ${animator.index}, ${((time - animator.startTime) / TimeUnit.SECONDS.toNanos(1).toDouble()).toFloat() % (animator.duration ?: 10f)}")
-
-                    animator.animator!!.applyAnimation(
-                        animator.index,
-                        ((time - animator.startTime) / TimeUnit.SECONDS.toNanos(1).toDouble())
-                            .toFloat() % (animator.duration ?: 10f)
-                    )
-                    animator.animator!!.updateBoneMatrices()
-                }
-            }
-
         arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent? ->
 
             if (currentRenderable?.vrRenderable == null) {
@@ -294,48 +261,14 @@ abstract class BaseArActivity : AppCompatActivity() {
                 }
 
                 adapter?.notifyDataSetChanged()
-
-                val filamentAsset = mNode.renderableInstance?.filamentAsset
-                val aCount = filamentAsset?.animator?.animationCount ?: 0
-
-                Log.e("ANIMATION_ACT", "aCount : ${aCount}")
-
-                if (aCount > 0) {
-                    Log.e("ANIMATION_ACT", "duration : ${filamentAsset?.animator?.getAnimationDuration(0)}")
-
-                    filamentAsset?.animator?.applyAnimation(
-                        0, filamentAsset.animator.getAnimationDuration(
-                            0
-                        )
-                    )
-
-                    Log.e("ANIMATION_ACT", "duration : ${filamentAsset?.animator?.getAnimationDuration(0)}")
-
-                    animators.add(
-                        AnimationInstance(
-                            filamentAsset?.animator,
-                            0,
-                            System.nanoTime()
-                        )
-                    )
-
-                    Log.e("ANIMATION_ACT", "duration : ${animators.size}")
-
-                }
-
-                /*val color = colors[nextColor]
-                nextColor++
-                for (i in 0 until (currentRenderable?.vrRenderable?.getSubmeshCount() ?: 0)) {
-                    val material: Material? = currentRenderable?.vrRenderable?.getMaterial(i)
-                    material?.setFloat4("baseColorFactor", color)
-                }*/
             }
-            /*Log.e("ANIMATION_VR", "${currentRenderable?.vrRenderable?.animationDataCount}")
+
+            Log.e("ANIMATION_VR", "${currentRenderable?.vrRenderable?.animationDataCount}")
             if ((currentRenderable?.vrRenderable?.animationDataCount ?: 0) > 0) {
                 val data: AnimationData? = currentRenderable?.vrRenderable?.getAnimationData(0)
                 val animator = ModelAnimator(data, currentRenderable?.vrRenderable)
                 animator.start()
-            }*/
+            }
 
         }
 

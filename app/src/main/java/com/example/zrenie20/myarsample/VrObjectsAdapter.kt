@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.zrenie20.R
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
 import com.example.zrenie20.myarsample.data.VrObject
+import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import kotlinx.android.synthetic.main.item_vr_object.view.*
 
@@ -96,8 +97,8 @@ class VrObjectsAdapter(
                 } else {*/
                     ModelRenderable.builder()
                         .setSource(
-                            context, Uri.parse(vrDataClass.link))
-                            /*RenderableSource.builder().setSource(
+                            context, //Uri.parse(vrDataClass.link))
+                            RenderableSource.builder().setSource(
                             context,
                             Uri.parse(vrDataClass.link),
                             RenderableSource.SourceType.GLB
@@ -105,9 +106,8 @@ class VrObjectsAdapter(
                             .setScale(0.5f) // Scale the original model to 50%.
                             .setRecenterMode(RenderableSource.RecenterMode.ROOT)
                             .build()
-                        )*/
+                        )
                 //}
-                        .setIsFilamentGltf(true)
                     //.setRegistryId(vrDataClass.link)
                     .build()
                     .thenAccept { renderable: ModelRenderable ->

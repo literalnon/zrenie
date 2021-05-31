@@ -28,6 +28,7 @@ import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ExternalTexture
 import com.google.ar.sceneform.rendering.ModelRenderable
@@ -156,15 +157,15 @@ class AugmentedImageNode(
                 ModelRenderable.builder()
                     .setSource(
                         context,
-                        Uri.parse(resource)
-                        /*RenderableSource.builder().setSource(
+                        //Uri.parse(resource)
+                        RenderableSource.builder().setSource(
                             context,
                             Uri.parse(resource),//"file:///android_asset/aImage/i6.glb"),
                             RenderableSource.SourceType.GLB
                         )
                             .setScale(0.05f) // Scale the original model to 50%.
                             .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                            .build()*/
+                            .build()
                     )
                     //.setRegistryId(augmentedImage.name)
                     .build()

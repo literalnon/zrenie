@@ -156,6 +156,7 @@
     <string name="ar_search">Поиск AR</string>
     <string name="ar_lib">Библиотека Ar</string>
     <string name="ar_search_hint">Введите название и выберите контент</string>
+    <string name="remove_cache">Удалить весь кэш</string>
     <!-- Resolve anchor has no result yet. [CHAR_LIMIT=NONE] -->
 
     <!--&lt;!&ndash; Strings used in privacy notice dialog messages. [CHAR_LIMIT=NONE] &ndash;&gt;

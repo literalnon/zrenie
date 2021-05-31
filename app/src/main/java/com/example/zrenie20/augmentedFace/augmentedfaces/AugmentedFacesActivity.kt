@@ -18,22 +18,19 @@ package com.example.zrenie20.augmentedFace.augmentedfaces
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
-import com.example.zrenie20.AugmentedFaceNode
-import com.example.zrenie20.MyAugmentedFaceNode
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.myarsample.data.VrObject
 import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
-import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
+import com.google.ar.sceneform.ux.AugmentedFaceNode
 import kotlinx.android.synthetic.main.augmented_faces_activity.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
@@ -84,12 +81,12 @@ class AugmentedFacesActivity : BaseArActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        /*Texture.builder()
-            .setSource(this, R.drawable.fox_face_mesh_texture)
+        Texture.builder()
+            .setSource(this, R.drawable.face4)
             .build()
             .thenAccept(Consumer { texture: Texture ->
                 faceMeshTexture = texture
-            })*/
+            })
 
         /*ModelRenderable.builder()
             .setSource(this, R.raw.fox_face)
@@ -101,9 +98,10 @@ class AugmentedFacesActivity : BaseArActivity() {
                     modelRenderable.isShadowReceiver = false
                 })*/
 
-        //sceneView?.cameraStreamRenderPriority = Renderable.RENDER_PRIORITY_FIRST
+        sceneView?.cameraStreamRenderPriority = Renderable.RENDER_PRIORITY_FIRST
         val scene = sceneView?.scene
         scene?.addOnUpdateListener { frameTime: FrameTime? ->
+
             if (currentRenderable?.vrRenderable == null) {
                 return@addOnUpdateListener
             }
@@ -116,15 +114,17 @@ class AugmentedFacesActivity : BaseArActivity() {
                 if (!faceNodeMap.containsKey(face)) {
                     val faceNode = AugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
                     faceNode.setParent(scene)
+                    
                     //faceNode = face.createAnchor(face.centerPose)
-                    //faceNode.faceRegionsRenderable = currentRenderable?.vrRenderable
-                    faceNode.renderable = currentRenderable?.vrRenderable
+                    faceNode.faceRegionsRenderable = currentRenderable?.vrRenderable
+                    //faceRegionsRenderable = currentRenderable?.vrRenderable
+                    //faceNode.renderable = currentRenderable?.vrRenderable
 
                     // Overlay the 3D assets on the face.
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable
 
                     // Overlay a texture on the face.
-                    //faceNode.faceMeshTexture = faceMeshTexture
+                    faceNode.faceMeshTexture = faceMeshTexture
 
                     //faceNode.faceMeshTexture = faceMeshTexture
                     faceNodeMap[face] = faceNode

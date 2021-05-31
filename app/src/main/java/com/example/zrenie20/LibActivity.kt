@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.zrenie20.base.adapters.DelegationAdapter
 import com.example.zrenie20.myarsample.data.VrObject
 import kotlinx.android.synthetic.main.activity_lib.*
+import kotlinx.android.synthetic.main.activity_lib.rvAr
 
 class LibActivity : AppCompatActivity() {
 
@@ -152,5 +153,9 @@ class LibActivity : AppCompatActivity() {
         )
 
         adapter.addAll(assetsArray)
+
+        ivBack?.setOnClickListener {
+            onBackPressed()
+        }
     }
 }

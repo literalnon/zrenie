@@ -43,7 +43,7 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, AugmentedImageActivity::class.java))
         }
 
-        tvLibAr?.setOnClickListener{
+        tvLibAr?.setOnClickListener {
             startActivity(Intent(this, SearchActivity::class.java))
         }
 
@@ -62,6 +62,10 @@ class SettingsActivity : AppCompatActivity() {
         ivBodyPartSelected.visibility = View.GONE
         tvBodyPart.setTextColor(Color.WHITE)
         ivBodyPart.setColorFilter(Color.WHITE)
+
+        ivBack?.setOnClickListener {
+            onBackPressed()
+        }
 
         val selectedColor = ContextCompat.getColor(this, R.color.selectedColor)
 
