@@ -1,25 +1,19 @@
 package com.example.zrenie20
 
-import android.graphics.Color
-import android.net.Uri
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.example.zrenie20.R
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
-import com.example.zrenie20.myarsample.data.VrObject
-import com.google.ar.sceneform.rendering.ModelRenderable
+import com.example.zrenie20.myarsample.data.DataItemObject
 import kotlinx.android.synthetic.main.item_lib_object.view.*
-import kotlinx.android.synthetic.main.item_vr_object.view.*
 
 
 class LibAdapter() :
     AbstractAdapterDelegate<Any, Any, LibAdapter.VrObjectsAdapterHolder>() {
 
     override fun isForViewType(item: Any, items: List<Any>, position: Int): Boolean {
-        return item is VrObject
+        return item is DataItemObject
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): VrObjectsAdapterHolder {

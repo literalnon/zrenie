@@ -3,9 +3,8 @@ package com.example.zrenie20
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.zrenie20.base.adapters.DelegationAdapter
-import com.example.zrenie20.myarsample.data.VrObject
+import com.example.zrenie20.myarsample.data.DataItemObject
 import kotlinx.android.synthetic.main.activity_lib.*
 import kotlinx.android.synthetic.main.activity_lib.rvAr
 
@@ -13,129 +12,129 @@ class LibActivity : AppCompatActivity() {
 
     val adapter = DelegationAdapter<Any>()
     open val assetsArray = arrayListOf(
-        VrObject(
+        DataItemObject(
             id = 0,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/1.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/1.glb",
             name = "s1"
         ),
-        VrObject(
+        DataItemObject(
             id = 1,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/2.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/2.glb",
             name = "s2"
         ),
-        VrObject(
+        DataItemObject(
             id = 2,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/3.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/3.glb",
             name = "s3"
         ),
-        VrObject(
+        DataItemObject(
             id = 3,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/4.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/4.glb",
             name = "s4"
         ),
-        VrObject(
+        DataItemObject(
             id = 4,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/5.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/5.glb",
             name = "s5"
         ),
-        VrObject(
+        DataItemObject(
             id = 5,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/6.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/6.glb",
             name = "s6"
         ),
-        VrObject(
+        DataItemObject(
             id = 6,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/Eagle%20fbx%20to%20glb.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/Eagle%20fbx%20to%20glb.glb",
             name = "s7"
         ),
-        VrObject(
+        DataItemObject(
             id = 7,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/8.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/8.glb",
             name = "s8"
         ),
-        VrObject(
+        DataItemObject(
             id = 8,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/eagle.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/eagle.glb",
             name = "s9"
         ),
-        VrObject(
+        DataItemObject(
             id = 9,
-            link = "https://drive.google.com/u/0/uc?id=1GVtgZU03z9ZtDWHh7WWjw9P0Q7RErUql&export=download",
+            filePath = "https://drive.google.com/u/0/uc?id=1GVtgZU03z9ZtDWHh7WWjw9P0Q7RErUql&export=download",
             name = "s10"
         ),
-        VrObject(
+        DataItemObject(
             id = 11,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/11.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/11.glb",
             name = "s11"
         ),
-        VrObject(
+        DataItemObject(
             id = 12,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/12.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/12.glb",
             name = "s12"
         ),
-        VrObject(
+        DataItemObject(
             id = 13,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/13.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/13.glb",
             name = "s13"
         ),
-        VrObject(
+        DataItemObject(
             id = 14,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/14.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/14.glb",
             name = "s14"
         ),
-        VrObject(
+        DataItemObject(
             id = 15,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/15.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/15.glb",
             name = "s15"
         ),
-        VrObject(
+        DataItemObject(
             id = 16,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/16.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/16.glb",
             name = "s16"
         ),
-        VrObject(
+        DataItemObject(
             id = 17,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/17.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/17.glb",
             name = "s17"
         ),
-        VrObject(
+        DataItemObject(
             id = 18,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/18.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/18.glb",
             name = "s18"
         ),
-        VrObject(
+        DataItemObject(
             id = 19,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/19.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/19.glb",
             name = "s19"
         ),
-        VrObject(
+        DataItemObject(
             id = 21,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/21.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/21.glb",
             name = "s20"
         ),
-        VrObject(
+        DataItemObject(
             id = 22,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/22.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/22.glb",
             name = "s21"
         ),
-        VrObject(
+        DataItemObject(
             id = 23,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/23.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/23.glb",
             name = "s22"
         ),
-        VrObject(
+        DataItemObject(
             id = 24,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/24.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/24.glb",
             name = "s23"
         ),
-        VrObject(
+        DataItemObject(
             id = 25,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/25.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/25.glb",
             name = "s24"
         ),
-        VrObject(
+        DataItemObject(
             id = 26,
-            link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/26.glb",
+            filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/26.glb",
             name = "s25"
         )
     )

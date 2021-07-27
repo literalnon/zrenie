@@ -16,19 +16,17 @@
 package com.example.zrenie20.augmentedFace.augmentedfaces
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.myarsample.BaseArActivity
-import com.example.zrenie20.myarsample.data.VrObject
+import com.example.zrenie20.myarsample.data.DataItemObject
 import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
-import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
@@ -52,29 +50,29 @@ class AugmentedFacesActivity : BaseArActivity() {
 
     init {
         assetsArray = arrayListOf(
-            VrObject(
+            DataItemObject(
                 id = 1,
-                link = "file:///android_asset/face/f1.glb",
+                filePath = "file:///android_asset/face/f1.glb",
                 name = "f1"
             ),
-            VrObject(
+            DataItemObject(
                 id = 2,
-                link = "file:///android_asset/face/f2.glb",
+                filePath = "file:///android_asset/face/f2.glb",
                 name = "f2"
             ),
-            VrObject(
+            DataItemObject(
                 id = 3,
-                link = "file:///android_asset/face/f3.glb",
+                filePath = "file:///android_asset/face/f3.glb",
                 name = "f3"
             ),
-            VrObject(
+            DataItemObject(
                 id = 4,
-                link = "file:///android_asset/face/f4.glb",
+                filePath = "file:///android_asset/face/f4.glb",
                 name = "f4"
             ),
-            VrObject(
+            DataItemObject(
                 id = 5,
-                link = "file:///android_asset/face/f5a.glb",
+                filePath = "file:///android_asset/face/f5a.glb",
                 name = "f5a"
             )
         )
@@ -201,8 +199,8 @@ class AugmentedFacesActivity : BaseArActivity() {
         }
     }
 
-    override fun selectedRenderable(vrObjectDataClass: VrObject): Boolean {
-        val returnValue = super.selectedRenderable(vrObjectDataClass)
+    override fun selectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
+        val returnValue = super.selectedRenderable(dataItemObjectDataClass)
         val iter: MutableIterator<Map.Entry<AugmentedFace, Node?>> =
             faceNodeMap.entries.iterator()
         while (iter.hasNext()) {

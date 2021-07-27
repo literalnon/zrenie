@@ -6,26 +6,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.zrenie20.R
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
-import com.example.zrenie20.myarsample.data.VrObject
+import com.example.zrenie20.myarsample.data.DataItemObject
 import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import kotlinx.android.synthetic.main.item_vr_object.view.*
 
 
 class VrObjectsAdapter(
-    val isSelectedRenderable: (VrObject) -> Boolean,
-    val selectedRenderable: (VrObject) -> Boolean,
-    val renderableUploaded: (VrObject, ModelRenderable) -> Unit,
-    val renderableUploadedFailed: (VrObject) -> Unit,
-    val renderableRemoveCallback: (VrObject) -> Unit,
-    val isCanRemoveRenderable: (VrObject) -> Boolean
+    val isSelectedRenderable: (DataItemObject) -> Boolean,
+    val selectedRenderable: (DataItemObject) -> Boolean,
+    val renderableUploaded: (DataItemObject, ModelRenderable) -> Unit,
+    val renderableUploadedFailed: (DataItemObject) -> Unit,
+    val renderableRemoveCallback: (DataItemObject) -> Unit,
+    val isCanRemoveRenderable: (DataItemObject) -> Boolean
 ) :
     AbstractAdapterDelegate<Any, Any, VrObjectsAdapter.VrObjectsAdapterHolder>() {
 
     override fun isForViewType(item: Any, items: List<Any>, position: Int): Boolean {
-        return item is VrObject
+        return item is DataItemObject
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): VrObjectsAdapterHolder {
@@ -43,7 +45,12 @@ class VrObjectsAdapter(
         items: List<Any>,
         position: Int
     ) {
-        val vrDataClass = item as VrObject
+        val vrDataClass = item as DataItemObject
+
+        Glide.with(holder.ivObject)
+            .load(vrDataClass.thumbnailPath)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(holder.ivObject)
 
         if (isCanRemoveRenderable(vrDataClass)) {
             holder.ivClose.visibility = View.VISIBLE
@@ -66,7 +73,7 @@ class VrObjectsAdapter(
         holder.view.setOnClickListener { view ->
             val context = view.context
 
-            Log.e("renderable", "ModelRenderable.builder() 1, ${item.link}, ${item.link.contains("a")}, ${item.link.contains("11")}")
+            Log.e("renderable", "ModelRenderable.builder() 1, ${item.filePath}, ${item.filePath.contains("a")}, ${item.filePath.contains("11")}")
 
             if (!selectedRenderable(item)) {
                 var mRenderable: ModelRenderable? = null
@@ -95,7 +102,7 @@ class VrObjectsAdapter(
                             context, raw
                         )
                 } else {*/
-                val recentMode = if (vrDataClass.link.contains("f1") || vrDataClass.link.contains("f2") || vrDataClass.link.contains("f3")) {
+                val recentMode = if (vrDataClass.filePath.contains("f1") || vrDataClass.filePath.contains("f2") || vrDataClass.filePath.contains("f3")) {
                     RenderableSource.RecenterMode.NONE
                 } else {
                     RenderableSource.RecenterMode.ROOT
@@ -106,7 +113,7 @@ class VrObjectsAdapter(
                             context, //Uri.parse(vrDataClass.link))
                             RenderableSource.builder().setSource(
                             context,
-                            Uri.parse(vrDataClass.link),
+                            Uri.parse(vrDataClass.filePath),
                             RenderableSource.SourceType.GLB
                         )
                             .setScale(0.5f) // Scale the original model to 50%.

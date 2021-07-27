@@ -13,142 +13,36 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.base.adapters.DelegationAdapter
-import com.example.zrenie20.myarsample.data.VrObject
-import com.example.zrenie20.myarsample.data.VrObjectId
+import com.example.zrenie20.data.DataItemId
+import com.example.zrenie20.myarsample.data.DataItemObject
 import com.example.zrenie20.myarsample.data.VrRenderableObject
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.ArSceneView
-import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.animation.ModelAnimator
 import com.google.ar.sceneform.rendering.AnimationData
 import com.google.ar.sceneform.rendering.Color
-import com.google.ar.sceneform.rendering.Material
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
-import java.util.concurrent.TimeUnit
-import kotlin.collections.ArrayList
 
 abstract class BaseArActivity : AppCompatActivity() {
     open var isNeedCreateAnchor: Boolean = true
     open var currentRenderable: VrRenderableObject? = null
     open val adapter = DelegationAdapter<Any>()
 
-    open val cashedAssets = hashMapOf<VrObjectId, VrRenderableObject>()
-    open var assetsArray = arrayListOf<VrObject>()
-
-    /*VrObject(
-        id = 0,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/1.glb"
-    ),
-    VrObject(
-        id = 1,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/2.glb"
-    ),
-    VrObject(
-        id = 2,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/3.glb"
-    ),
-    VrObject(
-        id = 3,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/4.glb"
-    ),
-    VrObject(
-        id = 4,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/5.glb"
-    ),
-    VrObject(
-        id = 5,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/6.glb"
-    ),
-    VrObject(
-        id = 6,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/Eagle%20fbx%20to%20glb.glb"
-    ),
-    VrObject(
-        id = 7,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/8.glb"
-    ),
-    VrObject(
-        id = 8,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/eagle.glb"
-    ),
-    VrObject(
-        id = 9,
-        link = "https://drive.google.com/u/0/uc?id=1GVtgZU03z9ZtDWHh7WWjw9P0Q7RErUql&export=download"
-    ),
-    VrObject(
-        id = 11,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/11.glb"
-    ),
-    VrObject(
-        id = 12,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/12.glb"
-    ),
-    VrObject(
-        id = 13,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/13.glb"
-    ),
-    VrObject(
-        id = 14,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/14.glb"
-    ),
-    VrObject(
-        id = 15,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/15.glb"
-    ),
-    VrObject(
-        id = 16,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/16.glb"
-    ),
-    VrObject(
-        id = 17,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/17.glb"
-    ),
-    VrObject(
-        id = 18,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/18.glb"
-    ),
-    VrObject(
-        id = 19,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/19.glb"
-    ),
-    VrObject(
-        id = 21,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/21.glb"
-    ),
-    VrObject(
-        id = 22,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/22.glb"
-    ),
-    VrObject(
-        id = 23,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/23.glb"
-    ),
-    VrObject(
-        id = 24,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/24.glb"
-    ),
-    VrObject(
-        id = 25,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/25.glb"
-    ),
-    VrObject(
-        id = 26,
-        link = "https://github.com/literalnon/AR/raw/master/app/src/main/models/26.glb"
-    )
-)*/
+    open val cashedAssets = hashMapOf<DataItemId, VrRenderableObject>()
+    open var assetsArray = arrayListOf<DataItemObject>()
 
     abstract val layoutId: Int
     var arFragment: ArFragment? = null
     var sceneView: ArSceneView? = null
-    val vrObjectsMap = hashMapOf<VrObject, Node>()
+    val vrObjectsMap = hashMapOf<DataItemObject, Node>()
     private val colors = Arrays.asList(
         Color(0f, 0f, 0f, 1f),
         Color(1f, 0f, 0f, 1f),
@@ -170,18 +64,6 @@ abstract class BaseArActivity : AppCompatActivity() {
 
         ivFlash?.setOnClickListener {
             Log.e("FLASH", "ivFlash setOnClickListener")
-
-            /*if(NoobCameraManager.getInstance().isFlashOn){
-                NoobCameraManager.getInstance().turnOffFlash();
-            }else{
-                NoobCameraManager.getInstance().turnOnFlash();
-            }*/
-
-            /*val cam = Camera.open()
-            val p: Camera.Parameters = cam.getParameters()
-            p.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH)
-            cam.setParameters(p)
-            cam.startPreview()*/
 
             sceneView?.pause()
 
@@ -256,7 +138,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                 node?.renderable = currentRenderable?.vrRenderable
                 node?.select()
 
-                currentRenderable?.vrObject?.let {
+                currentRenderable?.dataItemObject?.let {
                     vrObjectsMap[it] = mNode
                 }
 
@@ -320,20 +202,24 @@ abstract class BaseArActivity : AppCompatActivity() {
             )
         )
 
-        adapter.addAll(assetsArray)
+        loadData()
 
         ivStack?.setOnClickListener {
             startActivity(Intent(this, LibActivity::class.java))
         }
     }
 
-    open fun isSelectedRenderable(vrObjectDataClass: VrObject): Boolean {
-        return currentRenderable?.vrObject?.id == vrObjectDataClass.id
+    open fun loadData() {
+        adapter.addAll(assetsArray)
     }
 
-    open fun selectedRenderable(vrObjectDataClass: VrObject): Boolean {
-        currentRenderable = cashedAssets[vrObjectDataClass.id] ?: VrRenderableObject(
-            vrObject = vrObjectDataClass,
+    open fun isSelectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
+        return currentRenderable?.dataItemObject?.id == dataItemObjectDataClass.id
+    }
+
+    open fun selectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
+        currentRenderable = cashedAssets[dataItemObjectDataClass.id] ?: VrRenderableObject(
+            dataItemObject = dataItemObjectDataClass,
             vrRenderable = null
         )
 
@@ -348,15 +234,15 @@ abstract class BaseArActivity : AppCompatActivity() {
         }
     }
 
-    open fun renderableUploaded(vrObjectDataClass: VrObject, renderable: ModelRenderable) {
+    open fun renderableUploaded(dataItemObjectDataClass: DataItemObject, renderable: ModelRenderable) {
         flProgressBar.visibility = View.GONE
 
         VrRenderableObject(
-            vrObject = vrObjectDataClass,
+            dataItemObject = dataItemObjectDataClass,
             vrRenderable = renderable
         ).let { item ->
             currentRenderable = item
-            cashedAssets[vrObjectDataClass.id] = item
+            cashedAssets[dataItemObjectDataClass.id] = item
         }
 
         adapter.notifyDataSetChanged()
@@ -364,11 +250,11 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     }
 
-    open fun renderableUploadedFailed(vrObjectDataClass: VrObject) {
+    open fun renderableUploadedFailed(dataItemObjectDataClass: DataItemObject) {
         flProgressBar.visibility = View.GONE
         Toast.makeText(
             this,
-            "Unable to load renderable " + vrObjectDataClass.link, Toast.LENGTH_LONG
+            "Unable to load renderable " + dataItemObjectDataClass.filePath, Toast.LENGTH_LONG
         ).show()
 
         adapter.notifyDataSetChanged()

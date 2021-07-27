@@ -51,6 +51,8 @@ class AugmentedImageNode(
     var image: AugmentedImage? = null
         private set
 
+    val cornerNode = Node()
+
     fun destroy() {
         videoView?.stopPlayback()
     }
@@ -81,14 +83,20 @@ class AugmentedImageNode(
 
         // Make the 4 corner nodes.
         val localPosition = Vector3()
-        val cornerNode: Node
 
         // Upper left corner.
         //localPosition[0f, 0.0f] = 0f
-        cornerNode = Node()
         cornerNode.setParent(this)
         cornerNode.localPosition = localPosition
-        cornerNode.renderable = Companion.mRenderable[index]?.getNow(null)
+        //cornerNode.renderable = Companion.mRenderable[index]?.getNow(null)
+    }
+
+    fun resumeImage() {
+        cornerNode.renderable = Companion.mRenderable[image?.index]?.getNow(null)
+    }
+
+    fun pauseImage() {
+        cornerNode.renderable = null
     }
 
     companion object {

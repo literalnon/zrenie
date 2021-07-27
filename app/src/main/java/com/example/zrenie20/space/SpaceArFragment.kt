@@ -1,4 +1,4 @@
-package com.example.zrenie20.augmentedFace.augmentedfaces
+package com.example.zrenie20.space
 
 import android.os.Bundle
 import android.view.LayoutInflater

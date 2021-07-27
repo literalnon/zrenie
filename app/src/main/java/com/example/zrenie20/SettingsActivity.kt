@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
-import com.example.zrenie20.myarsample.SpaceActivity
+import com.example.zrenie20.space.SpaceActivity
 import kotlinx.android.synthetic.main.activity_settings.*
 
 enum class SCREENS {

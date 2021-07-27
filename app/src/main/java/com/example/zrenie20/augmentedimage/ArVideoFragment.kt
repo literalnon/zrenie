@@ -4,6 +4,7 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaPlayer
+import android.media.MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,6 +33,8 @@ open class ArVideoFragment : ArFragment() {
     private lateinit var videoAnchorNode: AnchorNode
 
     private var activeAugmentedImage: AugmentedImage? = null
+    private var mapOfAugmentedImageNode = hashMapOf<AugmentedImage, AugmentedImageNode>()
+    private val anchorNode = AnchorNode()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -163,6 +166,7 @@ open class ArVideoFragment : ArFragment() {
         // Create an ExternalTexture for displaying the contents of the video.
         externalTexture = ExternalTexture().also {
             mediaPlayer.setSurface(it.surface)
+            //mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
         }
 
         // Create a renderable with a material that has a parameter of type 'samplerExternal' so that
@@ -181,7 +185,7 @@ open class ArVideoFragment : ArFragment() {
                 return@exceptionally null
             }
 
-        videoAnchorNode = AnchorNode().apply {
+        videoAnchorNode = anchorNode.apply {
             setParent(arSceneView.scene)
         }
     }
@@ -195,18 +199,25 @@ open class ArVideoFragment : ArFragment() {
     override fun onUpdate(frameTime: FrameTime) {
         val frame = arSceneView.arFrame ?: return
 
+        Log.e("AUGMENTED_IMAGE", "onUpdate")
+
         val updatedAugmentedImages = frame.getUpdatedTrackables(AugmentedImage::class.java)
 
         // If current active augmented image isn't tracked anymore and video playback is started - pause video playback
         val nonFullTrackingImages =
             updatedAugmentedImages.filter { it.trackingMethod != AugmentedImage.TrackingMethod.FULL_TRACKING }
         activeAugmentedImage?.let { activeAugmentedImage ->
+            Log.e("AUGMENTED_IMAGE", "activeAugmentedImage let")
             if (nonFullTrackingImages.any { it.index == activeAugmentedImage.index }) {
-                //arSceneView.scene.removeChild(videoAnchorNode)
-                videoAnchorNode.renderable = null
+                if (videoAnchorNode is AugmentedImageNode) {
+                    Log.e("AUGMENTED_IMAGE", "videoAnchorNode is AugmentedImageNode")
+                    (videoAnchorNode as AugmentedImageNode).pauseImage()
+                } else {
+                    videoAnchorNode.renderable = null
 
-                if (isArVideoPlaying()) {
-                    pauseArVideo()
+                    if (isArVideoPlaying()) {
+                        pauseArVideo()
+                    }
                 }
             }
         }
@@ -222,27 +233,51 @@ open class ArVideoFragment : ArFragment() {
                     if (!isArVideoPlaying()) {
                         resumeArVideo()
                     }
+
                     return
                 }
             } else {
+                if (fullTrackingImages.any { it.index == activeAugmentedImage.index }) {
 
+                    //mapOfAugmentedImageNode[activeAugmentedImage]?.resumeImage()
+                    val augmentedImageNode = mapOfAugmentedImageNode[activeAugmentedImage]!!
+                    videoAnchorNode = augmentedImageNode
+                    augmentedImageNode.setImage(activeAugmentedImage)
+                    augmentedImageNode.resumeImage()
+
+                    return
+                }
             }
         }
 
         // Otherwise - make the first tracked image active and start video playback
         fullTrackingImages.firstOrNull()?.let { augmentedImage ->
             try {
-                Log.e(TAG, "activeAugmentedImage?.name : ${augmentedImage?.name}, ${augmentedImage?.index}")
+                Log.e(
+                    TAG,
+                    "activeAugmentedImage?.name : ${augmentedImage?.name}, ${augmentedImage?.index}"
+                )
+                activeAugmentedImage = augmentedImage
+
                 if (augmentedImage.index < 5) {
                     playbackArVideo(augmentedImage)
                 } else {
                     //pauseArVideo()
-                    videoAnchorNode = AugmentedImageNode(context, augmentedImage).apply {
-                        setImage(augmentedImage)
-                    }
+                    Log.e("AUGMENTED_IMAGE", "create AugmentedImageNode")
+                    //if (mapOfAugmentedImageNode[augmentedImage] == null) {
+                        mapOfAugmentedImageNode[augmentedImage] =
+                            AugmentedImageNode(context, augmentedImage).apply {
+                                //setImage(augmentedImage)
+                                arSceneView.scene.addChild(this)
+                            }
+                    //}
+
+                    val augmentedImageNode = mapOfAugmentedImageNode[augmentedImage]!!
+                    videoAnchorNode = augmentedImageNode
+                    augmentedImageNode.setImage(augmentedImage)
+                    augmentedImageNode.resumeImage()
 
                     //augmentedImageMap[augmentedImage] = node
-                    arSceneView.scene.addChild(videoAnchorNode)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Could not play video [${augmentedImage.name}]", e)
@@ -258,6 +293,7 @@ open class ArVideoFragment : ArFragment() {
     }
 
     private fun resumeArVideo() {
+        videoAnchorNode = anchorNode
         mediaPlayer.start()
         videoAnchorNode.renderable = videoRenderable
     }
@@ -271,6 +307,7 @@ open class ArVideoFragment : ArFragment() {
 
     private fun playbackArVideo(augmentedImage: AugmentedImage) {
         Log.d(TAG, "playbackVideo = ${augmentedImage.name}")
+        //mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
 
         requireContext().assets.openFd(augmentedImage.name)
             .use { descriptor ->
@@ -282,17 +319,18 @@ open class ArVideoFragment : ArFragment() {
                 mediaPlayer.start()
             }
 
-
+        videoAnchorNode = anchorNode
         videoAnchorNode.anchor?.detach()
         videoAnchorNode.anchor = augmentedImage.createAnchor(augmentedImage.centerPose)
         videoAnchorNode.localScale = Vector3(
             augmentedImage.extentX, // width
             1.0f,
-            augmentedImage.extentZ
+            augmentedImage.extentZ * mediaPlayer.videoHeight / mediaPlayer.videoWidth
         ) // height
 
-        activeAugmentedImage = augmentedImage
-
+        //activeAugmentedImage = augmentedImage
+        //Log.e("VIDEO_TRACK", "mediaPlayer.videoHeight : ${mediaPlayer.videoHeight}, mediaPlayer.videoWidth : ${mediaPlayer.videoWidth}")
+        //Log.e("VIDEO_TRACK", "mediaPlayer.videoHeight : ${externalTexture.surfaceTexture.}, mediaPlayer.videoWidth : ${mediaPlayer.videoWidth}")
         externalTexture.surfaceTexture.setOnFrameAvailableListener {
             it.setOnFrameAvailableListener(null)
             videoAnchorNode.renderable = videoRenderable

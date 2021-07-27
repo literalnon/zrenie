@@ -18,6 +18,7 @@
         android:required="true" />
 
     <application
+        android:name=".ZrenieApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -33,9 +34,9 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_base"
             android:theme="@style/Theme.Zrenie20.NoActionBar" />
-        <activity android:name=".myarsample.SpaceActivity" />
+        <activity android:name=".space.SpaceActivity" />
         <activity
-            android:name=".SplashActivity"
+            android:name=".splash.SplashActivity"
             android:label="@string/app_name"
             android:theme="@style/Theme.Zrenie20.NoActionBar">
             <intent-filter>
@@ -44,13 +45,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AugmentedImageActivity" />
-        <activity android:name=".augmentedfaces.AugmentedFacesActivity" />
         <activity android:name=".augmentedFace.augmentedfaces.AugmentedFacesActivity" />
         <activity android:name=".augmentedimage.AugmentedImageActivity" />
         <activity android:name=".cloudanchor.CloudAnchorActivity" />
         <activity android:name=".computervision.ComputerVisionActivity" />
-        <activity android:name=".helloar.HelloArActivity" />
         <activity android:name=".persistentcloudanchor.CloudAnchorActivity" />
         <activity android:name=".sharedcamera.SharedCameraActivity" />
 

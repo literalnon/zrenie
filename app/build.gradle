@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'realm-android'
+    id 'kotlin-android-extensions'
 }
 
 android {
@@ -30,7 +33,13 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+
+    realm {
+        syncEnabled = true
+    }
 }
+
+def glideVersion = "4.10.0"
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -52,7 +61,7 @@ dependencies {
     // https://github.com/javagl/Obj
     implementation 'de.javagl:obj:0.2.1'
 
-    implementation 'com.google.firebase:firebase-database:16.0.5'
+    implementation 'com.google.firebase:firebase-database:20.0.1'
 
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
@@ -72,6 +81,24 @@ dependencies {
     implementation "com.google.ar.sceneform:animation:1.17.1"
 
     implementation 'com.google.code.gson:gson:2.8.5'
+
+    //Retrofit
+    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-gson:$retrofitVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:$httpLoggingInterceptorVersion"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofitVersion"
+
+    implementation 'com.squareup.retrofit2:converter-scalars:2.3.0'
+
+    //Reactivex
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.2'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.0'
+
+    //Glide
+    implementation "com.github.bumptech.glide:glide:$glideVersion"
+    annotationProcessor "com.github.bumptech.glide:compiler:$glideVersion"
+
+    //implementation 'com.google.android.filament:filament-android:1.10.6'
 
 }
 
