@@ -4,9 +4,16 @@
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION"/>
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />
 
     <uses-permission android:name="android.permission.FLASHLIGHT" />
 
@@ -25,8 +32,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Zrenie20">
-        <activity android:name=".SearchActivity"
-            android:theme="@style/Theme.Zrenie20.NoActionBar"/>
+        <activity android:name=".mycloudanchor.MyCloudAnchorActivity"></activity>
+        <activity
+            android:name=".SearchActivity"
+            android:theme="@style/Theme.Zrenie20.NoActionBar" />
         <activity
             android:name=".LibActivity"
             android:theme="@style/Theme.Zrenie20.NoActionBar" />
@@ -51,10 +60,23 @@
         <activity android:name=".computervision.ComputerVisionActivity" />
         <activity android:name=".persistentcloudanchor.CloudAnchorActivity" />
         <activity android:name=".sharedcamera.SharedCameraActivity" />
+        <activity android:name=".persistentcloudanchor.ResolveAnchorsLobbyActivity" />
+        <activity android:name=".location.LocationActivity" />
 
         <meta-data
             android:name="com.google.ar.core"
             android:value="required" />
+        <meta-data
+            android:name="com.google.android.ar.API_KEY"
+            android:value="AIzaSyAk099TeSjI46xPSIZPnAxhif3oXsfDBDA" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAsG6GJeJ4I3LzeADBB8Ouv1jZQTknvG3I" />
+
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>

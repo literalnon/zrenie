@@ -19,7 +19,7 @@ data class DataPackageObject(
     var isHidden: Boolean,
     var createdAt: String?,
     var updatedAt: String?,
-    var dataItems: List<DataItemObject> = HashMap
+    var dataItems: List<DataItemObject> = listOf()//HashMap
 )
 
 open class RealmDataPackageObject(

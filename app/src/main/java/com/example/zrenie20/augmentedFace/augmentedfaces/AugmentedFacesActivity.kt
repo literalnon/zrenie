@@ -30,7 +30,6 @@ import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
-import com.google.ar.sceneform.ux.AugmentedFaceNode
 import kotlinx.android.synthetic.main.augmented_faces_activity.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
@@ -117,7 +116,7 @@ class AugmentedFacesActivity : BaseArActivity() {
                 it
             }*/
 
-        sceneView?.cameraStreamRenderPriority = Renderable.RENDER_PRIORITY_FIRST
+        //sceneView?.cameraStreamRenderPriority = Renderable.RENDER_PRIORITY_FIRST
         val scene = sceneView?.scene
         scene?.addOnUpdateListener { frameTime: FrameTime? ->
 
@@ -131,22 +130,22 @@ class AugmentedFacesActivity : BaseArActivity() {
 
             for (face in faceList) {
                 if (!faceNodeMap.containsKey(face)) {
-                    val faceNode = AugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
-                    faceNode.setParent(scene)
+                    //val faceNode = AugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
+                    //faceNode.setParent(scene)
                     
                     //faceNode = face.createAnchor(face.centerPose)
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable//currentRenderable?.vrRenderable
                     //faceRegionsRenderable = currentRenderable?.vrRenderable
-                    faceNode.renderable = currentRenderable?.vrRenderable
+                    //faceNode.renderable = currentRenderable?.vrRenderable
 
                     // Overlay the 3D assets on the face.
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable
 
                     // Overlay a texture on the face.
-                    faceNode.faceMeshTexture = faceMeshTexture
+                    //faceNode.faceMeshTexture = faceMeshTexture
 
                     //faceNode.faceMeshTexture = faceMeshTexture
-                    faceNodeMap[face] = faceNode
+                    //faceNodeMap[face] = faceNode
                 }
             }
 

@@ -1,6 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.kotlin_version = "1.3.72"
+    //ext.kotlin_version = "1.5.1"
     ext.httpLoggingInterceptorVersion = '3.9.0'
     ext.retrofitVersion = '2.4.0'
 
@@ -10,9 +10,10 @@ buildscript {
     }
     dependencies {
         classpath "com.android.tools.build:gradle:4.1.2"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:3.2.0'
-        classpath 'com.google.ar.sceneform:plugin:1.17.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10"
+        // Google Services (Firebase)
+        classpath 'com.google.gms:google-services:3.2.1'
+        //classpath 'com.google.ar.sceneform:plugin:1.17.0'
 
         classpath "io.realm:realm-gradle-plugin:7.0.0"
         // NOTE: Do not place your application dependencies here; they belong
@@ -25,6 +26,8 @@ allprojects {
         google()
         jcenter()
         mavenLocal()
+
+        maven { url 'https://jitpack.io' }
     }
 }
 

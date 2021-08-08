@@ -47,7 +47,7 @@ import com.google.ar.core.Plane;
 import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
-import com.google.ar.core.Session.FeatureMapQuality;
+//import com.google.ar.core.Session.FeatureMapQuality;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.TrackingState;
 import com.example.zrenie20.common.helpers.CameraPermissionHelper;
@@ -582,9 +582,9 @@ public class CloudAnchorActivity extends AppCompatActivity implements GLSurfaceV
       // Update the FeatureMapQuality for the current camera viewpoint. Can pass in ANY valid camera
       // pose to estimateFeatureMapQualityForHosting(). Ideally, the pose should represent users’
       // expected perspectives.
-      FeatureMapQuality currentQuality =
-          session.estimateFeatureMapQualityForHosting(camera.getPose());
-      featureMapQualityUi.updateQualityForViewpoint(cameraUiFrame, currentQuality);
+      //FeatureMapQuality currentQuality =
+          //session.estimateFeatureMapQualityForHosting(camera.getPose());
+      //featureMapQualityUi.updateQualityForViewpoint(cameraUiFrame, currentQuality);
       float averageQuality = featureMapQualityUi.computeOverallQuality();
       Log.i(TAG, "History of average mapping quality calls: " + averageQuality);
 

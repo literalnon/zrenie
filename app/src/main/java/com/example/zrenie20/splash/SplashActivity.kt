@@ -13,6 +13,7 @@ import com.bumptech.glide.module.AppGlideModule
 import com.example.zrenie20.R
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
 import com.example.zrenie20.data.toRealmDataPackageObject
+import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.network.DataPackageService
 import com.example.zrenie20.network.createService
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -41,7 +42,8 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
             .subscribe({
-                startActivity(Intent(this, AugmentedImageActivity::class.java))
+                //startActivity(Intent(this, AugmentedImageActivity::class.java))
+                startActivity(Intent(this, LocationActivity::class.java))
                 this.finish()
             }, {
                 it.printStackTrace()

@@ -8,6 +8,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
+import com.example.zrenie20.location.LocationActivity
+import com.example.zrenie20.mycloudanchor.MyCloudAnchorActivity
+import com.example.zrenie20.persistentcloudanchor.CloudAnchorActivity
+import com.example.zrenie20.persistentcloudanchor.MainLobbyActivity
+import com.example.zrenie20.persistentcloudanchor.ResolveAnchorsLobbyActivity
 import com.example.zrenie20.space.SpaceActivity
 import kotlinx.android.synthetic.main.activity_settings.*
 
@@ -41,6 +46,11 @@ class SettingsActivity : AppCompatActivity() {
         llAugmentedImage?.setOnClickListener {
             currentScreen = SCREENS.AUGMENTED_IMAGE
             startActivity(Intent(this, AugmentedImageActivity::class.java))
+        }
+
+        llLocation?.setOnClickListener {
+            currentScreen = SCREENS.LOCATION
+            startActivity(Intent(this, LocationActivity::class.java))
         }
 
         tvLibAr?.setOnClickListener {

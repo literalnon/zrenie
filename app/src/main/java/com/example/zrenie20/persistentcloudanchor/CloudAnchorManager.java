@@ -48,8 +48,8 @@ class CloudAnchorManager {
   synchronized void hostCloudAnchor(Anchor anchor, CloudAnchorListener listener) {
     Preconditions.checkNotNull(listener, "The listener cannot be null.");
     // Creating a Cloud Anchor with lifetime  = 1 day. This is configurable up to 365 days.
-    Anchor newAnchor = session.hostCloudAnchorWithTtl(anchor, /* ttlDays= */ 1);
-    pendingAnchors.put(newAnchor, listener);
+    //Anchor newAnchor = session.hostCloudAnchorWithTtl(anchor, /* ttlDays= */ 1);
+    //pendingAnchors.put(newAnchor, listener);
   }
 
   /** Resolves an anchor. The {@code listener} will be invoked when the results are available. */

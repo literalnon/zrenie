@@ -17,7 +17,7 @@ package com.example.zrenie20.persistentcloudanchor;
 
 import android.opengl.Matrix;
 import com.google.ar.core.Pose;
-import com.google.ar.core.Session.FeatureMapQuality;
+//import com.google.ar.core.Session.FeatureMapQuality;
 import com.example.zrenie20.common.rendering.ObjectRenderer;
 
 /** Helper class to display the Feature Map Quality UI for the Persistent Cloud Anchor Sample. */
@@ -85,7 +85,7 @@ class FeatureMapQualityUi {
       return pose;
     }
 
-    public void updateQuality(FeatureMapQuality quality) {
+    /*public void updateQuality(FeatureMapQuality quality) {
       if (quality == FeatureMapQuality.INSUFFICIENT) {
         this.quality = Quality.INSUFFICIENT;
       } else if (quality == FeatureMapQuality.SUFFICIENT) {
@@ -93,7 +93,7 @@ class FeatureMapQualityUi {
       } else {
         this.quality = Quality.GOOD;
       }
-    }
+    }*/
 
     public void draw(
         Pose uiPose, float[] viewMatrix, float[] projectionMatrix, float[] colorCorrectionRgba) {
@@ -177,13 +177,13 @@ class FeatureMapQualityUi {
     return sumQuality / numBars;
   }
 
-  public void updateQualityForViewpoint(float[] cameraPosition, FeatureMapQuality quality) {
+  /*public void updateQualityForViewpoint(float[] cameraPosition, FeatureMapQuality quality) {
     int idx = computeBarIndex(cameraPosition);
     if (idx >= 0 && idx < numBars) {
       QualityBar barInView = bars[idx];
       barInView.updateQuality(quality);
     }
-  }
+  }*/
 
   public void drawUi(
       Pose anchorPose, float[] viewMatrix, float[] projectionMatrix, float[] colorCorrectionRgba) {

@@ -22,6 +22,7 @@ import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.animation.ModelAnimator
+import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.AnimationData
 import com.google.ar.sceneform.rendering.Color
 import com.google.ar.sceneform.rendering.ModelRenderable
@@ -128,7 +129,12 @@ abstract class BaseArActivity : AppCompatActivity() {
             //anchorNode?.let { arFragment?.arSceneView?.scene?.removeChild(anchorNode) }
             // Create the Anchor.
             val anchor = hitResult.createAnchor()
+            val newAnchor = AnchorNode()
+            newAnchor.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
             anchorNode = AnchorNode(anchor)
+            Log.e("CLOUD_ANCHORS", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
+            //anchorNode?.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
+            //anchorNode = newAnchor
             anchorNode?.setParent(arFragment?.arSceneView?.scene)
 
             // Create the transformable andy and add it to the anchor.
