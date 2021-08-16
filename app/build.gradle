@@ -115,6 +115,8 @@ dependencies {
     //implementation 'com.google.android.gms:play-services-location:18.0.0'
     //implementation 'com.google.android.filament:filament-android:1.10.6'
 
+    /*implementation 'org.wlf:FileDownloader:0.3.2'*/
+    implementation 'com.github.oussaki:RxDownloader:0.3'
 }
 
 //apply plugin: 'com.google.ar.sceneform.plugin'

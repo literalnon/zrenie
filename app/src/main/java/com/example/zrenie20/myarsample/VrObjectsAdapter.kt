@@ -1,19 +1,22 @@
 package com.example.zrenie20.myarsample
 
-import android.net.Uri
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.zrenie20.R
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
-import com.example.zrenie20.myarsample.data.DataItemObject
+import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.space.FileDownloadManager
 import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
+import com.oussaki.rxfilesdownloader.RxDownloader
 import kotlinx.android.synthetic.main.item_vr_object.view.*
+import java.io.File
 
 
 class VrObjectsAdapter(
@@ -23,8 +26,9 @@ class VrObjectsAdapter(
     val renderableUploadedFailed: (DataItemObject) -> Unit,
     val renderableRemoveCallback: (DataItemObject) -> Unit,
     val isCanRemoveRenderable: (DataItemObject) -> Boolean
-) :
-    AbstractAdapterDelegate<Any, Any, VrObjectsAdapter.VrObjectsAdapterHolder>() {
+) : AbstractAdapterDelegate<Any, Any, VrObjectsAdapter.VrObjectsAdapterHolder>() {
+
+    val fileDownloadManager = FileDownloadManager()
 
     override fun isForViewType(item: Any, items: List<Any>, position: Int): Boolean {
         return item is DataItemObject
@@ -73,7 +77,12 @@ class VrObjectsAdapter(
         holder.view.setOnClickListener { view ->
             val context = view.context
 
-            Log.e("renderable", "ModelRenderable.builder() 1, ${item.filePath}, ${item.filePath.contains("a")}, ${item.filePath.contains("11")}")
+            Log.e(
+                "renderable",
+                "ModelRenderable.builder() 1, ${item.filePath}, ${item.filePath?.contains("a")}, ${
+                    item.filePath?.contains("11")
+                }"
+            )
 
             if (!selectedRenderable(item)) {
                 var mRenderable: ModelRenderable? = null
@@ -102,41 +111,55 @@ class VrObjectsAdapter(
                             context, raw
                         )
                 } else {*/
-                val recentMode = if (vrDataClass.filePath.contains("f1") || vrDataClass.filePath.contains("f2") || vrDataClass.filePath.contains("f3")) {
-                    RenderableSource.RecenterMode.NONE
-                } else {
-                    RenderableSource.RecenterMode.ROOT
-                }
+                /*val recentMode =
+                    if (vrDataClass.filePath.contains("f1") ||
+                        vrDataClass.filePath.contains("f2") ||
+                        vrDataClass.filePath.contains("f3")
+                    ) {
+                        RenderableSource.RecenterMode.NONE
+                    } else {
+                        RenderableSource.RecenterMode.ROOT
+                    }*/
 
-                    ModelRenderable.builder()
-                        .setSource(
-                            context, //Uri.parse(vrDataClass.link))
-                            RenderableSource.builder().setSource(
-                            context,
-                            Uri.parse(vrDataClass.filePath),
-                            RenderableSource.SourceType.GLB
-                        )
-                            .setScale(0.5f) // Scale the original model to 50%.
-                            .setRecenterMode(recentMode)
+                fileDownloadManager.downloadFile(item.filePath!!, context)
+                    .subscribe({ file ->
+                        ModelRenderable.builder()
+                            .setSource(
+                                context,
+                                RenderableSource
+                                    .builder()
+                                    .setSource(
+                                        context,
+                                        file.toUri(),
+                                        RenderableSource.SourceType.GLB
+                                    )
+                                    .setScale(0.5f)
+                                    //.setRecenterMode(recentMode)
+                                    .build()
+                            )
                             .build()
-                        )
-                //}
-                    //.setRegistryId(vrDataClass.link)
-                    .build()
-                    .thenAccept { renderable: ModelRenderable ->
-                        Log.e("renderable", "ModelRenderable.builder() 5")
-                        if (isSelectedRenderable(item)) {
-                            mRenderable = renderable
-                            renderableUploaded(item, renderable)
-                        }
-                    }
-                    .exceptionally { throwable: Throwable? ->
-                        Log.e("renderable", "ModelRenderable.builder() 6")
+                            .thenAccept { renderable: ModelRenderable ->
+                                Log.e("FileDownloadManager", "ModelRenderable.builder() 5")
+                                if (isSelectedRenderable(item)) {
+                                    mRenderable = renderable
+                                    renderableUploaded(item, renderable)
+                                }
+                            }
+                            .exceptionally { throwable: Throwable? ->
+                                Log.e("FileDownloadManager", "ModelRenderable.builder() 6 : ${throwable?.message}")
+                                if (isSelectedRenderable(item)) {
+                                    renderableUploadedFailed(item)
+                                }
+                                null
+                            }
+                    }, {
+                        Log.e("FileDownloadManager", "subscribe 2 ${it.message}")
                         if (isSelectedRenderable(item)) {
                             renderableUploadedFailed(item)
                         }
-                        null
-                    }
+                    })
+
+
 
 
             }

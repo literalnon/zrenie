@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
-import com.example.zrenie20.myarsample.data.DataItemObject
+import com.example.zrenie20.data.DataItemObject
 import kotlinx.android.synthetic.main.item_lib_object.view.*
 
 

@@ -1,7 +1,7 @@
 package com.example.zrenie20.myarsample.data
 
 import com.example.zrenie20.data.*
-
+/*
 data class DataItemObject(
     val id: DataItemId,
     val name: String? = null,
@@ -52,4 +52,4 @@ fun DataItemObject.toRealmDataItemObject(): RealmDataItemObject {
         createdAt = createdAt,
         updatedAt = updatedAt
     )
-}
+}*/

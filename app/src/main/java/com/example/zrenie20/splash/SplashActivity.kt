@@ -16,6 +16,7 @@ import com.example.zrenie20.data.toRealmDataPackageObject
 import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.network.DataPackageService
 import com.example.zrenie20.network.createService
+import com.example.zrenie20.space.SpaceActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
@@ -43,15 +44,17 @@ class SplashActivity : AppCompatActivity() {
             }
             .subscribe({
                 //startActivity(Intent(this, AugmentedImageActivity::class.java))
-                startActivity(Intent(this, LocationActivity::class.java))
+                startActivity(Intent(this, SpaceActivity::class.java))
+
                 this.finish()
             }, {
+                startActivity(Intent(this, SpaceActivity::class.java))
                 it.printStackTrace()
             })
         )
 
         /*Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, AugmentedImageActivity::class.java))
+            startActivity(Intent(this, LocationActivity::class.java))
             this.finish()
         }, 1000)*/
     }

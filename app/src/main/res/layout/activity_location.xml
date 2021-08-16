@@ -18,6 +18,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/transparent"
     >
 
   <fragment
@@ -29,15 +30,36 @@
   <fragment
       android:id="@+id/map"
       android:name="com.google.android.gms.maps.SupportMapFragment"
-      android:layout_width="0dp"
+      android:layout_width="match_parent"
       android:layout_height="200dp"
-      android:layout_marginStart="32dp"
-      android:layout_marginEnd="32dp"
-      android:layout_marginBottom="64dp"
+      android:layout_marginBottom="180dp"
+      android:background="@android:color/transparent"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent" />
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/ivChangeVisibility"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_change_visibility" />
+
+    <include
+        layout="@layout/layout_focus"
+        android:id="@+id/llFocus"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"/>
+
+    <include
+        layout="@layout/layout_main_activities"
+        android:visibility="gone"
+        android:id="@+id/llMainActivities"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"/>
   <!--<com.google.ar.sceneform.ArSceneView
       android:id="@+id/ar_scene_view"
       android:layout_width="fill_parent"

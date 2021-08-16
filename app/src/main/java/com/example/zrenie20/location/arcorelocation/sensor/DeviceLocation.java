@@ -64,7 +64,7 @@ public class DeviceLocation implements LocationListener {
 
     @Override
     public void onLocationChanged(final Location newLocation) {
-        Log.d(TAG, "(" + newLocation.getLatitude() + "," + newLocation.getLongitude() + ")");
+        Log.d(TAG, "onLocationChanged (" + newLocation.getLatitude() + "," + newLocation.getLongitude() + ") LocationChange : " + newLocation.getBearing());
 
         gpsCount++;
 
@@ -115,13 +115,13 @@ public class DeviceLocation implements LocationListener {
                 criteria.setAltitudeRequired(false);
                 criteria.setSpeedRequired(true);
                 criteria.setCostAllowed(true);
-                criteria.setBearingRequired(false);
+                criteria.setBearingRequired(true);
 
                 //API level 9 and up
                 criteria.setHorizontalAccuracy(Criteria.ACCURACY_HIGH);
                 criteria.setVerticalAccuracy(Criteria.ACCURACY_HIGH);
-                //criteria.setBearingAccuracy(Criteria.ACCURACY_HIGH);
-                //criteria.setSpeedAccuracy(Criteria.ACCURACY_HIGH);
+                criteria.setBearingAccuracy(Criteria.ACCURACY_HIGH);
+                criteria.setSpeedAccuracy(Criteria.ACCURACY_HIGH);
 
                 Integer gpsFreqInMillis = 5000;
                 Integer gpsFreqInDistance = 1;  // in meters
@@ -251,7 +251,9 @@ public class DeviceLocation implements LocationListener {
     }
 
     public void locationEvents() {
+        Log.d(TAG, "LocationChange locationEvents");
         if (locationScene.getLocationChangedEvent() != null) {
+            Log.d(TAG, "LocationChange locationEvents locationScene.getLocationChangedEvent()");
             locationScene.getLocationChangedEvent().onChange(currentBestLocation);
         }
 

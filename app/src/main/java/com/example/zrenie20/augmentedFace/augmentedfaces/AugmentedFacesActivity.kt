@@ -22,7 +22,7 @@ import android.view.View
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.myarsample.BaseArActivity
-import com.example.zrenie20.myarsample.data.DataItemObject
+import com.example.zrenie20.data.DataItemObject
 import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.FrameTime

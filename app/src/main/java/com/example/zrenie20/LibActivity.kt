@@ -4,7 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zrenie20.base.adapters.DelegationAdapter
-import com.example.zrenie20.myarsample.data.DataItemObject
+import com.example.zrenie20.data.DataItemObject
 import kotlinx.android.synthetic.main.activity_lib.*
 import kotlinx.android.synthetic.main.activity_lib.rvAr
 

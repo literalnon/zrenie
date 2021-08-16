@@ -9,4 +9,5 @@ import android.location.Location;
 
 public interface DeviceLocationChanged {
     void onChange(Location location);
+    void simpleChange(Location location);
 }

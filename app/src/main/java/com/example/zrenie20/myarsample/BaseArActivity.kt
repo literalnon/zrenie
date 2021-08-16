@@ -1,6 +1,7 @@
 package com.example.zrenie20.myarsample
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.util.Log
@@ -10,12 +11,17 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.target.SimpleTarget
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.base.adapters.DelegationAdapter
 import com.example.zrenie20.data.DataItemId
-import com.example.zrenie20.myarsample.data.DataItemObject
+import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.data.DataPackageId
 import com.example.zrenie20.myarsample.data.VrRenderableObject
+import com.example.zrenie20.space.FileDownloadManager
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
@@ -24,13 +30,14 @@ import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.animation.ModelAnimator
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.AnimationData
-import com.google.ar.sceneform.rendering.Color
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import com.oussaki.rxfilesdownloader.RxDownloader
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
+
 
 abstract class BaseArActivity : AppCompatActivity() {
     open var isNeedCreateAnchor: Boolean = true
@@ -44,17 +51,9 @@ abstract class BaseArActivity : AppCompatActivity() {
     var arFragment: ArFragment? = null
     var sceneView: ArSceneView? = null
     val vrObjectsMap = hashMapOf<DataItemObject, Node>()
-    private val colors = Arrays.asList(
-        Color(0f, 0f, 0f, 1f),
-        Color(1f, 0f, 0f, 1f),
-        Color(0f, 1f, 0f, 1f),
-        Color(0f, 0f, 1f, 1f),
-        Color(1f, 1f, 0f, 1f),
-        Color(0f, 1f, 1f, 1f),
-        Color(1f, 0f, 1f, 1f),
-        Color(1f, 1f, 1f, 1f)
-    )
-    private var nextColor = 0
+
+    val fileDownloadManager = FileDownloadManager()
+    var checkedPackageId: DataPackageId? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -248,7 +247,7 @@ abstract class BaseArActivity : AppCompatActivity() {
             vrRenderable = renderable
         ).let { item ->
             currentRenderable = item
-            cashedAssets[dataItemObjectDataClass.id] = item
+            cashedAssets[dataItemObjectDataClass.id!!] = item
         }
 
         adapter.notifyDataSetChanged()
