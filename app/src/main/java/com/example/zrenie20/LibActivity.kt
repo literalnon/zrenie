@@ -5,13 +5,19 @@ import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zrenie20.base.adapters.DelegationAdapter
 import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.data.DataPackageObject
+import com.example.zrenie20.data.RealmDataPackageObject
+import com.example.zrenie20.data.toDataPackageObject
+import com.example.zrenie20.myarsample.BaseArActivity
+import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_lib.*
 import kotlinx.android.synthetic.main.activity_lib.rvAr
 
 class LibActivity : AppCompatActivity() {
 
     val adapter = DelegationAdapter<Any>()
-    open val assetsArray = arrayListOf(
+    open var assetsArray = arrayListOf<DataPackageObject>()
+        /*
         DataItemObject(
             id = 0,
             filePath = "https://github.com/literalnon/AR/raw/master/app/src/main/models/1.glb",
@@ -138,6 +144,7 @@ class LibActivity : AppCompatActivity() {
             name = "s25"
         )
     )
+    */
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -148,10 +155,25 @@ class LibActivity : AppCompatActivity() {
         rvAr.layoutManager = layoutManager
 
         adapter?.manager?.addDelegate(
-            LibAdapter()
+            LibAdapter(onSelectedItem = {
+                BaseArActivity.checkedPackageId = it.id
+                onBackPressed()
+            })
         )
 
-        adapter.addAll(assetsArray)
+        Realm.getDefaultInstance()
+            .executeTransaction { realm ->
+                val packages = realm.where(RealmDataPackageObject::class.java)
+                    .findAll()
+                    .map { it.toDataPackageObject() }
+                    .sortedBy { it.order?.toLongOrNull() }
+
+                assetsArray = arrayListOf<DataPackageObject>().apply {
+                    addAll(packages)
+                }
+
+                adapter.addAll(assetsArray)
+            }
 
         ivBack?.setOnClickListener {
             onBackPressed()

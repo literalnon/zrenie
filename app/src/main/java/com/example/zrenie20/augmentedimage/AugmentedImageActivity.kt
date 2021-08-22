@@ -70,18 +70,12 @@ class AugmentedImageActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (augmentedImageMap.isEmpty()) {
-        }
-    }
-
     /**
      * Registered with the Sceneform Scene object, this method is called at the start of each frame.
      *
      * @param frameTime - time since last frame.
      */
-    private fun onUpdateFrame(frameTime: FrameTime) {
+    /*private fun onUpdateFrame(frameTime: FrameTime) {
         val frame = arFragment!!.arSceneView.arFrame ?: return
 
         // If there is no frame, just return.
@@ -109,7 +103,7 @@ class AugmentedImageActivity : AppCompatActivity() {
                     // Create a new anchor for newly found images.
                     if (!augmentedImageMap.containsKey(augmentedImage)) {
                         Log.e("AugmentedImageFragment", "name: " + augmentedImage.name)
-                        val node = AugmentedImageNode(this, augmentedImage)
+                        val node = AugmentedImageNode(this, augmentedImage, renderableFile)
                         node.setImage(augmentedImage)
 
                         augmentedImageMap[augmentedImage] = node
@@ -122,5 +116,5 @@ class AugmentedImageActivity : AppCompatActivity() {
                 }
             }
         }
-    }
+    }*/
 }

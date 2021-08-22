@@ -6,14 +6,17 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
 import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.data.DataPackageObject
 import kotlinx.android.synthetic.main.item_lib_object.view.*
 
 
-class LibAdapter() :
+class LibAdapter(
+    val onSelectedItem: (DataPackageObject) -> Unit
+) :
     AbstractAdapterDelegate<Any, Any, LibAdapter.VrObjectsAdapterHolder>() {
 
     override fun isForViewType(item: Any, items: List<Any>, position: Int): Boolean {
-        return item is DataItemObject
+        return item is DataPackageObject
     }
 
     override fun onCreateViewHolder(parent: ViewGroup): VrObjectsAdapterHolder {
@@ -31,10 +34,16 @@ class LibAdapter() :
         items: List<Any>,
         position: Int
     ) {
-        holder.tvLabel.text = "Label"
-        holder.tvTitle.text = "Название пакета"
-        holder.tvContent.text = "Краткое описание"
-        holder.tvTags.text = "#теги #теги #теги"
+        item as DataPackageObject
+
+        holder.tvLabel.text = item.id.toString()//"Label"
+        holder.tvTitle.text = item.name//"Название пакета"
+        holder.tvContent.text = item.description//"Краткое описание"
+        holder.tvTags.text = item.thumbnailPath//"#теги #теги #теги"
+
+        holder.view.setOnClickListener {
+            onSelectedItem(item)
+        }
     }
 
     class VrObjectsAdapterHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

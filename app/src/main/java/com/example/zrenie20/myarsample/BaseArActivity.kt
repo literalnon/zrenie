@@ -17,10 +17,10 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.base.adapters.DelegationAdapter
-import com.example.zrenie20.data.DataItemId
-import com.example.zrenie20.data.DataItemObject
-import com.example.zrenie20.data.DataPackageId
+import com.example.zrenie20.data.*
 import com.example.zrenie20.myarsample.data.VrRenderableObject
+import com.example.zrenie20.network.DataItemsService
+import com.example.zrenie20.network.createService
 import com.example.zrenie20.space.FileDownloadManager
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
@@ -34,12 +34,19 @@ import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 import com.oussaki.rxfilesdownloader.RxDownloader
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
 
 
 abstract class BaseArActivity : AppCompatActivity() {
+    companion object {
+        var checkedPackageId: DataPackageId? = null
+    }
+
     open var isNeedCreateAnchor: Boolean = true
     open var currentRenderable: VrRenderableObject? = null
     open val adapter = DelegationAdapter<Any>()
@@ -53,7 +60,6 @@ abstract class BaseArActivity : AppCompatActivity() {
     val vrObjectsMap = hashMapOf<DataItemObject, Node>()
 
     val fileDownloadManager = FileDownloadManager()
-    var checkedPackageId: DataPackageId? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -207,15 +213,140 @@ abstract class BaseArActivity : AppCompatActivity() {
             )
         )
 
-        loadData()
-
         ivStack?.setOnClickListener {
             startActivity(Intent(this, LibActivity::class.java))
         }
     }
 
-    open fun loadData() {
+    override fun onStart() {
+        super.onStart()
+        loadData()
+    }
+
+    /*open fun loadData() {
         adapter.addAll(assetsArray)
+    }*/
+
+    open fun loadData() {
+        val isNeedFilterTrigger = false
+
+        val service = createService(DataItemsService::class.java)
+
+        Log.e("FileDownloadManager", "loadData")
+
+        Realm.getDefaultInstance()
+            .executeTransaction { realm ->
+                val packages = realm.where(RealmDataPackageObject::class.java)
+                    .findAll()
+                    .map { it.toDataPackageObject() }
+                    .sortedBy { it.order?.toLongOrNull() }
+
+                val activePackage = if (checkedPackageId == null) {
+                    val ap = packages.firstOrNull()
+                    checkedPackageId = ap?.id
+                    ap
+                } else {
+                    packages.firstOrNull {
+                        it.id == checkedPackageId
+                    }
+                }
+
+                Log.e(
+                    "FileDownloadManager",
+                    "loadData 1 activePackage?.dataItems?.isNotEmpty() : ${activePackage?.dataItems?.isNotEmpty()}"
+                )
+
+
+                val items = realm.where(RealmDataItemObject::class.java)
+                    .equalTo("dataPackageId", activePackage?.id)
+
+                var dataItems = items.findAll()
+                    .map { it.toDataItemObject() }
+
+                if (isNeedFilterTrigger) {
+                    //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
+                    dataItems = dataItems.filter { it.trigger?.typeId == SettingsActivity.currentScreen.type.id }
+                }
+                Log.e(
+                    "FileDownloadManager",
+                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
+                )
+
+                if (dataItems.isNotEmpty()) {
+                    assetsArray = arrayListOf<DataItemObject>().apply {
+                        addAll(dataItems)
+                    }
+
+                    adapter.replaceAll(assetsArray)
+
+                    return@executeTransaction
+                }
+
+                val observable =
+                    /*Observable.fromIterable<DataPackageObject>(packages)
+                    .flatMap { packageObject ->*/
+                    service.getEntryTypes()//packageObject.id.toString()
+                        //}
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ items ->
+                            Log.e(
+                                "FileDownloadManager",
+                                "subscribe 2 checkedPackageId : ${checkedPackageId}, SettingsActivity.currentScreen.type.id : ${SettingsActivity.currentScreen.type.id}"
+                            )
+                            Log.e("FileDownloadManager", "subscribe 3 items : ${items.count()}")
+                            Log.e(
+                                "FileDownloadManager",
+                                "subscribe 3 1 items : ${items.map { it?.triggerId }}"
+                            )
+                            val currentPackageItems = items
+                                .filter {
+                                    it?.dataPackageId == checkedPackageId && if (isNeedFilterTrigger) {
+                                        it?.trigger?.type?.id == SettingsActivity.currentScreen.type.id
+                                    } else {
+                                        true
+                                    }
+                                }
+
+                            Log.e(
+                                "FileDownloadManager",
+                                "subscribe 3 currentPackageItems : ${currentPackageItems.count()}"
+                            )
+
+                            if (currentPackageItems.isNotEmpty()) {
+                                assetsArray = arrayListOf<DataItemObject>().apply {
+                                    addAll(currentPackageItems)
+                                }
+                                adapter.replaceAll(assetsArray)
+                            }
+
+                            realm
+                                .executeTransaction { realm ->
+
+                                    realm.delete(RealmDataItemObject::class.java)
+
+                                    items.map {
+                                        realm.copyToRealm(it.toRealmDataItemObject())
+                                    }
+                                }
+                        }, {
+                            Log.e("FileDownloadManager", "subscribe 4 error : ${it.message}")
+
+                            it.printStackTrace()
+                        })
+
+
+                /*assetsArray = arrayListOf<DataItemObject>().apply {
+                    addAll(firstPackage
+                        ?.dataItems
+                        ?.map {
+                            it.toDataItemObject()
+                        } ?: listOf()
+                    )
+                }*/
+
+                //adapter.addAll(assetsArray)
+            }
     }
 
     open fun isSelectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
@@ -239,7 +370,10 @@ abstract class BaseArActivity : AppCompatActivity() {
         }
     }
 
-    open fun renderableUploaded(dataItemObjectDataClass: DataItemObject, renderable: ModelRenderable) {
+    open fun renderableUploaded(
+        dataItemObjectDataClass: DataItemObject,
+        renderable: ModelRenderable
+    ) {
         flProgressBar.visibility = View.GONE
 
         VrRenderableObject(

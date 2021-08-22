@@ -22,6 +22,7 @@ import android.util.Log
 import android.widget.MediaController
 import android.widget.VideoView
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.net.toUri
 import com.example.zrenie20.R
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
@@ -35,6 +36,7 @@ import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.common.reflect.Reflection.getPackageName
+import java.io.File
 import java.lang.Exception
 import java.util.concurrent.CompletableFuture
 
@@ -44,7 +46,8 @@ import java.util.concurrent.CompletableFuture
  */
 class AugmentedImageNode(
     val context: Context?,
-    val augmentedImage: AugmentedImage
+    val augmentedImage: AugmentedImage,
+    val renderableFile: File
 ) : AnchorNode() {
 
     // The augmented image represented by this node.
@@ -219,58 +222,18 @@ class AugmentedImageNode(
         }
     }
 
-    val items = arrayListOf<RenderableConfig>(
-        RenderableConfig(
-            renderableType = 0,
-            resource = "android.resource://" + (context?.packageName ?: "") + "/" + R.raw.augmented_video_model,
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        ),
-        RenderableConfig(
-            renderableType = 0,
-            resource = "android.resource://" + (context?.packageName ?: "") + "/" + R.raw.i2,
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        ),
-        RenderableConfig(
-            renderableType = 0,
-            resource = "android.resource://" + (context?.packageName ?: "") + "/" + R.raw.i3,
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        ),
-        RenderableConfig(
-            renderableType = 0,
-            resource = "android.resource://" + (context?.packageName ?: "") + "/" + R.raw.i4,
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        ),
-        RenderableConfig(
-            renderableType = 0,
-            resource = "android.resource://" + (context?.packageName ?: "") + "/" + R.raw.i5,
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        ),
-        RenderableConfig(
-            renderableType = 1,
-            resource = "file:///android_asset/aImage/i6.glb",
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        ),
-        RenderableConfig(
-            renderableType = 1,
-            resource = "file:///android_asset/aImage/i7a.glb",
-            videoAnchorNode = this,
-            augmentedImage = augmentedImage
-        )
-    )
-
     init {
         // Upon construction, start loading the models for the corners of the frame.
         val index = augmentedImage.index ?: 0
 
         if (Companion.mRenderable[index] == null) {
 
-            val rConfig = items.get(index)
+            val rConfig = RenderableConfig(
+                renderableType = 1,
+                        resource = renderableFile.toUri().toString(),
+                        videoAnchorNode = this,
+                        augmentedImage = augmentedImage
+            )
 
             try {
                 Companion.mRenderable.put(index, rConfig.getRenderable(context))

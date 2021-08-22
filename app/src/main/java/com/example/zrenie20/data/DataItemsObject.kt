@@ -59,7 +59,6 @@ open class DataItemObject(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val type: TypeItemObject? = null,
-    val dataPackage: DataPackageObject? = null,
     val trigger: TriggerItemObject? = null
 )
 
@@ -79,7 +78,6 @@ fun DataItemObject.toRealmDataItemObject(): RealmDataItemObject {
         createdAt = createdAt,
         updatedAt = updatedAt,
         type = type?.toRealmTypeItemObject(),
-        dataPackage = dataPackage?.toRealmDataPackageObject(),
         trigger = trigger?.toRealmTriggerItemObject(),
     )
 }

@@ -12,6 +12,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.module.AppGlideModule
 import com.example.zrenie20.R
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
+import com.example.zrenie20.data.RealmDataPackageObject
 import com.example.zrenie20.data.toRealmDataPackageObject
 import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.network.DataPackageService
@@ -35,12 +36,15 @@ class SplashActivity : AppCompatActivity() {
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .map { list ->
-                list.forEach { packageObject ->
-                    Realm.getDefaultInstance()
-                        .executeTransaction { realm ->
+                Realm.getDefaultInstance()
+                    .executeTransaction { realm ->
+                        realm.delete(RealmDataPackageObject::class.java)
+
+                        list.forEach { packageObject ->
+
                             realm.copyToRealm(packageObject.toRealmDataPackageObject())
                         }
-                }
+                    }
             }
             .subscribe({
                 //startActivity(Intent(this, AugmentedImageActivity::class.java))

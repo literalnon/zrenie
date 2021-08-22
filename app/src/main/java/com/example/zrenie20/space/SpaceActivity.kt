@@ -2,6 +2,7 @@ package com.example.zrenie20.space
 
 import android.util.Log
 import com.example.zrenie20.R
+import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.data.*
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataItemsService
@@ -224,7 +225,7 @@ open class SpaceActivity : BaseArActivity() {
     )*/
     }
 
-    override fun loadData() {
+    /*override fun loadData() {
         val service = createService(DataItemsService::class.java)
 
         Log.e("FileDownloadManager", "loadData")
@@ -253,11 +254,12 @@ open class SpaceActivity : BaseArActivity() {
 
                 val dataItems = realm.where(RealmDataItemObject::class.java)
                     .equalTo("dataPackageId", activePackage?.id)
+                    .equalTo("triggerId", SettingsActivity.currentScreen.type.id)
                     .findAll()
 
                 Log.e(
                     "FileDownloadManager",
-                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}"
+                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
                 )
 
                 if (dataItems.isNotEmpty()) {
@@ -265,14 +267,14 @@ open class SpaceActivity : BaseArActivity() {
                         addAll(dataItems.map { it.toDataItemObject() })
                     }
 
-                    adapter.addAll(assetsArray)
+                    adapter.replaceAll(assetsArray)
 
                     return@executeTransaction
                 }
 
                 val observable =
-                    /*Observable.fromIterable<DataPackageObject>(packages)
-                    .flatMap { packageObject ->*/
+                    *//*Observable.fromIterable<DataPackageObject>(packages)
+                    .flatMap { packageObject ->*//*
                     service.getEntryTypes()//packageObject.id.toString()
                         //}
                         .subscribeOn(Schedulers.newThread())
@@ -280,10 +282,15 @@ open class SpaceActivity : BaseArActivity() {
                         .subscribe({ items ->
                             Log.e(
                                 "FileDownloadManager",
-                                "subscribe 2 checkedPackageId : ${checkedPackageId}"
+                                "subscribe 2 checkedPackageId : ${checkedPackageId}, SettingsActivity.currentScreen.type.id : ${SettingsActivity.currentScreen.type.id}"
                             )
                             Log.e("FileDownloadManager", "subscribe 3 items : ${items.count()}")
-                            val currentPackageItems = items.filter { it?.dataPackageId == checkedPackageId }
+                            Log.e("FileDownloadManager", "subscribe 3 1 items : ${items.map { it?.triggerId  }}")
+                            val currentPackageItems = items
+                                .filter {
+                                    it?.dataPackageId == checkedPackageId &&
+                                            it?.triggerId == SettingsActivity.currentScreen.type.id
+                                }
 
                             Log.e("FileDownloadManager", "subscribe 3 currentPackageItems : ${currentPackageItems.count()}")
 
@@ -291,11 +298,14 @@ open class SpaceActivity : BaseArActivity() {
                                 assetsArray = arrayListOf<DataItemObject>().apply {
                                     addAll(currentPackageItems)
                                 }
-                                adapter.addAll(assetsArray)
+                                adapter.replaceAll(assetsArray)
                             }
 
                             realm
                                 .executeTransaction { realm ->
+
+                                    realm.delete(RealmDataItemObject::class.java)
+
                                     items.map {
                                         realm.copyToRealm(it.toRealmDataItemObject())
                                     }
@@ -307,16 +317,16 @@ open class SpaceActivity : BaseArActivity() {
                         })
 
 
-                /*assetsArray = arrayListOf<DataItemObject>().apply {
+                *//*assetsArray = arrayListOf<DataItemObject>().apply {
                     addAll(firstPackage
                         ?.dataItems
                         ?.map {
                             it.toDataItemObject()
                         } ?: listOf()
                     )
-                }*/
+                }*//*
 
-                adapter.addAll(assetsArray)
+                //adapter.addAll(assetsArray)
             }
-    }
+    }*/
 }

@@ -111,15 +111,15 @@ class VrObjectsAdapter(
                             context, raw
                         )
                 } else {*/
-                /*val recentMode =
-                    if (vrDataClass.filePath.contains("f1") ||
-                        vrDataClass.filePath.contains("f2") ||
-                        vrDataClass.filePath.contains("f3")
+                val recentMode =
+                    if (vrDataClass.filePath?.contains("f1") == true ||
+                        vrDataClass.filePath?.contains("f2") == true ||
+                        vrDataClass.filePath?.contains("f3") == true || true
                     ) {
                         RenderableSource.RecenterMode.NONE
                     } else {
                         RenderableSource.RecenterMode.ROOT
-                    }*/
+                    }
 
                 fileDownloadManager.downloadFile(item.filePath!!, context)
                     .subscribe({ file ->
@@ -134,7 +134,7 @@ class VrObjectsAdapter(
                                         RenderableSource.SourceType.GLB
                                     )
                                     .setScale(0.5f)
-                                    //.setRecenterMode(recentMode)
+                                    .setRecenterMode(recentMode)
                                     .build()
                             )
                             .build()
