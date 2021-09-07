@@ -40,7 +40,7 @@ class AugmentedImageActivity : AppCompatActivity() {
         setContentView(R.layout.augmented_image_activity)
 
         //arFragment = supportFragmentManager.findFragmentById(R.id.mArFragment) as ArFragment?
-        ArVideoFragment()?.let { mArFragment ->
+        IVideoArFragment()?.let { mArFragment ->
             arFragment = mArFragment
             supportFragmentManager.let {
                 it.beginTransaction()

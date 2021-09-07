@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:alpha="0.93"
-    android:background="#a70a04"
-    android:orientation="vertical"
-    android:padding="30dp">
+    android:layout_width="60dp"
+    android:layout_height="60dp"
+    android:background="@android:color/transparent"
+    >
 
-    <TextView
+    <!--<TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,5 +18,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#fff"
-        android:textSize="24sp" />
-</LinearLayout>
+        android:textSize="24sp" />-->
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/ivMarker"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_less_100"/>
+</FrameLayout>

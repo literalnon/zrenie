@@ -76,26 +76,6 @@ open class ArVideoFragment : ArFragment() {
         return view
     }
 
-    /*val paths: ArrayList<String> = arrayListOf(
-        "it1.png",
-        "face/it2.png",
-        "it3.png",
-        "it4.jpeg",
-        "it5.jpeg",
-        "it6.jpeg",
-        "it7.jpeg"
-    )*/
-
-    /*val links: ArrayList<String> = arrayListOf(
-        "i1.mp4",
-        "i2.mp4",
-        "i3.mp4",
-        "i4.mp4",
-        "i5.mp4",
-        "i6.glb",
-        "i7a.glb"
-    )*/
-
     private fun setupAugmentedImageDatabase(config: Config, session: Session): Boolean {
         val augmentedImageBitmap = loadAugmentedImageBitmap()
         if (augmentedImageBitmap.isEmpty()) {
@@ -111,181 +91,11 @@ open class ArVideoFragment : ArFragment() {
         return true
     }
 
-    override fun onResume() {
-        super.onResume()
-
-    }
-
     private fun loadAugmentedImageBitmap(): HashMap<String, Bitmap?> {
-
-        /*assetsArray.forEach { itemObject ->
-            try {
-                Glide.with(requireContext())
-                    .asBitmap()
-                    .load(itemObject.trigger?.filePath)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(object : CustomTarget<Bitmap?>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap?>?
-                        ) {
-                            bitmaps[itemObject.trigger?.filePath ?: ""] = resource
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-
-                        }
-                    })
-            } catch (e: IOException) {
-                Log.e(TAG, "IO exception loading augmented image bitmap.", e)
-            }
-        }*/
         return bitmaps
     }
 
-    open fun loadData() {
-        val isNeedFilterTrigger = false
-
-        val service = createService(DataItemsService::class.java)
-
-        Log.e("FileDownloadManager", "loadData")
-
-        Realm.getDefaultInstance()
-            .executeTransaction { realm ->
-                val packages = realm.where(RealmDataPackageObject::class.java)
-                    .findAll()
-                    .map { it.toDataPackageObject() }
-                    .sortedBy { it.order?.toLongOrNull() }
-
-                val activePackage = if (BaseArActivity.checkedPackageId == null) {
-                    val ap = packages.firstOrNull()
-                    BaseArActivity.checkedPackageId = ap?.id
-                    ap
-                } else {
-                    packages.firstOrNull {
-                        it.id == BaseArActivity.checkedPackageId
-                    }
-                }
-
-                Log.e(
-                    "FileDownloadManager",
-                    "loadData 1 activePackage?.dataItems?.isNotEmpty() : ${activePackage?.dataItems?.isNotEmpty()}"
-                )
-
-
-                val items = realm.where(RealmDataItemObject::class.java)
-                    .equalTo("dataPackageId", activePackage?.id)
-
-                var dataItems = items.findAll()
-                    .map { it.toDataItemObject() }
-
-                if (isNeedFilterTrigger) {
-                    //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
-                    dataItems =
-                        dataItems.filter { it.trigger?.typeId == SettingsActivity.currentScreen.type.id }
-                }
-                Log.e(
-                    "FileDownloadManager",
-                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
-                )
-
-                if (dataItems.isNotEmpty()) {
-                    assetsArray = arrayListOf<DataItemObject>().apply {
-                        addAll(dataItems)
-                    }
-
-                    initializeSession()
-
-                    return@executeTransaction
-                }
-
-                val observable =
-                    /*Observable.fromIterable<DataPackageObject>(packages)
-                    .flatMap { packageObject ->*/
-                    service.getEntryTypes()//packageObject.id.toString()
-                        //}
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ items ->
-                            Log.e(
-                                "FileDownloadManager",
-                                "subscribe 2 checkedPackageId : ${BaseArActivity.checkedPackageId}, SettingsActivity.currentScreen.type.id : ${SettingsActivity.currentScreen.type.id}"
-                            )
-                            Log.e("FileDownloadManager", "subscribe 3 items : ${items.count()}")
-                            Log.e(
-                                "FileDownloadManager",
-                                "subscribe 3 1 items : ${items.map { it?.triggerId }}"
-                            )
-                            val currentPackageItems = items
-                                .filter {
-                                    it?.dataPackageId == BaseArActivity.checkedPackageId && if (isNeedFilterTrigger) {
-                                        it?.trigger?.type?.id == SettingsActivity.currentScreen.type.id
-                                    } else {
-                                        true
-                                    }
-                                }
-
-                            Log.e(
-                                "FileDownloadManager",
-                                "subscribe 3 currentPackageItems : ${currentPackageItems.count()}"
-                            )
-
-                            if (currentPackageItems.isNotEmpty()) {
-                                assetsArray = arrayListOf<DataItemObject>().apply {
-                                    addAll(currentPackageItems)
-                                }
-                                initializeSession()
-                            }
-
-                            realm
-                                .executeTransaction { realm ->
-
-                                    realm.delete(RealmDataItemObject::class.java)
-
-                                    items.map {
-                                        realm.copyToRealm(it.toRealmDataItemObject())
-                                    }
-                                }
-                        }, {
-                            Log.e("FileDownloadManager", "subscribe 4 error : ${it.message}")
-
-                            it.printStackTrace()
-                        })
-
-
-                /*assetsArray = arrayListOf<DataItemObject>().apply {
-                    addAll(firstPackage
-                        ?.dataItems
-                        ?.map {
-                            it.toDataItemObject()
-                        } ?: listOf()
-                    )
-                }*/
-
-                //adapter.addAll(assetsArray)
-            }
-    }
-
     override fun getSessionConfiguration(session: Session): Config {
-
-        /*fun loadAugmentedImageBitmap(imageName: String): Bitmap =
-            requireContext().assets.open(imageName).use { return BitmapFactory.decodeStream(it) }
-
-        fun setupAugmentedImageDatabase(config: Config, session: Session): Boolean {
-            try {
-                config.augmentedImageDatabase = AugmentedImageDatabase(session).also { db ->
-                    db.addImage(TEST_VIDEO_1, loadAugmentedImageBitmap(TEST_IMAGE_1))
-                    db.addImage(TEST_VIDEO_2, loadAugmentedImageBitmap(TEST_IMAGE_2))
-                    db.addImage(TEST_VIDEO_3, loadAugmentedImageBitmap(TEST_IMAGE_3))
-                }
-                return true
-            } catch (e: IllegalArgumentException) {
-                Log.e(TAG, "Could not add bitmap to augmented image database", e)
-            } catch (e: IOException) {
-                Log.e(TAG, "IO exception loading augmented image bitmap.", e)
-            }
-            return false
-        }*/
 
         val config = Config(session)
         config.focusMode = Config.FocusMode.AUTO
@@ -398,7 +208,7 @@ open class ArVideoFragment : ArFragment() {
 
         // If current active augmented image is tracked but video playback is paused - resume video playback
         activeAugmentedImage?.let { activeAugmentedImage ->
-            if (arItem?.type?.id == "2") {//activeAugmentedImage.index < 5) {
+            if (arItem?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {//activeAugmentedImage.index < 5) {
                 if (fullTrackingImages.any { it.index == activeAugmentedImage.index }) {
                     if (!isArVideoPlaying()) {
                         resumeArVideo()
@@ -441,7 +251,7 @@ open class ArVideoFragment : ArFragment() {
                 Log.e("AUGMENTED_IMAGE", "activeAugmentedImage?.name : ${activeAugmentedImage?.name}")
                 Log.e("AUGMENTED_IMAGE", "assetsArray : ${Gson().toJson(assetsArray)}")
 
-                if (mArItem?.type?.id == "2") {
+                if (mArItem?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
                     mediaPlayer.reset()
                 }
 
@@ -450,17 +260,17 @@ open class ArVideoFragment : ArFragment() {
 
                         Log.e("AUGMENTED_IMAGE", "arItem?.type?.id : ${mArItem?.type?.id}")
 
-                        if (mArItem?.type?.id == "2") {
+                        if (mArItem?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
                             playbackArVideo(augmentedImage, renderableFile)
                         } else {
                             //pauseArVideo()
                             Log.e("AUGMENTED_IMAGE", "create AugmentedImageNode")
                             //if (mapOfAugmentedImageNode[augmentedImage] == null) {
-                            mapOfAugmentedImageNode[augmentedImage] =
-                                AugmentedImageNode(context, augmentedImage, renderableFile).apply {
+                            /*mapOfAugmentedImageNode[augmentedImage] =
+                                AugmentedImageNode(, augmentedImage, renderableFile).apply {
                                     //setImage(augmentedImage)
                                     arSceneView.scene.addChild(this)
-                                }
+                                }*/
                             //}
 
                             val augmentedImageNode = mapOfAugmentedImageNode[augmentedImage]!!

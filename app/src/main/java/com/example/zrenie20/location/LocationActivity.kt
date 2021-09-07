@@ -2,27 +2,31 @@ package com.example.zrenie20.location
 
 import android.content.Context
 import android.content.Intent
-import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.TextView
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.view.marginBottom
+import com.example.zrenie20.LibActivity
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
-import com.example.zrenie20.augmentedimage.ArVideoFragment
+import com.example.zrenie20.data.*
 import com.example.zrenie20.location.arcorelocation.LocationMarker
 import com.example.zrenie20.location.arcorelocation.LocationScene
 import com.example.zrenie20.location.arcorelocation.rendering.LocationNodeRender
 import com.example.zrenie20.location.arcorelocation.utils.ARLocationPermissionHelper
+import com.example.zrenie20.myarsample.BaseArActivity
+import com.example.zrenie20.network.DataItemsService
+import com.example.zrenie20.network.createService
+import com.example.zrenie20.renderable.ArRenderObjectFactory
+import com.example.zrenie20.renderable.ArVideoRenderObject
+import com.example.zrenie20.space.FileDownloadManager
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -30,20 +34,20 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.google.ar.core.Anchor
-import com.google.ar.core.AugmentedImage
 import com.google.ar.core.Plane
 import com.google.ar.core.TrackingState
 import com.google.ar.core.exceptions.CameraNotAvailableException
 import com.google.ar.core.exceptions.UnavailableException
 import com.google.ar.sceneform.*
-import com.google.ar.sceneform.assets.RenderableSource
+import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.ExternalTexture
-import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.activity_location.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_location.llFocus
@@ -62,33 +66,25 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
     private var loadingMessageSnackbar: Snackbar? = null
     private var arSceneView: ArSceneView? = null
 
-    /*private lateinit var mediaPlayer: MediaPlayer
-    private lateinit var externalTexture: ExternalTexture
-    private lateinit var videoRenderable: ModelRenderable*/
+    private val anchorNode = AnchorNode()
 
     // Renderables for this example
-    private var andyRenderable: Renderable? = null
     private var exampleLayoutRenderable: ViewRenderable? = null
 
     // Our ARCore-Location scene
     private var locationScene: LocationScene? = null
 
-    var longitude1 = 39.684878//39.694841//47.269713//47.262300//47.269713
-    var longitude2 = 39.689366//39.684101//47.262300//47.269713
-    var latitude1 = 47.260584//47.258984//39.677922//39.682470
-    var latitude2 = 47.260719//47.257441//39.682470
+    val dataItemArr = arrayListOf<DataItemObject>()
 
     var mapFragment: SupportMapFragment? = null
-    //var videoLocationmarker: LocationMarker? = null
+
     var arFragment: LocationArFragment? = null
-    var layoutLocationMarker: LocationMarker? = null
 
     // CompletableFuture requires api level 24
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location)
-        //mediaPlayer = MediaPlayer()
-        createArScene()
+
         //arSceneView = findViewById(R.id.ar_scene_view);
         arFragment = ar_fragment as LocationArFragment
         arSceneView = arFragment?.arSceneView!!
@@ -96,20 +92,14 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment!!.getMapAsync(this)
 
+        loadData()
+
         // Build a renderable from a 2D View.
         val exampleLayout = ViewRenderable.builder()
             .setView(this, R.layout.example_layout)
             .build()
             .thenApply {
                 exampleLayoutRenderable = it
-                hasFinishedLoading = true
-            }
-
-        ViewRenderable.builder()
-            .setView(this, R.layout.example_layout_2)
-            .build()
-            .thenApply {
-                andyRenderable = it
                 hasFinishedLoading = true
             }
 
@@ -138,63 +128,183 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                 if (locationScene == null) {
                     locationScene = LocationScene(this, arSceneView!!)
 
-                    layoutLocationMarker = LocationMarker(
-                        longitude1,
-                        latitude1,
-                        exampleView
-                    )
+                    dataItemArr.forEach { dataItem ->
+                        val lat = dataItem.trigger?.latitude?.toDoubleOrNull()
+                        val lon = dataItem.trigger?.longitude?.toDoubleOrNull()
 
-                    layoutLocationMarker?.renderEvent = LocationNodeRender { node ->
-                        val eView = exampleLayoutRenderable?.view
-                        val distanceTextView = eView?.findViewById<TextView>(R.id.textView2)
-                        distanceTextView?.text = node.distance.toString() + "M"
+                        if (lat != null && lon != null) {
+                            val layoutLocationMarker = LocationMarker(
+                                lon,
+                                lat,
+                                exampleView
+                            )
+
+                            layoutLocationMarker?.renderEvent = LocationNodeRender { node ->
+                                val eView = exampleLayoutRenderable?.view
+                                val markerView = eView?.findViewById<ImageView>(R.id.ivMarker)
+
+                                when {
+                                    node.distance <= 100 -> {
+                                        markerView?.setImageResource(R.drawable.ic_less_100)
+                                    }
+                                    node.distance <= 3000 -> {
+                                        markerView?.setImageResource(R.drawable.ic_less_3000)
+                                    }
+                                    else -> {
+                                        markerView?.setImageResource(R.drawable.ic_logotype)
+                                    }
+                                }
+
+                                eView?.setOnTouchListener { v: View?, event: MotionEvent? ->
+                                    Toast.makeText(
+                                        this, "exampleView Location marker touched.", Toast.LENGTH_LONG
+                                    ).show()
+
+                                    if (dataItem.filePath?.isNotEmpty() != true){
+                                        return@setOnTouchListener false
+                                    }
+                                    Log.e("DOWNLOAD_VIDEO_FILE", "dataItem.filePath : ${dataItem.filePath}")
+
+                                    FileDownloadManager().downloadFile(dataItem.filePath!!, this)
+                                        ?.subscribe({ file ->
+                                            Log.e("DOWNLOAD_VIDEO_FILE", "file : ${file.absolutePath}")
+
+                                            val arRenderObject = ArRenderObjectFactory(
+                                                context = v?.context!!,
+                                                dataItemObject = dataItem,
+                                                mScene = null,
+                                                renderableFile = file
+                                            ).createRenderable()
+
+                                            arRenderObject?.start(
+                                                anchor = null,
+                                                        onSuccess = {
+                                                            val base = Node()
+                                                            base.renderable = arRenderObject?.getRenderable()
+
+                                                            val newLayoutLocationMarker =
+                                                                LocationMarker(
+                                                                    lon,
+                                                                    lat,
+                                                                    base
+                                                                )
+
+                                                            locationScene?.mLocationMarkers?.add(
+                                                                newLayoutLocationMarker!!
+                                                            )
+                                                        },
+                                                        onFailure = {}
+                                            )
+
+                                            arRenderObject?.setParent(arSceneView?.scene!!)
+                                            setmRotation(arRenderObject as ArVideoRenderObject, layoutLocationMarker)
+                                            //arRenderObject?.setParent(layoutLocationMarker?.anchorNode)
+                                            //(arRenderObject as ArVideoRenderObject)?.videoAnchorNode?.anchor = layoutLocationMarker?.anchorNode?.anchor
+                                            //(arRenderObject as ArVideoRenderObject)?.videoAnchorNode?.worldPosition = layoutLocationMarker?.anchorNode?.worldPosition
+                                            //(arRenderObject as ArVideoRenderObject)?.videoAnchorNode?.localPosition = layoutLocationMarker?.anchorNode?.localPosition
+
+                                            /*if (file.absolutePath.contains(".mp4")) {
+                                                val base = getVideoRenderableNode(file)
+                                                val newLayoutLocationMarker =
+                                                    LocationMarker(
+                                                        lon,
+                                                        lat,
+                                                        base
+                                                    )
+
+                                                locationScene?.mLocationMarkers?.add(
+                                                    newLayoutLocationMarker!!
+                                                )
+                                                *//*locationScene?.mLocationMarkers?.remove(
+                                                    layoutLocationMarker!!
+                                                )*//*
+                                            } else {
+                                                ModelRenderable.builder()
+                                                    .setSource(
+                                                        this,
+                                                        RenderableSource
+                                                            .builder()
+                                                            .setSource(
+                                                                this,
+                                                                file.toUri(),
+                                                                RenderableSource.SourceType.GLB
+                                                            )
+                                                            .setScale(0.5f)
+                                                            .setRecenterMode(RenderableSource.RecenterMode.NONE)
+                                                            .build()
+                                                    )
+                                                    .build()
+                                                    .thenAccept { renderable: ModelRenderable ->
+                                                        val base = Node()
+                                                        base.renderable = renderable
+
+                                                        val newLayoutLocationMarker =
+                                                            LocationMarker(
+                                                                lon,
+                                                                lat,
+                                                                base
+                                                            )
+
+                                                        locationScene?.mLocationMarkers?.add(
+                                                            newLayoutLocationMarker!!
+                                                        )
+                                                        *//*locationScene?.mLocationMarkers?.remove(
+                                                            layoutLocationMarker!!
+                                                        )*//*
+
+                                                    }
+                                                    .exceptionally { throwable: Throwable? ->
+                                                        Log.e(
+                                                            "FileDownloadManager",
+                                                            "ModelRenderable.builder() 6 : ${throwable?.message}"
+                                                        )
+
+                                                        null
+                                                    }
+                                            }*/
+                                        }, {
+
+                                        })
+
+                                    /*Log.e("NULL", "videoLocationmarker 1 : ${videoLocationmarker}")
+                                    Log.e("NULL", "videoLocationmarker 2: ${videoLocationmarker?.anchorNode}")
+                                    Log.e("NULL", "videoLocationmarker 3 : ${videoLocationmarker?.anchorNode?.anchor}")
+                                    Log.e(
+                                        "NULL",
+                                        "layoutLocationMarker 3 : ${layoutLocationMarker?.anchorNode?.anchor}"
+                                    )
+
+                                    val videoNode1 = Node()
+                                    videoNode1.renderable = videoRenderable*/
+
+                                    /*val videoLocationmarker1 = LocationMarker(
+                                        longitude2,
+                                        latitude2,
+                                        videoNode1
+                                    )
+
+                                    locationScene?.mLocationMarkers?.add(
+                                        videoLocationmarker1
+                                    )*/
+                                    /*addNodeToScene(
+                                        fragment = arFragment!!,
+                                        anchor = videoLocationmarker?.anchorNode?.anchor!!,
+                                        renderable = videoRenderable!!
+                                    )
+
+                                    //locationScene?.mLocationMarkers?.add(videoLocationmarker!!)
+
+                                    playbackArVideo()*/
+
+                                    false
+                                }
+
+                            }
+                            // Adding the marker
+                            locationScene?.mLocationMarkers?.add(layoutLocationMarker!!)
+                        }
                     }
-                    // Adding the marker
-                    locationScene?.mLocationMarkers?.add(layoutLocationMarker!!)
 
-                    // Adding a simple location marker of a 3D model
-                    /*locationScene?.mLocationMarkers?.add(
-                        LocationMarker(
-                            longitude2,
-                            latitude2,
-                            mAndy
-                        )
-                    )*/
-
-                    /*videoNode = Node()
-                    //videoNode.renderable = videoRenderable
-
-                    videoNode.setOnTapListener { v: HitTestResult?, event: MotionEvent? ->
-                        Toast.makeText(
-                            this, "videoRenderable touched.", Toast.LENGTH_LONG
-                        )
-                            .show()
-
-                        val videoNode1 = Node()
-                        videoNode1.renderable = videoRenderable
-
-                        val videoLocationmarker1 = LocationMarker(
-                            longitude2,
-                            latitude2,
-                            videoNode1
-                        )
-
-                        locationScene?.mLocationMarkers?.add(
-                            videoLocationmarker1
-                        )
-                        //playbackArVideo()
-                    }
-
-                    videoLocationmarker = LocationMarker(
-                        longitude2,
-                        latitude2,
-                        videoNode
-                    )
-
-                    locationScene?.mLocationMarkers?.add(
-                        videoLocationmarker!!
-                    )
-                    */
                 }
 
                 val frame = arSceneView?.arFrame ?: return@addOnUpdateListener
@@ -228,92 +338,93 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         ivSettings?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        ivStack?.setOnClickListener {
+            startActivity(Intent(this, LibActivity::class.java))
+        }
         // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
         //ARLocationPermissionHelper.requestPermission(this)
     }// Add  listeners etc here
 
-    private fun createArScene() {
-        // Create an ExternalTexture for displaying the contents of the video.
-        /*externalTexture = ExternalTexture().also {
-            mediaPlayer.setSurface(it.surface)
-            //mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
+    fun setmRotation(arRenderObject: ArVideoRenderObject, layoutLocationMarker: LocationMarker) {
+
+        /*val n = arRenderObject.videoAnchorNode
+        val scale = 0.2f
+
+        val cameraPosition: Vector3? = arSceneView?.scene?.camera?.worldPosition
+        val direction = Vector3.subtract(cameraPosition, arRenderObject.videoAnchorNode.worldPosition)
+
+        //Log.d("LocationScene", "scale " + scale);
+        arRenderObject.videoAnchorNode.setWorldPosition(
+            Vector3(
+                arRenderObject.videoAnchorNode.worldPosition.x,
+                layoutLocationMarker.height,
+                arRenderObject.videoAnchorNode.worldPosition.z
+            ))
+        val lookRotation = Quaternion.lookRotation(direction, Vector3.up())*/
+        val rotation = Quaternion()//layoutLocationMarker.node.worldRotation
+        Log.e("ROTATION", "rotation : ${rotation.x} : ${rotation.y} : ${rotation.z} : ${rotation.w}")
+
+        val position = layoutLocationMarker.node.worldPosition
+        var mult = 1
+
+        /*btn1.setOnClickListener {
+            position.x = position.x + mult * 0.1f
+            arRenderObject.videoAnchorNode.worldPosition = position
+            Log.e("ROTATION", "position : ${position.x} : ${position.y} : ${position.z}")
+        }
+
+        btn2.setOnClickListener {
+            position.y = position.y + mult * 0.1f
+            arRenderObject.videoAnchorNode.worldPosition = position
+            Log.e("ROTATION", "position : ${position.x} : ${position.y} : ${position.z}")
+        }
+
+        btn3.setOnClickListener {
+            position.z = position.z + mult * 0.1f
+            arRenderObject.videoAnchorNode.worldPosition = position
+            Log.e("ROTATION", "position : ${position.x} : ${position.y} : ${position.z}")
+        }
+
+        btn4.setOnClickListener {
+            mult *= -1
+            Log.e("ROTATION", "mult : ${mult}")
         }*/
 
-        // Create a renderable with a material that has a parameter of type 'samplerExternal' so that
-        // it can display an ExternalTexture.
-        /*ModelRenderable.builder()
-            .setSource(this, R.raw.augmented_video_model)
-            .build()
-            .thenAccept { renderable ->
-                videoRenderable = renderable
-                renderable.isShadowCaster = false
-                renderable.isShadowReceiver = false
-                renderable.material.setExternalTexture("videoTexture", externalTexture)
-            }
-            .exceptionally { throwable ->
-                Log.e("ArVideoFragment.TAG", "Could not create ModelRenderable", throwable)
-                return@exceptionally null
-            }*/
+        btn1.setOnClickListener {
+            rotation.x = rotation.x + 0.1f
+            arRenderObject.videoAnchorNode.worldRotation = rotation
+            Log.e("ROTATION", "rotation1 : ${rotation.x} : ${rotation.y} : ${rotation.z} : ${rotation.w}")
+        }
 
-        /*ModelRenderable.builder()
-            .setSource(
-                this,
-                //Uri.parse(resource)
-                RenderableSource.builder().setSource(
-                    this,
-                    Uri.parse("file:///android_asset/face/f1.glb"),
-                    RenderableSource.SourceType.GLB
-                )
-                    .setRecenterMode(RenderableSource.RecenterMode.NONE)
-                    .build()
-            )
-            //.setRegistryId(augmentedImage.name)
-            .build()
-            .thenApply { renderable ->
-                videoRenderable = renderable
-            }*/
+        btn2.setOnClickListener {
+            rotation.y = rotation.y + 0.1f
+            arRenderObject.videoAnchorNode.worldRotation = rotation
+            Log.e("ROTATION", "rotation2 : ${rotation.x} : ${rotation.y} : ${rotation.z} : ${rotation.w}")
+        }
 
-        /*videoAnchorNode = anchorNode.apply {
-            setParent(arSceneView?.scene)
-        }*/
-    }
+        btn3.setOnClickListener {
+            rotation.z = rotation.z + 0.1f
+            arRenderObject.videoAnchorNode.worldRotation = rotation
+            Log.e("ROTATION", "rotation3 : ${rotation.x} : ${rotation.y} : ${rotation.z} : ${rotation.w}")
+        }
 
-    private fun playbackArVideo() {
-        //Log.d("ArVideoFragment.TAG", "playbackVideo = ${augmentedImage.name}")
-        //mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
+        btn4.setOnClickListener {
+            rotation.w = rotation.w + 0.1f
+            arRenderObject.videoAnchorNode.worldRotation = rotation
+            Log.e("ROTATION", "rotation4 : ${rotation.x} : ${rotation.y} : ${rotation.z} : ${rotation.w}")
+        }
 
-        /*this.assets.openFd("i1.mp4")
-            .use { descriptor ->
-                mediaPlayer.reset()
-                mediaPlayer.setDataSource(descriptor)
-            }.also {
-                mediaPlayer.isLooping = true
-                mediaPlayer.prepare()
-                mediaPlayer.start()
-            }*/
+        rotation.x = rotation.x + 1f
+        /*rotation.y = rotation.y + 0.5f
+        rotation.z = rotation.z + 0.5f
+        rotation.w = rotation.w + 0.5f*/
 
-        /*val videoNode = Node()
-        videoNode.renderable = videoRenderable
-
-        videoLocationmarker = LocationMarker(
-            longitude,
-            latitude,
-            videoNode
-        )
-
-        videoLocationmarker?.scalingMode = LocationMarker.ScalingMode.FIXED_SIZE_ON_SCREEN
-        locationScene?.mLocationMarkers?.add(videoLocationmarker!!)*/
-        /*videoAnchorNode = anchorNode
-        videoAnchorNode.anchor?.detach()
-        videoAnchorNode.anchor = hitTest?.node?.crea*/
-
-
-        //activeAugmentedImage = augmentedImage
-        //Log.e("VIDEO_TRACK", "mediaPlayer.videoHeight : ${mediaPlayer.videoHeight}, mediaPlayer.videoWidth : ${mediaPlayer.videoWidth}")
-        //Log.e("VIDEO_TRACK", "mediaPlayer.videoHeight : ${externalTexture.surfaceTexture.}, mediaPlayer.videoWidth : ${mediaPlayer.videoWidth}")
-        /*externalTexture.surfaceTexture.setOnFrameAvailableListener {
-            it.setOnFrameAvailableListener(null)
-        }*/
+        arRenderObject.videoAnchorNode.worldRotation = rotation
+        arRenderObject.videoAnchorNode.worldPosition = position
+        //arRenderObject.videoAnchorNode.localScale =
+        //arRenderObject.videoAnchorNode.localRotation = lookRotation
+        //arRenderObject.videoAnchorNode.worldScale = Vector3(scale, scale, scale)
     }
 
     private fun addNodeToScene(fragment: ArFragment, anchor: Anchor, renderable: Renderable) {
@@ -336,67 +447,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             base.renderable = exampleLayoutRenderable
             val c: Context = this
             // Add  listeners etc here
-            val eView = exampleLayoutRenderable?.view
-            eView?.setOnTouchListener { v: View?, event: MotionEvent? ->
-                Toast.makeText(
-                    c, "exampleView Location marker touched.", Toast.LENGTH_LONG
-                ).show()
 
-                /*Log.e("NULL", "videoLocationmarker 1 : ${videoLocationmarker}")
-                Log.e("NULL", "videoLocationmarker 2: ${videoLocationmarker?.anchorNode}")
-                Log.e("NULL", "videoLocationmarker 3 : ${videoLocationmarker?.anchorNode?.anchor}")
-                Log.e(
-                    "NULL",
-                    "layoutLocationMarker 3 : ${layoutLocationMarker?.anchorNode?.anchor}"
-                )
-
-                val videoNode1 = Node()
-                videoNode1.renderable = videoRenderable*/
-
-                /*val videoLocationmarker1 = LocationMarker(
-                    longitude2,
-                    latitude2,
-                    videoNode1
-                )
-
-                locationScene?.mLocationMarkers?.add(
-                    videoLocationmarker1
-                )*/
-                /*addNodeToScene(
-                    fragment = arFragment!!,
-                    anchor = videoLocationmarker?.anchorNode?.anchor!!,
-                    renderable = videoRenderable!!
-                )
-
-                //locationScene?.mLocationMarkers?.add(videoLocationmarker!!)
-
-                playbackArVideo()*/
-
-                false
-            }
-            return base
-        }
-
-    /***
-     * Example Node of a 3D model
-     *
-     * @return
-     */
-    private val mAndy: Node
-        private get() {
-            val base = Node()
-            base.renderable = andyRenderable
-            val c: Context = this
-            base.setOnTapListener { v: HitTestResult?, event: MotionEvent? ->
-                Toast.makeText(
-                    c, "Andy touched.", Toast.LENGTH_LONG
-                )
-                    .show()
-
-                playbackArVideo(
-
-                )
-            }
             return base
         }
 
@@ -446,6 +497,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
      */
     override fun onResume() {
         super.onResume()
+        loadData()
+
         if (locationScene != null) {
             locationScene!!.resume()
         }
@@ -538,17 +591,18 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mGoogleMap?.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
 
-        googleMap.addMarker(
-            MarkerOptions()
-                .position(LatLng(latitude1, longitude1))
-                .title("Marker 1")
-        )
+        dataItemArr.forEach { dataItem ->
+            val lat = dataItem.trigger?.latitude?.toDoubleOrNull()
+            val lon = dataItem.trigger?.longitude?.toDoubleOrNull()
 
-        googleMap.addMarker(
-            MarkerOptions()
-                .position(LatLng(latitude2, longitude2))
-                .title("Marker 2")
-        )
+            if (lat != null && lon != null) {
+                googleMap.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(lat, lon))
+                        .title(dataItem.name)
+                )
+            }
+        }
 
         googleMap.setMyLocationEnabled(true)
 
@@ -594,5 +648,139 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
 
             isFullscreen = !isFullscreen
         }
+    }
+
+    open fun loadData() {
+        val isNeedFilterTrigger = true
+
+        val service = createService(DataItemsService::class.java)
+
+        Log.e("FileDownloadManager", "loadData")
+
+        Realm.getDefaultInstance()
+            .executeTransaction { realm ->
+                val packages = realm.where(RealmDataPackageObject::class.java)
+                    .findAll()
+                    .map { it.toDataPackageObject() }
+                    .sortedBy { it.order?.toLongOrNull() }
+                    //.filter { it.dataItems?.filter { it.trigger?.latitude != null } != null }
+
+                val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                    val ap = packages.firstOrNull()
+                    BaseArActivity.checkedPackageId = ap?.id
+                    ap
+                } else {
+                    packages.firstOrNull {
+                        it.id == BaseArActivity.checkedPackageId
+                    }
+                }
+
+
+
+                Log.e(
+                    "FileDownloadManager",
+                    "loadData 1 activePackage?.dataItems?.isNotEmpty() : ${activePackage?.dataItems?.isNotEmpty()}"
+                )
+
+
+                val items = realm.where(RealmDataItemObject::class.java)
+                    .equalTo("dataPackageId", activePackage?.id)
+
+                var dataItems = items.findAll()
+                    .map { it.toDataItemObject() }
+
+                if (isNeedFilterTrigger) {
+                    //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
+                    dataItems =
+                        dataItems.filter {
+                            //it.trigger?.typeId == SettingsActivity.currentScreen.type.id
+                            it.trigger?.type?.codeName == SettingsActivity.currentScreen.type.codeName
+                                    && it?.filePath?.contains(".mp4") == true
+                        }
+
+                }
+
+                Log.e(
+                    "FileDownloadManager",
+                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
+                )
+
+                if (dataItems.isNotEmpty()) {
+                    dataItemArr.clear()
+                    dataItemArr.addAll(dataItems)
+                    addItemToMap()
+
+                    return@executeTransaction
+                }
+
+                val observable =
+                    /*Observable.fromIterable<DataPackageObject>(packages)
+                    .flatMap { packageObject ->*/
+                    service.getEntryTypes()//packageObject.id.toString()
+                        //}
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe({ items ->
+                            Log.e(
+                                "FileDownloadManager",
+                                "subscribe 2 checkedPackageId : ${BaseArActivity.checkedPackageId}, SettingsActivity.currentScreen.type.id : ${SettingsActivity.currentScreen.type.id}"
+                            )
+                            Log.e("FileDownloadManager", "subscribe 3 items : ${items.count()}")
+                            Log.e(
+                                "FileDownloadManager",
+                                "subscribe 3 1 items : ${items.map { it?.triggerId }}"
+                            )
+                            val currentPackageItems = items
+                                .filter {
+                                    it?.dataPackageId == BaseArActivity.checkedPackageId && if (isNeedFilterTrigger) {
+                                        it?.trigger?.type?.id == SettingsActivity.currentScreen.type.id
+                                    } else {
+                                        true
+                                    }
+                                }
+
+                            Log.e(
+                                "FileDownloadManager",
+                                "subscribe 3 currentPackageItems : ${currentPackageItems.count()}"
+                            )
+
+                            if (currentPackageItems.isNotEmpty()) {
+                                dataItemArr.clear()
+                                dataItemArr.addAll(currentPackageItems)
+                                addItemToMap()
+                            }
+
+                            realm
+                                .executeTransaction { realm ->
+
+                                    realm.delete(RealmDataItemObject::class.java)
+
+                                    items.map {
+                                        realm.copyToRealm(it.toRealmDataItemObject())
+                                    }
+                                }
+                        }, {
+                            Log.e("FileDownloadManager", "subscribe 4 error : ${it.message}")
+
+                            it.printStackTrace()
+                        })
+            }
+    }
+
+    fun addItemToMap() {
+        dataItemArr.forEach { dataItem ->
+            val lat = dataItem.trigger?.latitude?.toDoubleOrNull()
+            val lon = dataItem.trigger?.longitude?.toDoubleOrNull()
+
+            if (lat != null && lon != null) {
+                mGoogleMap?.addMarker(
+                    MarkerOptions()
+                        .position(LatLng(lat, lon))
+                        .title(dataItem.name)
+                )
+            }
+        }
+
+        locationScene = null
     }
 }

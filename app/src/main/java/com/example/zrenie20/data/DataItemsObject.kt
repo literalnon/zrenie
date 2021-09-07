@@ -8,6 +8,15 @@ data class TypeItemObject(
     val updatedAt: String?
 )
 
+enum class TypeItemObjectCodeNames(val codeName: String) {
+    OBJECT("object"),
+    BODYPARTS("bodyParts"),
+    GEO("geo"),
+    SPACE("space"),
+    VIDEO("video"),
+    IMAGE("image"),
+}
+
 fun TypeItemObject.toRealmTypeItemObject(): RealmTypeItemObject {
     return RealmTypeItemObject(
         id = id,
@@ -25,6 +34,8 @@ data class TriggerItemObject(
     val description: String?,
     val thumbnailPath: String?,
     val filePath: String?,
+    var longitude: String? = null,
+    var latitude: String? = null,
     val createdAt: String?,
     val updatedAt: String?,
     val type: TypeItemObject?
@@ -38,6 +49,8 @@ fun TriggerItemObject.toRealmTriggerItemObject(): RealmTriggerItemObject {
         description = description,
         thumbnailPath = thumbnailPath,
         filePath = filePath,
+        longitude = longitude,
+        latitude = latitude,
         createdAt = createdAt,
         updatedAt = updatedAt,
         type = type?.toRealmTypeItemObject()

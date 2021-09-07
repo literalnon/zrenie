@@ -24,11 +24,15 @@ import android.widget.VideoView
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.net.toUri
 import com.example.zrenie20.R
+import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.renderable.ArRenderObjectFactory
+import com.example.zrenie20.renderable.IArRenderObject
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.Scene
 import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ExternalTexture
@@ -45,20 +49,18 @@ import java.util.concurrent.CompletableFuture
  * at the corners of the augmented image trackable.
  */
 class AugmentedImageNode(
-    val context: Context?,
+    val context: Context,
     val augmentedImage: AugmentedImage,
-    val renderableFile: File
+    val renderableFile: File,
+    val dataItemObject: DataItemObject,
+    val mScene: Scene,
 ) : AnchorNode() {
 
     // The augmented image represented by this node.
     var image: AugmentedImage? = null
         private set
 
-    val cornerNode = Node()
-
-    fun destroy() {
-        videoView?.stopPlayback()
-    }
+    //val cornerNode = Node()
 
     /**
      * Called when the AugmentedImage is detected and should be rendered. A Sceneform node tree is
@@ -70,36 +72,40 @@ class AugmentedImageNode(
         this.image = image
         val index = image.index
         // If any of the models are not loaded, then recurse when all are loaded.
-        val rend = Companion.mRenderable[index]
-
-        if (rend != null && !rend.isDone) {
-            CompletableFuture.allOf(Companion.mRenderable[index])
-                .thenAccept { aVoid: Void? -> setImage(image) }
-                .exceptionally { throwable: Throwable? ->
-                    Log.e(TAG, "Exception loading", throwable)
-                    null
-                }
-        }
+        val rend = Companion.arRenderObjectMap[index]
 
         // Set the anchor based on the center of the image.
         anchor = image.createAnchor(image.centerPose)
+        rend?.start(
+            anchor = augmentedImage.createAnchor(augmentedImage.centerPose),
+            onSuccess = {},
+            onFailure = {},
+            augmentedImage = image
+        )
+        rend?.setParent(this)
 
         // Make the 4 corner nodes.
-        val localPosition = Vector3()
+        //val localPosition = Vector3()
 
         // Upper left corner.
         //localPosition[0f, 0.0f] = 0f
-        cornerNode.setParent(this)
-        cornerNode.localPosition = localPosition
+
+        //cornerNode.localPosition = localPosition
         //cornerNode.renderable = Companion.mRenderable[index]?.getNow(null)
     }
 
     fun resumeImage() {
-        cornerNode.renderable = Companion.mRenderable[image?.index]?.getNow(null)
+        Companion.arRenderObjectMap[image?.index]?.resume()
+        //cornerNode.renderable = Companion.arRenderObjectMap[image?.index]?.getRenderable()
     }
 
     fun pauseImage() {
-        cornerNode.renderable = null
+        Companion.arRenderObjectMap[image?.index]?.pause()
+        //cornerNode.renderable = null
+    }
+
+    fun stop() {
+        Companion.arRenderObjectMap[image?.index]?.stop()
     }
 
     companion object {
@@ -108,154 +114,67 @@ class AugmentedImageNode(
         // Models of the 4 corners.  We use completable futures here to simplify
         // the error handling and asynchronous loading.  The loading is started with the
         // first construction of an instance, and then used when the image is set.
-        private var mRenderable: HashMap<Int, CompletableFuture<Renderable>> = hashMapOf()
+        //private var mRenderable: HashMap<Int, CompletableFuture<Renderable>> = hashMapOf()
+        private var arRenderObjectMap: HashMap<Int, IArRenderObject> = hashMapOf()
     }
 
-    var videoView: VideoView? = null
 
-    class RenderableConfig(
+    /*class RenderableConfig(
         val renderableType: Int,
         val resource: String,
         val videoAnchorNode: AnchorNode,
         val augmentedImage: AugmentedImage
     ) {
-        var videoView: VideoView? = null
-        private var mediaPlayer: MediaPlayer = MediaPlayer()
-        private var externalTexture: ExternalTexture? = null
-        private var modelRenderable: Renderable? = null
-        //private lateinit var videoAnchorNode: AnchorNode
 
         fun getRenderable(context: Context?): CompletableFuture<Renderable> {
-            return if (false && renderableType == 0) {
-                externalTexture = ExternalTexture().also {
-                    mediaPlayer.setSurface(it.surface)
-                }
-
-                /*ViewRenderable.builder()
-                    .setView(context, R.layout.item_video_view)
-                    .build()
-                    .thenApply {
-                        *//*videoView = it.view.findViewById<VideoView?>(R.id.video_view)
-
-                        videoView?.setVideoPath(resource)
-
-                        videoView?.start()*//*
-
-                        it
-                    }*/
-
-                val item: CompletableFuture<Renderable> = ModelRenderable.builder()
-                    .setSource(context, R.raw.augmented_video_model)
-                    .build()
-                    .thenApply { it }
-
-                item.thenAccept { renderable ->
-                    modelRenderable = renderable
-                    renderable.isShadowCaster = false
-                    renderable.isShadowReceiver = false
-                    renderable.material.setExternalTexture("videoTexture", externalTexture)
-                }
-
-                item.exceptionally { throwable ->
-                    Log.e(TAG, "Could not create ModelRenderable", throwable)
-                    return@exceptionally null
-                }
-
-                playbackArVideo(context)
-                item
-
-            } else {
-                ModelRenderable.builder()
-                    .setSource(
+            return ModelRenderable.builder()
+                .setSource(
+                    context,
+                    //Uri.parse(resource)
+                    RenderableSource.builder().setSource(
                         context,
-                        //Uri.parse(resource)
-                        RenderableSource.builder().setSource(
-                            context,
-                            Uri.parse(resource),//"file:///android_asset/aImage/i6.glb"),
-                            RenderableSource.SourceType.GLB
-                        )
-                            .setScale(0.05f) // Scale the original model to 50%.
-                            .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                            .build()
+                        Uri.parse(resource),//"file:///android_asset/aImage/i6.glb"),
+                        RenderableSource.SourceType.GLB
                     )
-                    //.setRegistryId(augmentedImage.name)
-                    .build()
-                    .thenApply {
-                        it
-                    }
-            }
-
-            /*videoAnchorNode = AnchorNode().apply {
-                setParent(arSceneView.scene)
-            }*/
-        }
-
-        private fun playbackArVideo(context: Context?) {
-            Log.d(TAG, "playbackVideo = ${augmentedImage.name}")
-
-            context?.assets?.openFd("augmented_video_model.sfb")
-                ?.use { descriptor ->
-                    mediaPlayer.reset()
-                    mediaPlayer.setDataSource(descriptor)
+                        .setScale(0.05f) // Scale the original model to 50%.
+                        .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                        .build()
+                )
+                //.setRegistryId(augmentedImage.name)
+                .build()
+                .thenApply {
+                    it
                 }
-                ?.also {
-                    mediaPlayer.isLooping = true
-                    mediaPlayer.prepare()
-                    mediaPlayer.start()
-                }
-
-
-            videoAnchorNode.anchor?.detach()
-            videoAnchorNode.anchor = augmentedImage.createAnchor(augmentedImage.centerPose)
-            videoAnchorNode.localScale = Vector3(
-                augmentedImage.extentX, // width
-                1.0f,
-                augmentedImage.extentZ
-            ) // height
-
-            //activeAugmentedImage = augmentedImage
-
-            externalTexture?.surfaceTexture?.setOnFrameAvailableListener {
-                it.setOnFrameAvailableListener(null)
-                videoAnchorNode.renderable = modelRenderable
-            }
         }
-    }
+    }*/
 
     init {
         // Upon construction, start loading the models for the corners of the frame.
         val index = augmentedImage.index ?: 0
 
-        if (Companion.mRenderable[index] == null) {
+        if (Companion.arRenderObjectMap[index] == null) {
 
-            val rConfig = RenderableConfig(
+            /*val rConfig =
+                RenderableConfig(
                 renderableType = 1,
-                        resource = renderableFile.toUri().toString(),
-                        videoAnchorNode = this,
-                        augmentedImage = augmentedImage
-            )
+                resource = renderableFile.toUri().toString(),
+                videoAnchorNode = this,
+                augmentedImage = augmentedImage
+            )*/
+
+            val arRenderObject = ArRenderObjectFactory(
+                context = context,
+                dataItemObject = dataItemObject,
+                mScene = mScene,
+                renderableFile = renderableFile
+            ).createRenderable()
 
             try {
-                Companion.mRenderable.put(index, rConfig.getRenderable(context))
+                //Companion.mRenderable.put(index, arRenderObject)
+                Companion.arRenderObjectMap.put(index, arRenderObject)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-            videoView = rConfig.videoView
-
-            /*ModelRenderable.builder()
-                      .setSource(
-                              context,
-                              RenderableSource.builder().setSource(
-                                      context,
-                                      Uri.parse("file:///android_asset/aImage/i6.glb"),
-                                      RenderableSource.SourceType.GLB
-                              )
-                                      .setScale(0.05f) // Scale the original model to 50%.
-                                      .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                                      .build()
-                      )
-                      //.setRegistryId(augmentedImage.name)
-                      .build();*/
         }
     }
 }

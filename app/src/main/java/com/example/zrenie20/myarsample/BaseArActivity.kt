@@ -21,6 +21,7 @@ import com.example.zrenie20.data.*
 import com.example.zrenie20.myarsample.data.VrRenderableObject
 import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
+import com.example.zrenie20.renderable.IArRenderObject
 import com.example.zrenie20.space.FileDownloadManager
 import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
@@ -48,10 +49,10 @@ abstract class BaseArActivity : AppCompatActivity() {
     }
 
     open var isNeedCreateAnchor: Boolean = true
-    open var currentRenderable: VrRenderableObject? = null
+    open var currentRenderable: IArRenderObject? = null
     open val adapter = DelegationAdapter<Any>()
 
-    open val cashedAssets = hashMapOf<DataItemId, VrRenderableObject>()
+    open val cashedAssets = hashMapOf<DataItemId, IArRenderObject>()
     open var assetsArray = arrayListOf<DataItemObject>()
 
     abstract val layoutId: Int
@@ -122,46 +123,51 @@ abstract class BaseArActivity : AppCompatActivity() {
 
         arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent? ->
 
-            if (currentRenderable?.vrRenderable == null) {
+            /*if (currentRenderable == null) {
                 return@setOnTapArPlaneListener
             }
 
             if (!isNeedCreateAnchor) {
                 return@setOnTapArPlaneListener
-            }
+            }*/
 
             //node?.let { arFragment?.arSceneView?.scene?.removeChild(node) }
             //anchorNode?.let { arFragment?.arSceneView?.scene?.removeChild(anchorNode) }
             // Create the Anchor.
             val anchor = hitResult.createAnchor()
-            val newAnchor = AnchorNode()
-            newAnchor.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
+            //val newAnchor = AnchorNode()
+            //newAnchor.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
             anchorNode = AnchorNode(anchor)
-            Log.e("CLOUD_ANCHORS", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
+            Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
             //anchorNode?.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
             //anchorNode = newAnchor
             anchorNode?.setParent(arFragment?.arSceneView?.scene)
 
-            // Create the transformable andy and add it to the anchor.
-            TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
-                node = mNode
-                node?.setParent(anchorNode)
-                node?.renderable = currentRenderable?.vrRenderable
-                node?.select()
+            currentRenderable?.start(
+                anchor = anchor,
+                onSuccess = {
+                    TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+                        node = mNode
+                        node?.setParent(anchorNode)
+                        currentRenderable?.setParent(node!!)
+                        node?.renderable = currentRenderable?.getRenderable()
+                        node?.select()
 
-                currentRenderable?.dataItemObject?.let {
-                    vrObjectsMap[it] = mNode
+                        currentRenderable?.dataItemObject?.let {
+                            vrObjectsMap[it] = mNode
+                        }
+
+                        adapter?.notifyDataSetChanged()
+                    }
+                },
+                onFailure = {
+                    if (currentRenderable != null && isSelectedRenderable(currentRenderable!!.dataItemObject)) {
+                        renderableUploadedFailed(currentRenderable!!.dataItemObject)
+                    }
                 }
+            )
 
-                adapter?.notifyDataSetChanged()
-            }
-
-            Log.e("ANIMATION_VR", "${currentRenderable?.vrRenderable?.animationDataCount}")
-            if ((currentRenderable?.vrRenderable?.animationDataCount ?: 0) > 0) {
-                val data: AnimationData? = currentRenderable?.vrRenderable?.getAnimationData(0)
-                val animator = ModelAnimator(data, currentRenderable?.vrRenderable)
-                animator.start()
-            }
+            // Create the transformable andy and add it to the anchor.
 
         }
 
@@ -228,7 +234,7 @@ abstract class BaseArActivity : AppCompatActivity() {
     }*/
 
     open fun loadData() {
-        val isNeedFilterTrigger = false
+        val isNeedFilterTrigger = true
 
         val service = createService(DataItemsService::class.java)
 
@@ -256,7 +262,6 @@ abstract class BaseArActivity : AppCompatActivity() {
                     "loadData 1 activePackage?.dataItems?.isNotEmpty() : ${activePackage?.dataItems?.isNotEmpty()}"
                 )
 
-
                 val items = realm.where(RealmDataItemObject::class.java)
                     .equalTo("dataPackageId", activePackage?.id)
 
@@ -265,14 +270,14 @@ abstract class BaseArActivity : AppCompatActivity() {
 
                 if (isNeedFilterTrigger) {
                     //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
-                    dataItems = dataItems.filter { it.trigger?.typeId == SettingsActivity.currentScreen.type.id }
+                    dataItems = dataItems.filter { it.trigger?.type?.codeName == SettingsActivity.currentScreen.type.codeName }
                 }
                 Log.e(
                     "FileDownloadManager",
                     "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
                 )
 
-                if (dataItems.isNotEmpty()) {
+                //if (dataItems.isNotEmpty()) {
                     assetsArray = arrayListOf<DataItemObject>().apply {
                         addAll(dataItems)
                     }
@@ -280,7 +285,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                     adapter.replaceAll(assetsArray)
 
                     return@executeTransaction
-                }
+                //}
 
                 val observable =
                     /*Observable.fromIterable<DataPackageObject>(packages)
@@ -302,7 +307,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                             val currentPackageItems = items
                                 .filter {
                                     it?.dataPackageId == checkedPackageId && if (isNeedFilterTrigger) {
-                                        it?.trigger?.type?.id == SettingsActivity.currentScreen.type.id
+                                        it?.trigger?.type?.codeName == SettingsActivity.currentScreen.type.codeName
                                     } else {
                                         true
                                     }
@@ -313,12 +318,12 @@ abstract class BaseArActivity : AppCompatActivity() {
                                 "subscribe 3 currentPackageItems : ${currentPackageItems.count()}"
                             )
 
-                            if (currentPackageItems.isNotEmpty()) {
+                            //if (currentPackageItems.isNotEmpty()) {
                                 assetsArray = arrayListOf<DataItemObject>().apply {
                                     addAll(currentPackageItems)
                                 }
                                 adapter.replaceAll(assetsArray)
-                            }
+                            //}
 
                             realm
                                 .executeTransaction { realm ->
@@ -350,18 +355,16 @@ abstract class BaseArActivity : AppCompatActivity() {
     }
 
     open fun isSelectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
+        Log.e("renderable", "isSelectedRenderable : ${currentRenderable?.dataItemObject?.id} : ${dataItemObjectDataClass.id}")
         return currentRenderable?.dataItemObject?.id == dataItemObjectDataClass.id
     }
 
     open fun selectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
-        currentRenderable = cashedAssets[dataItemObjectDataClass.id] ?: VrRenderableObject(
-            dataItemObject = dataItemObjectDataClass,
-            vrRenderable = null
-        )
+        currentRenderable = cashedAssets[dataItemObjectDataClass.id]
 
         adapter.notifyDataSetChanged()
 
-        return if (currentRenderable?.vrRenderable != null) {
+        return if (currentRenderable?.getRenderable() != null) {
             flProgressBar.visibility = View.GONE
             true
         } else {
@@ -372,21 +375,14 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     open fun renderableUploaded(
         dataItemObjectDataClass: DataItemObject,
-        renderable: ModelRenderable
+        renderable: IArRenderObject
     ) {
         flProgressBar.visibility = View.GONE
 
-        VrRenderableObject(
-            dataItemObject = dataItemObjectDataClass,
-            vrRenderable = renderable
-        ).let { item ->
-            currentRenderable = item
-            cashedAssets[dataItemObjectDataClass.id!!] = item
-        }
+        currentRenderable = renderable
+        cashedAssets[dataItemObjectDataClass.id!!] = renderable
 
         adapter.notifyDataSetChanged()
-
-
     }
 
     open fun renderableUploadedFailed(dataItemObjectDataClass: DataItemObject) {

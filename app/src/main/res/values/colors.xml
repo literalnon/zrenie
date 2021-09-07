@@ -9,6 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="grayTextColor">#80FFFFFF</color>
     <color name="grayBorderColor">#3C3C3C</color>
+    <color name="loaderColor">#4DFFFFFF</color>
     <color name="mainBackground">#2D2D2D</color>
 
     <color name="mainBackgroundLayout">#2D2D2D</color>

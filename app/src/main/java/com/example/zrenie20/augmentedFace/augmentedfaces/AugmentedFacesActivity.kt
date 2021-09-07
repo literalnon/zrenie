@@ -31,6 +31,7 @@ import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
 import com.google.ar.sceneform.ux.AugmentedFaceNode
+import com.google.ar.sceneform.ux.TransformableNode
 import kotlinx.android.synthetic.main.augmented_faces_activity.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
@@ -122,9 +123,9 @@ class AugmentedFacesActivity : BaseArActivity() {
         val scene = sceneView?.scene
         scene?.addOnUpdateListener { frameTime: FrameTime? ->
 
-            if (currentRenderable?.vrRenderable == null) {
+            /*if (currentRenderable?.getRenderable() == null) {
                 return@addOnUpdateListener
-            }
+            }*/
 
             val faceList = sceneView?.session!!.getAllTrackables(
                 AugmentedFace::class.java
@@ -138,8 +139,19 @@ class AugmentedFacesActivity : BaseArActivity() {
                     //faceNode = face.createAnchor(face.centerPose)
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable//currentRenderable?.vrRenderable
                     //faceRegionsRenderable = currentRenderable?.vrRenderable
-                    faceNode.renderable = currentRenderable?.vrRenderable
+                    if (currentRenderable?.getRenderable() == null) {
 
+                    currentRenderable?.start(
+                        anchor = null,
+                        onSuccess = {
+                            faceNode.renderable = currentRenderable?.getRenderable()
+                        },
+                        onFailure = {
+
+                        }
+                    ) } else {
+                        faceNode.renderable = currentRenderable?.getRenderable()
+                    }
                     // Overlay the 3D assets on the face.
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable
 

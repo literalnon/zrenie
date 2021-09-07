@@ -27,6 +27,8 @@ open class RealmTriggerItemObject(
     var description: String? = null,
     var thumbnailPath: String? = null,
     var filePath: String? = null,
+    var longitude: String? = null,
+    var latitude: String? = null,
     var createdAt: String? = null,
     var updatedAt: String? = null,
     var type: RealmTypeItemObject? = null
@@ -40,6 +42,8 @@ fun RealmTriggerItemObject.toTriggerItemObject(): TriggerItemObject {
         description = description,
         thumbnailPath = thumbnailPath,
         filePath = filePath,
+        longitude = longitude,
+        latitude = latitude,
         createdAt = createdAt,
         updatedAt = updatedAt,
         type = type?.toTypeItemObject()

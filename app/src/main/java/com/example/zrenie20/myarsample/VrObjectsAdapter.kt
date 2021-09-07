@@ -11,6 +11,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.zrenie20.R
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
 import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.renderable.ArRenderObjectFactory
+import com.example.zrenie20.renderable.IArRenderObject
 import com.example.zrenie20.space.FileDownloadManager
 import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
@@ -22,7 +24,7 @@ import java.io.File
 class VrObjectsAdapter(
     val isSelectedRenderable: (DataItemObject) -> Boolean,
     val selectedRenderable: (DataItemObject) -> Boolean,
-    val renderableUploaded: (DataItemObject, ModelRenderable) -> Unit,
+    val renderableUploaded: (DataItemObject, IArRenderObject) -> Unit,
     val renderableUploadedFailed: (DataItemObject) -> Unit,
     val renderableRemoveCallback: (DataItemObject) -> Unit,
     val isCanRemoveRenderable: (DataItemObject) -> Boolean
@@ -87,30 +89,6 @@ class VrObjectsAdapter(
             if (!selectedRenderable(item)) {
                 var mRenderable: ModelRenderable? = null
 
-                /*if (item.link.contains("a.glb")) {
-                    val raw = when {
-                        item.link.contains("11") -> {
-                            R.raw.i7
-                        }
-                        item.link.contains("12") -> {
-                            R.raw.poly
-                        }
-                        item.link.contains("13") -> {
-                            R.raw.s15a
-                        }
-                        item.link.contains("14") -> {
-                            R.raw.zombie_fast
-                        }
-                        else -> {
-                            R.raw.andy_dance
-                        }
-                    }
-
-                    ModelRenderable.builder()
-                        .setSource(
-                            context, raw
-                        )
-                } else {*/
                 val recentMode =
                     if (vrDataClass.filePath?.contains("f1") == true ||
                         vrDataClass.filePath?.contains("f2") == true ||
@@ -123,7 +101,22 @@ class VrObjectsAdapter(
 
                 fileDownloadManager.downloadFile(item.filePath!!, context)
                     .subscribe({ file ->
-                        ModelRenderable.builder()
+                        Log.e("renderable", "item.filePath : ${item.filePath}")
+
+                        val arRenderObject = ArRenderObjectFactory(
+                            context = context,
+                            dataItemObject = item,
+                            mScene = null,
+                            renderableFile = file
+                        ).createRenderable()
+
+                        Log.e("renderable", "isSelectedRenderable : ${isSelectedRenderable(item)}")
+                        //if (isSelectedRenderable(item)) {
+                            renderableUploaded(item, arRenderObject)
+                        //}
+
+
+                        /*ModelRenderable.builder()
                             .setSource(
                                 context,
                                 RenderableSource
@@ -151,8 +144,9 @@ class VrObjectsAdapter(
                                     renderableUploadedFailed(item)
                                 }
                                 null
-                            }
+                            }*/
                     }, {
+                        Log.e("renderable", "error : ${it.message}")
                         Log.e("FileDownloadManager", "subscribe 2 ${it.message}")
                         if (isSelectedRenderable(item)) {
                             renderableUploadedFailed(item)

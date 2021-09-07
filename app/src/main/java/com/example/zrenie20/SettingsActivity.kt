@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
@@ -16,6 +17,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.ArVideoFragment
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
+import com.example.zrenie20.augmentedimage.IVideoArFragment
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
@@ -119,7 +121,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun getImageData(assetsArray: ArrayList<DataItemObject>) {
-        ArVideoFragment.bitmaps.clear()
+        IVideoArFragment.bitmaps.clear()
 
         Log.e(TAG, "getImageData assetsArray: ${assetsArray.size}")
 
@@ -127,14 +129,13 @@ class SettingsActivity : AppCompatActivity() {
             itemObject.trigger?.filePath?.isNotEmpty() == true
         }
 
-        ArVideoFragment.assetsArray.clear()
-        ArVideoFragment.assetsArray.addAll(nonEmptyAssetsArray)
+        IVideoArFragment.assetsArray.clear()
+        IVideoArFragment.assetsArray.addAll(nonEmptyAssetsArray)
 
         nonEmptyAssetsArray.forEach { itemObject ->
             try {
                 Log.e(TAG, "getImageData trigger: ${itemObject.trigger}")
                 Log.e(TAG, "getImageData filePath: ${itemObject.trigger?.filePath}")
-
 
                 Glide.with(this)
                     .asBitmap()
@@ -145,27 +146,30 @@ class SettingsActivity : AppCompatActivity() {
                             resource: Bitmap,
                             transition: Transition<in Bitmap?>?
                         ) {
-                            Log.e(TAG, "getImageData onResourceReady ArVideoFragment.bitmaps : ${ArVideoFragment.bitmaps.size}")
-                            ArVideoFragment.bitmaps[itemObject.trigger?.filePath!!] = resource
-                            if (ArVideoFragment.bitmaps.size == nonEmptyAssetsArray.size) {
+                            Log.e(TAG, "getImageData onResourceReady IVideoArFragment.bitmaps : ${IVideoArFragment.bitmaps.size}")
+                            IVideoArFragment.bitmaps[itemObject.trigger?.filePath!!] = resource
+                            if (IVideoArFragment.bitmaps.size == nonEmptyAssetsArray.size) {
                                 startActivity(Intent(this@SettingsActivity, AugmentedImageActivity::class.java))
                             }
                         }
 
                         override fun onLoadCleared(placeholder: Drawable?) {
-                            Log.e(TAG, "getImageData onLoadCleared ArVideoFragment.bitmaps : ${ArVideoFragment.bitmaps.size}")
+                            Log.e(TAG, "getImageData onLoadCleared IVideoArFragment.bitmaps : ${IVideoArFragment.bitmaps.size}")
                         }
                     })
             } catch (e: IOException) {
                 Log.e(TAG, "IO exception loading augmented image bitmap.", e)
             }
         }
+
+        llProgress?.visibility = View.GONE
     }
 
     open fun loadData() {
+        llProgress?.visibility = View.VISIBLE
         var assetsArray = arrayListOf<DataItemObject>()
 
-        val isNeedFilterTrigger = false
+        val isNeedFilterTrigger = true
 
         val service = createService(DataItemsService::class.java)
 
@@ -268,9 +272,11 @@ class SettingsActivity : AppCompatActivity() {
                                 }
 
                             getImageData(assetsArray)
+
                         }, {
                             Log.e(TAG, "subscribe 4 error : ${it.message}")
-
+                            llProgress?.visibility = View.GONE
+                            Toast.makeText(this, "error load data from network : ${it.message}", Toast.LENGTH_LONG).show()
                             it.printStackTrace()
                         })
 

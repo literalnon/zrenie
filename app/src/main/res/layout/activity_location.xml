@@ -18,25 +18,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent"
-    >
+    android:background="@android:color/transparent">
 
-  <fragment
-      android:name="com.example.zrenie20.location.LocationArFragment"
-      android:id="@+id/ar_fragment"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"/>
+    <fragment
+        android:id="@+id/ar_fragment"
+        android:name="com.example.zrenie20.location.LocationArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-  <fragment
-      android:id="@+id/map"
-      android:name="com.google.android.gms.maps.SupportMapFragment"
-      android:layout_width="match_parent"
-      android:layout_height="200dp"
-      android:layout_marginBottom="180dp"
-      android:background="@android:color/transparent"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toStartOf="parent" />
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginBottom="180dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/ivChangeVisibility"
@@ -49,21 +48,53 @@
         app:srcCompat="@drawable/ic_change_visibility" />
 
     <include
-        layout="@layout/layout_focus"
         android:id="@+id/llFocus"
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"/>
+        layout="@layout/layout_focus"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <include
-        layout="@layout/layout_main_activities"
-        android:visibility="gone"
         android:id="@+id/llMainActivities"
+        layout="@layout/layout_main_activities"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent"/>
-  <!--<com.google.ar.sceneform.ArSceneView
-      android:id="@+id/ar_scene_view"
-      android:layout_width="fill_parent"
-      android:layout_height="fill_parent"
-      android:layout_gravity="top"/>-->
+        android:visibility="gone" />
+    <!--<com.google.ar.sceneform.ArSceneView
+        android:id="@+id/ar_scene_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="top"/>-->
+
+    <Button
+        android:id="@+id/btn1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2"
+        app:layout_constraintStart_toEndOf="@+id/btn1"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3"
+        app:layout_constraintStart_toEndOf="@+id/btn2"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btn4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="4"
+        app:layout_constraintStart_toEndOf="@+id/btn3"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
