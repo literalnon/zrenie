@@ -15,9 +15,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
-import com.example.zrenie20.augmentedimage.ArVideoFragment
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
-import com.example.zrenie20.augmentedimage.IVideoArFragment
+import com.example.zrenie20.augmentedimage.AugmentedImageFragment
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
@@ -61,7 +60,7 @@ class SettingsActivity : AppCompatActivity() {
 
         llAugmentedImage?.setOnClickListener {
             currentScreen = SCREENS.AUGMENTED_IMAGE
-            loadData()
+            loadAugmentedImageData()
             //startActivity(Intent(this, AugmentedImageActivity::class.java))
         }
 
@@ -121,7 +120,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     fun getImageData(assetsArray: ArrayList<DataItemObject>) {
-        IVideoArFragment.bitmaps.clear()
+        AugmentedImageFragment.bitmaps.clear()
 
         Log.e(TAG, "getImageData assetsArray: ${assetsArray.size}")
 
@@ -129,8 +128,8 @@ class SettingsActivity : AppCompatActivity() {
             itemObject.trigger?.filePath?.isNotEmpty() == true
         }
 
-        IVideoArFragment.assetsArray.clear()
-        IVideoArFragment.assetsArray.addAll(nonEmptyAssetsArray)
+        AugmentedImageFragment.assetsArray.clear()
+        AugmentedImageFragment.assetsArray.addAll(nonEmptyAssetsArray)
 
         nonEmptyAssetsArray.forEach { itemObject ->
             try {
@@ -146,15 +145,15 @@ class SettingsActivity : AppCompatActivity() {
                             resource: Bitmap,
                             transition: Transition<in Bitmap?>?
                         ) {
-                            Log.e(TAG, "getImageData onResourceReady IVideoArFragment.bitmaps : ${IVideoArFragment.bitmaps.size}")
-                            IVideoArFragment.bitmaps[itemObject.trigger?.filePath!!] = resource
-                            if (IVideoArFragment.bitmaps.size == nonEmptyAssetsArray.size) {
+                            Log.e(TAG, "getImageData onResourceReady IVideoArFragment.bitmaps : ${AugmentedImageFragment.bitmaps.size}")
+                            AugmentedImageFragment.bitmaps[itemObject.trigger?.filePath!!] = resource
+                            if (AugmentedImageFragment.bitmaps.size == nonEmptyAssetsArray.size) {
                                 startActivity(Intent(this@SettingsActivity, AugmentedImageActivity::class.java))
                             }
                         }
 
                         override fun onLoadCleared(placeholder: Drawable?) {
-                            Log.e(TAG, "getImageData onLoadCleared IVideoArFragment.bitmaps : ${IVideoArFragment.bitmaps.size}")
+                            Log.e(TAG, "getImageData onLoadCleared IVideoArFragment.bitmaps : ${AugmentedImageFragment.bitmaps.size}")
                         }
                     })
             } catch (e: IOException) {
@@ -165,7 +164,7 @@ class SettingsActivity : AppCompatActivity() {
         llProgress?.visibility = View.GONE
     }
 
-    open fun loadData() {
+    open fun loadAugmentedImageData() {
         llProgress?.visibility = View.VISIBLE
         var assetsArray = arrayListOf<DataItemObject>()
 

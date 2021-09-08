@@ -1,53 +1,44 @@
 package com.example.zrenie20.renderable
 
 import android.content.Context
-import android.media.MediaPlayer
-import android.net.Uri
 import android.util.Log
-import android.widget.ImageView
-import androidx.core.net.toUri
 import com.example.zrenie20.R
 import com.example.zrenie20.data.DataItemObject
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.AnchorNode
-import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.NodeParent
-import com.google.ar.sceneform.Scene
-import com.google.ar.sceneform.animation.ModelAnimator
-import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.*
 import java.io.File
-import java.io.InputStream
-import java.util.concurrent.Callable
 
-class ArImageRenderObject(
+class ArLoadingRenderObject(
     override val context: Context,
     override val dataItemObject: DataItemObject,
-    //override val mScene: Scene,
-    override val renderableFile: File
+    override val renderableFile: File? = null
 ) : IArRenderObject {
-    /*companion object {
-        val TAG = "ArImageRenderObject"
+    /*
+    companion objectArLoadingRenderObject {
+        val TAG = "ArGlbRenderObject"
     }
 
-    private var imageRenderable: Renderable? = null
+    private var glbRenderable: Renderable? = null
+    val cornerNode = AnchorNode()
 
     override fun pause() {
         Log.e(TAG, "pause")
-        //cornerNode.renderable = null
+        cornerNode.renderable = null
     }
 
     override fun resume() {
         Log.e(TAG, "resume")
-        //cornerNode.renderable = imageRenderable
+        cornerNode.renderable = glbRenderable
     }
 
     override fun stop() {
         Log.e(TAG, "stop")
-        //cornerNode.renderable = null
+        cornerNode.renderable = null
     }
 
     override fun start(
@@ -59,15 +50,17 @@ class ArImageRenderObject(
         Log.e(TAG, "start")
 
         val builder = ViewRenderable.builder()
-            .setView(context, R.layout.example_layout)
+            .setView(context, R.layout.loading_layout)
 
         builder.build()
             .thenAccept { renderable ->
                 Log.e(TAG, "thenAccept")
-                val ivMarker = renderable.view?.findViewById<ImageView>(R.id.ivMarker)
-                ivMarker?.setImageURI(renderableFile.toUri())
+                glbRenderable = renderable
 
-                imageRenderable = renderable
+                val localPosition = Vector3()
+
+                cornerNode.localPosition = localPosition
+                cornerNode.renderable = glbRenderable
 
                 onSuccess()
             }
@@ -81,17 +74,18 @@ class ArImageRenderObject(
     }
 
     override fun getRenderable(): Renderable? {
-        return imageRenderable
+        return glbRenderable
     }
 
     override fun setParent(parent: NodeParent) {
         Log.e(TAG, "setParent")
-
+        cornerNode.setParent(parent)
     }
 
     override fun setWorldRotation(rotation: Quaternion) {
-
+        //cornerNode?.worldRotation = rotation
     }*/
+
 
     companion object {
         val TAG = "DOWNLOAD_VIDEO_FILE"
@@ -110,13 +104,13 @@ class ArImageRenderObject(
     }
 
     override fun resume() {
-        viewAnchorNode = anchorNode
-        viewAnchorNode.renderable = viewRenderable
+            viewAnchorNode = anchorNode
+            viewAnchorNode.renderable = viewRenderable
     }
 
     override fun stop() {
-        viewAnchorNode.anchor?.detach()
-        viewAnchorNode.renderable = null
+            viewAnchorNode.anchor?.detach()
+            viewAnchorNode.renderable = null
     }
 
     override fun start(
@@ -126,13 +120,10 @@ class ArImageRenderObject(
         augmentedImage: AugmentedImage?
     ) {
         val builder = ViewRenderable.builder()
-            .setView(context, R.layout.example_layout)
+            .setView(context, R.layout.loading_layout)
 
         builder.build()
             .thenAccept { renderable ->
-                val ivMarker = renderable.view?.findViewById<ImageView>(R.id.ivMarker)
-                ivMarker?.setImageURI(renderableFile.toUri())
-
                 viewRenderable = renderable
                 viewRenderable?.isShadowCaster = false
                 viewRenderable?.isShadowReceiver = false
@@ -141,13 +132,19 @@ class ArImageRenderObject(
                 //viewAnchorNode.anchor?.detach()
                 //viewAnchorNode.anchor = anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
 
-                val scale = dataItemObject.scale?.toFloatOrNull() ?: 0.2f
-
-                viewAnchorNode.worldScale = Vector3(
-                        scale, // width
-                        scale,
-                        scale
+                viewAnchorNode.worldScale = if (augmentedImage != null) {
+                    Vector3(
+                        0.2f, // width
+                        0.2f,
+                        0.2f
                     ) // height
+                } else {
+                    Vector3(
+                        0.2f, // width
+                        0.2f,
+                        0.2f
+                    )
+                }
 
                 viewAnchorNode.renderable = viewRenderable
 
@@ -158,6 +155,7 @@ class ArImageRenderObject(
                 rotation.w = 1f
 
                 viewAnchorNode.worldRotation = rotation
+
 
                 //val anchorUp = anchorNode.up
                 //viewAnchorNode.setLookDirection(Vector3.up(), anchorUp)
@@ -181,4 +179,5 @@ class ArImageRenderObject(
         viewAnchorNode?.worldRotation = rotation
         //viewAnchorNode?.localRotation = rotation
     }
+
 }

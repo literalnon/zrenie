@@ -7,7 +7,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import com.example.zrenie20.R
 import com.example.zrenie20.data.*
+import com.example.zrenie20.renderable.ArLoadingRenderObject
 import com.example.zrenie20.renderable.ArRenderObjectFactory
 import com.example.zrenie20.renderable.IArRenderObject
 import com.example.zrenie20.space.FileDownloadManager
@@ -16,16 +18,19 @@ import com.google.ar.core.AugmentedImageDatabase
 import com.google.ar.core.Config
 import com.google.ar.core.Session
 import com.google.ar.sceneform.FrameTime
+import com.google.ar.sceneform.math.Quaternion
+import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.rendering.Renderable
+import com.google.ar.sceneform.rendering.ViewRenderable
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.gson.Gson
+import kotlinx.android.synthetic.main.activity_location.*
 import kotlin.collections.HashMap
 
-open class IVideoArFragment : ArFragment() {
+open class AugmentedImageFragment : ArFragment() {
 
     private var activeAugmentedImage: AugmentedImage? = null
     private var mapOfAugmentedImageNode = hashMapOf<AugmentedImage, AugmentedImageNode>()
-
-    //private var arRenderObject: IArRenderObject? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,7 +60,9 @@ open class IVideoArFragment : ArFragment() {
         augmentedImageBitmap.forEach { (name, bitmap) ->
             augmentedImageDatabase.addImage(name, bitmap)
         }
+
         config.augmentedImageDatabase = augmentedImageDatabase
+
         return true
     }
 
@@ -72,7 +79,7 @@ open class IVideoArFragment : ArFragment() {
         if (!setupAugmentedImageDatabase(config, session)) {
             Toast.makeText(
                 requireContext(),
-                "Could not setup augmented image database",
+                "Пакет не выбран",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -158,8 +165,7 @@ open class IVideoArFragment : ArFragment() {
                 /*Log.e("AUGMENTED_IMAGE", "arItem?.type?.id : ${arItem?.type?.id}")
                 Log.e("AUGMENTED_IMAGE", "arItem?.type?.id : ${Gson().toJson(arItem)}")
                 Log.e("AUGMENTED_IMAGE", "arItem?.filePath : ${arItem?.filePath}")*/
-                val mArItem =
-                    assetsArray.find { it.trigger?.filePath == activeAugmentedImage?.name }
+                val mArItem = assetsArray.find { it.trigger?.filePath == activeAugmentedImage?.name }
                 Log.e("AUGMENTED_IMAGE", "arItem?.filePath : ${mArItem?.filePath}")
                 Log.e("AUGMENTED_IMAGE", "arItem?.filePath : ${arItem?.filePath}")
                 Log.e("AUGMENTED_IMAGE", "mArItem : ${Gson().toJson(mArItem)}")
@@ -171,8 +177,22 @@ open class IVideoArFragment : ArFragment() {
                 Log.e("AUGMENTED_IMAGE", "assetsArray : ${Gson().toJson(assetsArray)}")
 
                 if (mArItem?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
-                    //arRenderObject?.stop()
                     mapOfAugmentedImageNode[activeAugmentedImage]?.stop()
+                }
+
+                mArItem?.let {
+                    Log.e("AUGMENTED_IMAGE", "create loader")
+
+                    mapOfAugmentedImageNode[augmentedImage] = AugmentedImageNode(
+                        context = requireContext(),
+                        augmentedImage = augmentedImage,
+                        renderableFile = null,
+                        dataItemObject = mArItem,
+                        mScene = arSceneView.scene
+                    ).apply {
+                        setImage(augmentedImage)
+                        arSceneView.scene.addChild(this)
+                    }
                 }
 
                 fileDownloadManager.downloadFile(mArItem?.filePath!!, requireContext())
@@ -180,20 +200,9 @@ open class IVideoArFragment : ArFragment() {
 
                         Log.e("AUGMENTED_IMAGE", "arItem?.type?.id : ${mArItem?.type?.id}")
 
-                        /*if (mArItem?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
-                            arRenderObject = ArRenderObjectFactory(
-                                context = requireContext(),
-                                dataItemObject = mArItem,
-                                mScene = arSceneView.scene,
-                                renderableFile = renderableFile,
-                            ).createRenderable().apply {
-                                start(augmentedImage)
-                            }
-                        } else {*/
-                            //pauseArVideo()
-                            Log.e("AUGMENTED_IMAGE", "create AugmentedImageNode")
-                            //if (mapOfAugmentedImageNode[augmentedImage] == null) {
-                        if (mapOfAugmentedImageNode[augmentedImage] == null) {
+                        Log.e("AUGMENTED_IMAGE", "create AugmentedImageNode : ${mapOfAugmentedImageNode[augmentedImage]?.renderableFile == null}")
+                        if (mapOfAugmentedImageNode[augmentedImage]?.renderableFile == null) {
+                            arSceneView.scene.removeChild(mapOfAugmentedImageNode[augmentedImage])
                             mapOfAugmentedImageNode[augmentedImage] =
                                 AugmentedImageNode(
                                     context = requireContext(),
@@ -202,17 +211,13 @@ open class IVideoArFragment : ArFragment() {
                                     dataItemObject = mArItem,
                                     mScene = arSceneView.scene
                                 ).apply {
-                                    //setImage(augmentedImage)
+                                    setImage(augmentedImage)
                                     arSceneView.scene.addChild(this)
                                 }
-                            //}
 
-                            val augmentedImageNode = mapOfAugmentedImageNode[augmentedImage]!!
-                            //videoRenderable?.videoAnchorNode = augmentedImageNode
-                            augmentedImageNode.setImage(augmentedImage)
-                            //augmentedImageNode.resumeImage()
+                            //val augmentedImageNode = mapOfAugmentedImageNode[augmentedImage]!!
+                            //augmentedImageNode.setImage(augmentedImage)
                         }
-                        //}
                     }, {
                         it.printStackTrace()
                     })

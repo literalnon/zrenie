@@ -15,6 +15,7 @@ enum class TypeItemObjectCodeNames(val codeName: String) {
     SPACE("space"),
     VIDEO("video"),
     IMAGE("image"),
+    LOADING("loading")
 }
 
 fun TypeItemObject.toRealmTypeItemObject(): RealmTypeItemObject {

@@ -41,18 +41,18 @@ class SplashActivity : AppCompatActivity() {
                         realm.delete(RealmDataPackageObject::class.java)
 
                         list.forEach { packageObject ->
-
                             realm.copyToRealm(packageObject.toRealmDataPackageObject())
                         }
                     }
             }
             .subscribe({
-                //startActivity(Intent(this, AugmentedImageActivity::class.java))
-                startActivity(Intent(this, SpaceActivity::class.java))
+                startActivity(Intent(this, AugmentedImageActivity::class.java))
+                //startActivity(Intent(this, SpaceActivity::class.java))
 
                 this.finish()
             }, {
-                startActivity(Intent(this, SpaceActivity::class.java))
+                //startActivity(Intent(this, SpaceActivity::class.java))
+                startActivity(Intent(this, AugmentedImageActivity::class.java))
                 it.printStackTrace()
             })
         )

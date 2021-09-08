@@ -25,6 +25,15 @@ class ArRenderObjectFactory(
     private val renderableFile: File? = null
 ) : IArRenderObjectFactory {
     override fun createRenderable(): IArRenderObject {
+        if (renderableFile == null) {
+            return ArLoadingRenderObject(
+                context = context,
+                dataItemObject = dataItemObject,
+                //mScene = mScene,
+                renderableFile = renderableFile
+            )
+        }
+
         return when (dataItemObject.type?.codeName) {
             TypeItemObjectCodeNames.VIDEO.codeName -> {
                 ArVideoRenderObject(

@@ -17,7 +17,7 @@ interface IArRenderObject {
     val context: Context
     val dataItemObject: DataItemObject
     //val mScene: Scene
-    val renderableFile: File
+    val renderableFile: File?
 
     fun pause()
 

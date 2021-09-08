@@ -51,7 +51,7 @@ import java.util.concurrent.CompletableFuture
 class AugmentedImageNode(
     val context: Context,
     val augmentedImage: AugmentedImage,
-    val renderableFile: File,
+    val renderableFile: File?,
     val dataItemObject: DataItemObject,
     val mScene: Scene,
 ) : AnchorNode() {
@@ -77,7 +77,7 @@ class AugmentedImageNode(
         // Set the anchor based on the center of the image.
         anchor = image.createAnchor(image.centerPose)
         rend?.start(
-            anchor = augmentedImage.createAnchor(augmentedImage.centerPose),
+            anchor = anchor,
             onSuccess = {},
             onFailure = {},
             augmentedImage = image
@@ -106,6 +106,10 @@ class AugmentedImageNode(
 
     fun stop() {
         Companion.arRenderObjectMap[image?.index]?.stop()
+    }
+
+    fun getCurrentArRenderObject(): IArRenderObject? {
+        return Companion.arRenderObjectMap[image?.index]
     }
 
     companion object {
@@ -152,7 +156,7 @@ class AugmentedImageNode(
         // Upon construction, start loading the models for the corners of the frame.
         val index = augmentedImage.index ?: 0
 
-        if (Companion.arRenderObjectMap[index] == null) {
+        if (Companion.arRenderObjectMap[index]?.renderableFile == null) {
 
             /*val rConfig =
                 RenderableConfig(
@@ -171,7 +175,9 @@ class AugmentedImageNode(
 
             try {
                 //Companion.mRenderable.put(index, arRenderObject)
-                Companion.arRenderObjectMap.put(index, arRenderObject)
+                    //if (renderableFile != null) {
+                        Companion.arRenderObjectMap.put(index, arRenderObject)
+                    //}
             } catch (e: Exception) {
                 e.printStackTrace()
             }
