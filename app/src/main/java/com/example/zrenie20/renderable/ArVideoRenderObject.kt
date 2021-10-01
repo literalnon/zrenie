@@ -100,9 +100,9 @@ class ArVideoRenderObject(
                     ) // height
                 } else {
                     Vector3(
-                        7f, // width
-                        7f,
-                        7f * mediaPlayer.videoHeight / mediaPlayer.videoWidth
+                        4f,//dataItemObject.scale?.toFloatOrNull() ?: 4f, // width
+                        4f,//dataItemObject.scale?.toFloatOrNull() ?: 4f,
+                        4f//dataItemObject.scale?.toFloatOrNull() ?: 4f
                     )
                 }
 
@@ -128,7 +128,7 @@ class ArVideoRenderObject(
     }
 
     override fun setWorldRotation(rotation: Quaternion) {
-        //videoAnchorNode?.worldRotation = rotation
+        videoAnchorNode?.worldRotation = rotation
         //videoAnchorNode?.localRotation = rotation
     }
 }

@@ -17,6 +17,8 @@ import com.google.ar.sceneform.rendering.Vertex.UvCoordinate
 import com.google.ar.sceneform.ux.AugmentedFaceNode
 import java.util.*
 import com.example.zrenie20.R
+import com.example.zrenie20.data.TypeItemObjectCodeNames
+import com.example.zrenie20.renderable.IArRenderObject
 import java.util.concurrent.ExecutionException
 import java.util.function.BiFunction
 
@@ -25,6 +27,7 @@ class MyAugmentedFaceNode: Node {
     /** Sets the AugmentedFace that this node is applying visual effects to.  */
     // The augmented face to render visual effects for.
     var augmentedFace: AugmentedFace? = null
+    var iArRenderObject: IArRenderObject? = null
 
     // Fields for nodes.
     private val faceMeshNode: Node
@@ -169,8 +172,24 @@ class MyAugmentedFaceNode: Node {
         /*worldRotation =
             Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())*/
         var rotation: Quaternion? = Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())
-        //val inverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
-        //rotation = Quaternion.multiply(rotation, inverse)
+        val inverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
+        rotation = Quaternion.multiply(rotation, inverse)
+
+        if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
+            rotation = Quaternion()
+            rotation.x = 1f
+
+            /*rotation = Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())
+            val mInverse = Quaternion(Vector3(1.0f, 0.0f, 0.0f), 180.0f)
+            rotation = Quaternion.multiply(rotation, mInverse)*/
+
+            worldScale = Vector3(
+                0.2f,
+                0.2f,
+                0.2f
+            )
+        }
+
         worldRotation = rotation
     }
 

@@ -17,6 +17,26 @@ interface IFileDownloadManager {
 }
 
 class FileDownloadManager : IFileDownloadManager {
+
+    fun getAllFiles(context: Context): ArrayList<String> {
+        val dirPath = context.cacheDir.path
+
+        val filePath = StringBuilder()
+            .append(dirPath)
+            .append(File.separator)
+            .toString()
+
+        val filesPaths = arrayListOf<String>()
+
+        filesPaths.addAll(
+            File(filePath).listFiles().map {
+                it.absolutePath
+            }
+        )
+
+        return filesPaths
+    }
+
     override fun downloadFile(url: String, context: Context): Single<File> {
         val paths = url.split(File.separator)
         val absolutePath = StringBuilder()

@@ -1,5 +1,7 @@
 package com.example.zrenie20.renderable
 
+import android.animation.Animator
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
@@ -30,6 +32,7 @@ class ArGlbRenderObject(
 ) : IArRenderObject {
     companion object {
         val TAG = "ArGlbRenderObject"
+        var index = -1
     }
 
     private var glbRenderable: ModelRenderable? = null
@@ -50,10 +53,46 @@ class ArGlbRenderObject(
 
     private fun playAnimation() {
         glbRenderable?.let { renderable ->
+            Log.e(TAG, "playAnimation ${renderable?.animationDataCount} : ${animator?.isRunning}")
             if ((renderable?.animationDataCount ?: 0) > 0 && animator?.isRunning != true) {
-                val data: AnimationData? = renderable?.getAnimationData(0)
+                var ind = 0
+                val data: AnimationData? = renderable?.getAnimationData(ind)
+
                 if (animator == null) {
                     animator = ModelAnimator(data, renderable)
+
+                        /*?.apply {
+                        addListener(object : Animator.AnimatorListener {
+                            override fun onAnimationStart(animation: Animator?) {
+
+                            }
+
+                            override fun onAnimationEnd(animation: Animator?) {
+                                ++ind
+                                if (renderable?.animationDataCount > ind) {
+                                    //animator?.setTarget(null)
+                                    val anim = renderable?.getAnimationData(ind)
+                                    animator = ModelAnimator(anim, renderable)
+                                    animator?.start()
+                                    Log.e(TAG, "playAnimation onAnimationEnd : ${ind} : ${anim.durationMs} : ${anim.name}")
+                                }
+                            }
+
+                            override fun onAnimationCancel(animation: Animator?) {
+
+                            }
+
+                            override fun onAnimationRepeat(animation: Animator?) {
+
+                            }
+                        })
+                    }*/
+
+                    /*(1 until renderable?.animationDataCount).forEach {
+                        val anim = renderable?.getAnimationData(it)
+                        ModelAnimator(anim, renderable)?.start()
+                        Log.e(TAG, "playAnimation ind : ${it} : ${anim.durationMs} : ${anim.name}")
+                    }*/
                 }
 
                 animator?.start()
@@ -73,10 +112,10 @@ class ArGlbRenderObject(
         augmentedImage: AugmentedImage?
     ) {
         Log.e(TAG, "start")
-
+        index++
         val builder = if (renderableFile.absolutePath.contains(".sfb")) {
             ModelRenderable.builder()
-                .setSource(context, renderableFile.toUri())
+                .setSource(context, renderableFile.toUri())//Uri.parse("file:///android_asset/e${index%9 + 1}.sfb"))//
         } else {
             ModelRenderable.builder()
                 .setSource(
@@ -85,19 +124,22 @@ class ArGlbRenderObject(
                     RenderableSource.builder()
                         .setSource(
                             context,
-                            renderableFile.toUri(),//Uri.parse("file:///android_asset/aImage/i6.glb"),//renderableFile.toUri(), //renderableFile.toUri(),//Uri.parse(renderableFile.),//"file:///android_asset/aImage/i6.glb"),
+                            renderableFile.toUri(),//Uri.parse("file:///android_asset/aImage/i6.glb"),//renderableFile.toUri(),//Uri.parse("file:///android_asset/aImage/i6.glb"),//renderableFile.toUri(), //renderableFile.toUri(),//Uri.parse(renderableFile.),//"file:///android_asset/aImage/i6.glb"),
                             RenderableSource.SourceType.GLB
                         )
-                        .setScale(0.5f) // Scale the original model to 50%.//dataItemObject.scale?.toFloatOrNull() ?:
+                        .setScale(0.05f) // Scale the original model to 50%.//dataItemObject.scale?.toFloatOrNull() ?:
                         .setRecenterMode(RenderableSource.RecenterMode.NONE)
                         .build()
                 )
         }
         //.setRegistryId(augmentedImage.name)
-        builder.build()
+        builder
+            //.setScale(0.5f)
+            .build()
             .thenAccept { renderable ->
                 Log.e(TAG, "thenAccept")
                 glbRenderable = renderable
+                animator = null
 
                 val localPosition = Vector3()
 

@@ -4,6 +4,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
 import com.example.zrenie20.data.DataItemObject
 import com.example.zrenie20.data.DataPackageObject
@@ -39,7 +41,13 @@ class LibAdapter(
         holder.tvLabel.text = item.id.toString()//"Label"
         holder.tvTitle.text = item.name//"Название пакета"
         holder.tvContent.text = item.description//"Краткое описание"
-        holder.tvTags.text = item.thumbnailPath//"#теги #теги #теги"
+        holder.tvTags.text = item.order//"#теги #теги #теги"
+
+        Glide.with(holder.view.context)
+            .load(item?.thumbnailPath)
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .into(holder.ivLibAr)
+
 
         holder.view.setOnClickListener {
             onSelectedItem(item)

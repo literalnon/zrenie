@@ -123,6 +123,51 @@ dependencies {
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'
 
+/*sceneform.asset('sampledata/9mm Hand gun.fbx',
+        'default',
+        'sampledata/9mm Hand gun.sfa',
+        'src/main/res/raw/9mm Hand gun')
+
+sceneform.asset('sampledata/googles_a.fbx',
+        'default',
+        'sampledata/googles_a.sfa',
+        'src/main/res/raw/googles_a')
+
+sceneform.asset('sampledata/Jeep_done.fbx',
+        'default',
+        'sampledata/Jeep_done.sfa',
+        'src/main/res/raw/Jeep_done')
+
+sceneform.asset('sampledata/Motion gun.fbx',
+        'default',
+        'sampledata/Motion gun.sfa',
+        'src/main/res/raw/Motion gun')
+
+sceneform.asset('sampledata/Surprised.fbx',
+        'default',
+        'sampledata/Surprised.sfa',
+        'src/main/res/raw/Surprised')
+
+sceneform.asset('sampledata/uzi.fbx',
+        'default',
+        'sampledata/Uzi.sfa',
+        'src/main/res/raw/uzi')
+
+sceneform.asset('sampledata/e7.obj',
+        'default',
+        'sampledata/e7.sfa',
+        'src/main/res/raw/e7')
+
+sceneform.asset('sampledata/e8.fbx',
+        'default',
+        'sampledata/e8.sfa',
+        'src/main/res/raw/e8')
+
+sceneform.asset('sampledata/e9.obj',
+        'default',
+        'sampledata/e9.sfa',
+        'src/main/res/raw/e9')*/
+
 /*sceneform.asset('sampledata/models/poly.fbx', // 'Source Asset Path' specified during import.
         'default',                    // 'Material Path' specified during import.
         'sampledata/models/poly.sfa', // '.sfa Output Path' specified during import.

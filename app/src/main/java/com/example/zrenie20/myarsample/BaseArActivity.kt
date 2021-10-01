@@ -60,8 +60,6 @@ abstract class BaseArActivity : AppCompatActivity() {
     var sceneView: ArSceneView? = null
     val vrObjectsMap = hashMapOf<DataItemObject, Node>()
 
-    val fileDownloadManager = FileDownloadManager()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(layoutId)
@@ -149,13 +147,13 @@ abstract class BaseArActivity : AppCompatActivity() {
                     TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
                         node = mNode
                         node?.setParent(anchorNode)
-                        currentRenderable?.setParent(node!!)
+                        //currentRenderable?.setParent(node!!)
                         node?.renderable = currentRenderable?.getRenderable()
                         node?.select()
 
-                        currentRenderable?.dataItemObject?.let {
-                            vrObjectsMap[it] = mNode
-                        }
+                        //currentRenderable?.dataItemObject?.let {
+                            vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
+                        //}
 
                         adapter?.notifyDataSetChanged()
                     }
@@ -203,14 +201,16 @@ abstract class BaseArActivity : AppCompatActivity() {
                 renderableUploadedFailed = { vrObjectDataClass ->
                     renderableUploadedFailed(vrObjectDataClass)
                 },
-                renderableRemoveCallback = {
+                renderableRemoveCallback = { dataItemObject ->
                     //node?.renderable = null
-                    vrObjectsMap[it]?.apply {
+                    vrObjectsMap[dataItemObject]?.apply {
+                        cashedAssets[dataItemObject.id]?.stop()
                         renderable = null
                         arFragment?.arSceneView?.scene?.removeChild(this)
-                        vrObjectsMap.remove(it)
+                        vrObjectsMap.remove(dataItemObject)
                     }
 
+                    //currentRenderable?.stop()
                     adapter?.notifyDataSetChanged()
                 },
                 isCanRemoveRenderable = {
@@ -227,6 +227,14 @@ abstract class BaseArActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         loadData()
+
+        currentRenderable?.resume()
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        currentRenderable?.pause()
     }
 
     /*open fun loadData() {
@@ -360,8 +368,9 @@ abstract class BaseArActivity : AppCompatActivity() {
     }
 
     open fun selectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
+        currentRenderable?.pause()
         currentRenderable = cashedAssets[dataItemObjectDataClass.id]
-
+        currentRenderable?.resume()
         adapter.notifyDataSetChanged()
 
         return if (currentRenderable?.getRenderable() != null) {

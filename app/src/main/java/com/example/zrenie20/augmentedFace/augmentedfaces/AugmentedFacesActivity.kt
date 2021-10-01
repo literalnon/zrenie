@@ -27,12 +27,17 @@ import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
+import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
 import com.google.ar.sceneform.ux.AugmentedFaceNode
 import com.google.ar.sceneform.ux.TransformableNode
+import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.augmented_faces_activity.*
+import kotlinx.android.synthetic.main.augmented_faces_activity.ivChangeVisibility
+import kotlinx.android.synthetic.main.augmented_faces_activity.llFocus
+import kotlinx.android.synthetic.main.augmented_faces_activity.llMainActivities
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
 import java.util.function.Consumer
@@ -51,32 +56,32 @@ class AugmentedFacesActivity : BaseArActivity() {
 
     init {
         assetsArray = arrayListOf()
-            /*DataItemObject(
-                id = 1,
-                filePath = "file:///android_asset/face/f1.glb",
-                name = "f1"
-            ),
-            DataItemObject(
-                id = 2,
-                filePath = "file:///android_asset/face/f2.glb",
-                name = "f2"
-            ),
-            DataItemObject(
-                id = 3,
-                filePath = "file:///android_asset/face/f3.glb",
-                name = "f3"
-            ),
-            DataItemObject(
-                id = 4,
-                filePath = "file:///android_asset/face/f4.glb",
-                name = "f4"
-            ),
-            DataItemObject(
-                id = 5,
-                filePath = "file:///android_asset/face/f5a.glb",
-                name = "f5a"
-            )
-        )*/
+        /*DataItemObject(
+            id = 1,
+            filePath = "file:///android_asset/face/f1.glb",
+            name = "f1"
+        ),
+        DataItemObject(
+            id = 2,
+            filePath = "file:///android_asset/face/f2.glb",
+            name = "f2"
+        ),
+        DataItemObject(
+            id = 3,
+            filePath = "file:///android_asset/face/f3.glb",
+            name = "f3"
+        ),
+        DataItemObject(
+            id = 4,
+            filePath = "file:///android_asset/face/f4.glb",
+            name = "f4"
+        ),
+        DataItemObject(
+            id = 5,
+            filePath = "file:///android_asset/face/f5a.glb",
+            name = "f5a"
+        )
+    )*/
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,24 +138,30 @@ class AugmentedFacesActivity : BaseArActivity() {
 
             for (face in faceList) {
                 if (!faceNodeMap.containsKey(face)) {
-                    val faceNode = MyAugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
+                    val faceNode =
+                        MyAugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
                     faceNode.setParent(scene)
-                    
+
+
+                    //faceNode.worldRotation = rotation
                     //faceNode = face.createAnchor(face.centerPose)
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable//currentRenderable?.vrRenderable
                     //faceRegionsRenderable = currentRenderable?.vrRenderable
                     if (currentRenderable?.getRenderable() == null) {
 
-                    currentRenderable?.start(
-                        anchor = null,
-                        onSuccess = {
-                            faceNode.renderable = currentRenderable?.getRenderable()
-                        },
-                        onFailure = {
+                        currentRenderable?.start(
+                            anchor = null,//faceNode.augmentedFace?.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP)),
+                            onSuccess = {
+                                faceNode.renderable = currentRenderable?.getRenderable()
+                                faceNode.iArRenderObject = currentRenderable
+                            },
+                            onFailure = {
 
-                        }
-                    ) } else {
+                            }
+                        )
+                    } else {
                         faceNode.renderable = currentRenderable?.getRenderable()
+                        faceNode.iArRenderObject = currentRenderable
                     }
                     // Overlay the 3D assets on the face.
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable
@@ -182,7 +193,6 @@ class AugmentedFacesActivity : BaseArActivity() {
 
             }
         }
-
 
 
         /*fakeView?.setOnTouchListener { v, event ->
