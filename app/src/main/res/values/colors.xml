@@ -14,5 +14,6 @@
 
     <color name="mainBackgroundLayout">#2D2D2D</color>
     <color name="selectedColor">#FCC506</color>
+    <color name="alphaColor">#00ff00</color>
 
 </resources>

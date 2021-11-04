@@ -22,6 +22,10 @@ import com.google.ar.sceneform.rendering.*
 import java.io.File
 import java.io.InputStream
 import java.util.concurrent.Callable
+import android.content.Intent
+
+
+
 
 class ArImageRenderObject(
     override val context: Context,
@@ -29,6 +33,16 @@ class ArImageRenderObject(
     //override val mScene: Scene,
     override val renderableFile: File
 ) : IArRenderObject {
+
+    override var onTouchListener: Node.OnTouchListener? = null
+        set(value) {
+            field = value
+
+            viewAnchorNode.setOnTouchListener { hitTestResult, motionEvent ->
+                return@setOnTouchListener value?.onTouch(hitTestResult, motionEvent) ?: false
+            }
+        }
+
     /*companion object {
         val TAG = "ArImageRenderObject"
     }
@@ -94,7 +108,7 @@ class ArImageRenderObject(
     }*/
 
     companion object {
-        val TAG = "DOWNLOAD_VIDEO_FILE"
+        val TAG = "DOWNLOAD_VIDEO_FILE2"
     }
 
     var viewRenderable: Renderable? = null
@@ -133,13 +147,25 @@ class ArImageRenderObject(
                 val ivMarker = renderable.view?.findViewById<ImageView>(R.id.ivMarker)
                 ivMarker?.setImageURI(renderableFile.toUri())
 
+                ivMarker?.setOnClickListener {
+                    val address = Uri.parse(dataItemObject.actionUrl)
+                    val openLinkIntent = Intent(Intent.ACTION_VIEW, address)
+
+                    if (openLinkIntent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(openLinkIntent)
+                    } else {
+                        Log.d("Intent", "Не получается обработать намерение!");
+                    }
+                }
+
+                viewAnchorNode = anchorNode
+
+                val localPosition = Vector3()
+                viewAnchorNode.localPosition = localPosition
+
                 viewRenderable = renderable
                 viewRenderable?.isShadowCaster = false
                 viewRenderable?.isShadowReceiver = false
-
-                viewAnchorNode = anchorNode
-                //viewAnchorNode.anchor?.detach()
-                //viewAnchorNode.anchor = anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
 
                 val scale = dataItemObject.scale?.toFloatOrNull() ?: 0.2f
 
@@ -158,9 +184,14 @@ class ArImageRenderObject(
                 rotation.w = 1f
 
                 viewAnchorNode.worldRotation = rotation
-
+                //viewAnchorNode.worldPosition = position
+                //viewAnchorNode.localPosition = Vector3(-1000f,-1000f,-100f)
+                Log.e("FACE_BUG", "viewAnchorNode : ${viewAnchorNode.worldPosition}, ${viewAnchorNode.localPosition}")
                 //val anchorUp = anchorNode.up
                 //viewAnchorNode.setLookDirection(Vector3.up(), anchorUp)
+
+                //viewAnchorNode.anchor?.detach()
+                //viewAnchorNode.anchor = anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
 
                 onSuccess()
             }
@@ -179,6 +210,11 @@ class ArImageRenderObject(
 
     override fun setWorldRotation(rotation: Quaternion) {
         viewAnchorNode?.worldRotation = rotation
+        //viewAnchorNode?.localRotation = rotation
+    }
+
+    override fun setWorldPosition(position: Vector3) {
+        viewAnchorNode?.worldPosition = position
         //viewAnchorNode?.localRotation = rotation
     }
 }

@@ -15,22 +15,51 @@
  */
 package com.example.zrenie20.augmentedimage
 
+import android.content.ContentValues
 import android.content.Intent
+import android.graphics.Bitmap
+import android.media.CamcorderProfile
 import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
+import android.provider.MediaStore
+import android.util.Log
+import android.view.PixelCopy
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
+import com.example.zrenie20.data.RealmDataPackageObject
+import com.example.zrenie20.data.toDataPackageObject
+import com.example.zrenie20.myarsample.BaseArActivity
+import com.example.zrenie20.space.VideoRecorder
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.ux.ArFragment
+import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
 
 class AugmentedImageActivity : AppCompatActivity() {
     private var arFragment: ArFragment? = null
     private val augmentedImageMap: MutableMap<AugmentedImage, AugmentedImageNode?> = HashMap()
+
+    var videoRecorder: VideoRecorder? = null
+
+    val VIDEO = "video"
+    val PHOTO = "photo"
+
+    var choice = PHOTO
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.augmented_image_activity)
@@ -54,6 +83,8 @@ class AugmentedImageActivity : AppCompatActivity() {
             }
         }
 
+        ivChangeVisibility?.performClick()
+
         ivSettings?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -61,5 +92,173 @@ class AugmentedImageActivity : AppCompatActivity() {
         ivStack?.setOnClickListener {
             startActivity(Intent(this, LibActivity::class.java))
         }
+
+        Realm.getDefaultInstance()
+            .executeTransaction { realm ->
+                val packages = realm.where(RealmDataPackageObject::class.java)
+                    .findAll()
+                    .map { it.toDataPackageObject() }
+                    .sortedBy { it.order?.toLongOrNull() }
+
+                val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                    val ap = packages.firstOrNull()
+                    BaseArActivity.checkedPackageId = ap?.id
+                    ap
+                } else {
+                    packages.firstOrNull {
+                        it.id == BaseArActivity.checkedPackageId
+                    }
+                }
+
+                Glide.with(this)
+                    .load(activePackage?.thumbnailPath)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(ivStack)
+            }
+
+        photoVideoRecorderInit()
+    }
+
+    fun photoVideoRecorderInit() {
+        videoRecorder = VideoRecorder(this)
+        val orientation = resources.configuration.orientation
+        videoRecorder?.setVideoQuality(CamcorderProfile.QUALITY_2160P, orientation)
+        videoRecorder?.setSceneView(arFragment!!.arSceneView)
+
+        choice = PHOTO
+
+        tvPhoto?.setOnClickListener {
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_photo_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.white))
+            tvVideo?.setTextColor(getColor(R.color.grayTextColor))
+
+            choice = PHOTO
+        }
+
+        tvVideo?.setOnClickListener {
+            //toggleRecording()
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_video_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.grayTextColor))
+            tvVideo?.setTextColor(getColor(R.color.white))
+
+            choice = VIDEO
+        }
+
+        btnPhoto.setOnClickListener {
+            if (choice == VIDEO) {
+                toggleRecording()
+            } else {
+                takePhoto()
+            }
+        }
+    }
+
+    fun toggleRecording() {
+        val recording: Boolean = videoRecorder?.onToggleRecord() == true
+        if (recording) {
+            //recordButton.setImageResource(R.drawable.round_stop)
+            btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
+            tvVideo.text = "stop"
+        } else {
+            tvVideo.text = "start"
+            btnPhoto.setImageResource(R.drawable.ic_video_button)
+            //recordButton.setImageResource(R.drawable.round_videocam)
+            val videoPath = videoRecorder?.videoPath?.absolutePath
+            //Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
+            Log.d("AugmentedImageActivity", "Video saved: $videoPath")
+
+            // Send  notification of updated content.
+            val values = ContentValues()
+            values.put(MediaStore.Video.Media.TITLE, "Sceneform Video")
+            values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            values.put(MediaStore.Video.Media.DATA, videoPath)
+            contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+        }
+    }
+
+    fun takePhoto() {
+        val view = arFragment!!.arSceneView
+
+        // Create a bitmap the size of the scene view.
+        val bitmap = Bitmap.createBitmap(
+            view.width, view.height,
+            Bitmap.Config.ARGB_8888
+        )
+
+        // Create a handler thread to offload the processing of the image.
+        val handlerThread = HandlerThread("PixelCopier")
+        handlerThread.start()
+        // Make the request to copy.
+        PixelCopy.request(view, bitmap, { copyResult ->
+            if (copyResult === PixelCopy.SUCCESS) {
+                try {
+                    val file = saveBitmapToDisk(bitmap)
+
+                    /* val toast: Toast = Toast.makeText(
+                         this, "Screenshot saved in : ${file.canonicalPath}",
+                         Toast.LENGTH_LONG
+                     )
+                     toast.show()*/
+                } catch (e: IOException) {
+                    val toast: Toast = Toast.makeText(
+                        this, e.toString(),
+                        Toast.LENGTH_LONG
+                    )
+                    toast.show()
+                    return@request
+                }
+
+
+
+                Log.e("AugmentedImageActivity", "Screenshot saved in /Pictures/Screenshots")
+            } else {
+                Log.e("AugmentedImageActivity", "Failed to take screenshot")
+            }
+            handlerThread.quitSafely()
+        }, Handler(handlerThread.looper))
+    }
+
+    open fun saveBitmapToDisk(bitmap: Bitmap): File {
+
+        val videoDirectory = File(
+            Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
+        )
+
+        if (!videoDirectory.exists()) {
+            videoDirectory.mkdir()
+        }
+
+        /*val videoDirectory = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                .toString() + "/Screenshots"
+        )*/
+
+        //videoDirectory.mkdir()
+
+        val c = Calendar.getInstance()
+        val df = SimpleDateFormat("yyyy-MM-dd HH.mm.ss")
+        val formattedDate = df.format(c.time)
+
+        val mediaFile: File = File(
+            videoDirectory,
+            "FieldVisualizer$formattedDate.jpeg"
+        )
+
+        try {
+            mediaFile.createNewFile()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        Log.e("AugmentedImageActivity", "mediaFile: ${mediaFile.canonicalPath}")
+
+        val fileOutputStream = FileOutputStream(mediaFile)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fileOutputStream)
+        fileOutputStream.flush()
+        fileOutputStream.close()
+
+        return mediaFile
     }
 }

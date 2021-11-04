@@ -1,10 +1,15 @@
 package com.example.zrenie20
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -22,13 +27,14 @@ import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
+import com.example.zrenie20.space.FileDownloadManager
 import com.example.zrenie20.space.SpaceActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.IOException
-import java.util.ArrayList
+import java.util.*
 
 enum class SCREENS(val type: ArTypes) {
     SPACE(type = ArTypes.ArOSpaceType()),
@@ -42,11 +48,28 @@ class SettingsActivity : AppCompatActivity() {
     companion object {
         var currentScreen: SCREENS = SCREENS.AUGMENTED_IMAGE
         val TAG = "SettingsActivity"
+        const val APP_PREFERENCES = "mysettings"
+        const val APP_PREFERENCES_CHECKED = "APP_PREFERENCES_CHECKED"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        val mSettings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE)
+        val lastModified = mSettings.getLong(APP_PREFERENCES_CHECKED, 0L)
+        chbSaveAr?.isChecked = lastModified == 0L
+
+        chbSaveAr?.setOnCheckedChangeListener{ btn, isChecked ->
+            if (isChecked) {
+                mSettings.edit()
+                    .putLong(APP_PREFERENCES_CHECKED, 0L)
+                    .apply()
+            } else {
+                mSettings.edit()
+                    .putLong(APP_PREFERENCES_CHECKED, Calendar.getInstance().timeInMillis).apply()
+            }
+        }
 
         llSpace?.setOnClickListener {
             currentScreen = SCREENS.SPACE
@@ -65,10 +88,17 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         llLocation?.setOnClickListener {
-            currentScreen = SCREENS.LOCATION
-            startActivity(Intent(this, LocationActivity::class.java))
+            if (checkLocationSettings()) {
+                currentScreen = SCREENS.LOCATION
+                startActivity(Intent(this, LocationActivity::class.java))
+            }
         }
 
+        tvRemoveAr?.setOnClickListener {
+            val fileDownloadManager = FileDownloadManager()
+            fileDownloadManager?.removeAllFiles(this)
+        }
+        
         tvLibAr?.setOnClickListener {
             startActivity(Intent(this, SearchActivity::class.java))
         }
@@ -117,6 +147,52 @@ class SettingsActivity : AppCompatActivity() {
                 ivLocationSelected.visibility = View.VISIBLE
             }
         }
+
+        val fileDownloadManager = FileDownloadManager()
+        val allFiles = fileDownloadManager.getAllFiles(this)
+
+        if (lastModified > 0) {
+            Realm.getDefaultInstance()
+                .executeTransaction { realm ->
+                    val objects = realm.where(RealmDataItemObject::class.java)
+                        .findAll()
+                        .map { it.toDataItemObject() }
+                        .filter { dataItemObj ->
+                            allFiles?.filter {
+                                it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
+                            }?.isNotEmpty() == true
+                        }
+
+                    tvRemoveAr.text = tvRemoveAr.text.toString() + " : " + (objects?.count() ?: "")
+                }
+        }
+    }
+
+    fun checkLocationSettings(): Boolean {
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var gps_enabled = false
+        var network_enabled = false
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        } catch (ex: Exception) {
+        }
+
+        if (!gps_enabled) {
+            // notify user
+            AlertDialog.Builder(this)
+                .setMessage(R.string.gps_network_not_enabled)
+                .setPositiveButton(R.string.open_location_settings,
+                    DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
+                        startActivity(
+                            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        )
+                    })
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        return gps_enabled
     }
 
     fun getImageData(assetsArray: ArrayList<DataItemObject>) {

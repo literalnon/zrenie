@@ -39,6 +39,7 @@ class LocationArFragment : ArFragment() {
         planeDiscoveryController.setInstructionView(null)
 
         val config = arSceneView?.session?.cameraConfig
+        arSceneView?.planeRenderer?.isEnabled = false
 
         arSceneView?.session?.cameraConfig = config
         //arSceneView?.isLightDirectionUpdateEnabled = true

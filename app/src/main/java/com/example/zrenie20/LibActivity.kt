@@ -1,10 +1,16 @@
 package com.example.zrenie20
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -14,14 +20,18 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageFragment
 import com.example.zrenie20.base.adapters.DelegationAdapter
 import com.example.zrenie20.data.*
+import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
 import com.example.zrenie20.space.FileDownloadManager
+import com.example.zrenie20.space.SpaceActivity
+import com.tsuryo.swipeablerv.SwipeLeftRightCallback
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
@@ -36,6 +46,7 @@ class LibActivity : AppCompatActivity() {
     val adapter = DelegationAdapter<Any>()
     open var assetsArray = arrayListOf<Any>()
     val fileDownloadManager = FileDownloadManager()
+    var currentType: SCREENS? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,10 +59,31 @@ class LibActivity : AppCompatActivity() {
         adapter?.manager?.addDelegate(
             LibAdapter(onSelectedItem = {
                 BaseArActivity.checkedPackageId = it.id
-                if (SettingsActivity.currentScreen == SCREENS.AUGMENTED_IMAGE) {
+                /*if (SettingsActivity.currentScreen == SCREENS.AUGMENTED_IMAGE) {
                     loadAugmentedImageData()
                 } else {
                     onBackPressed()
+                }*/
+
+                when(currentType) {
+                    SCREENS.SPACE -> {
+                        SettingsActivity.currentScreen = SCREENS.SPACE
+                        startActivity(Intent(this, SpaceActivity::class.java))
+                    }
+                    SCREENS.AUGMENTED_FACES -> {
+                        SettingsActivity.currentScreen = SCREENS.AUGMENTED_FACES
+                        startActivity(Intent(this, AugmentedFacesActivity::class.java))
+                    }
+                    SCREENS.AUGMENTED_IMAGE -> {
+                        SettingsActivity.currentScreen = SCREENS.AUGMENTED_IMAGE
+                        loadAugmentedImageData()
+                    }
+                    SCREENS.LOCATION -> {
+                        if (checkLocationSettings()) {
+                            SettingsActivity.currentScreen = SCREENS.LOCATION
+                            startActivity(Intent(this, LocationActivity::class.java))
+                        }
+                    }
                 }
             })
         )
@@ -59,23 +91,33 @@ class LibActivity : AppCompatActivity() {
         adapter?.manager?.addDelegate(
             LibDataItemObjectAdapter(onSelectedItem = {
                 //BaseArActivity.checkedPackageId = it.id
-                /*if (SettingsActivity.currentScreen == SCREENS.AUGMENTED_IMAGE) {
+
+                BaseArActivity.checkedPackageId = it.dataPackageId
+                if (SettingsActivity.currentScreen == SCREENS.AUGMENTED_IMAGE) {
                     loadAugmentedImageData()
                 } else {
                     onBackPressed()
-                }*/
-                if (it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName) {
+                }
+
+                /*if (it.trigger?.type?.codeName == SCREENS) {
                     val gmmIntentUri: Uri = Uri.parse("google.navigation:q=${it.trigger.latitude},${it.trigger.longitude}")
                     val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
                     mapIntent.setPackage("com.google.android.apps.maps")
                     startActivity(mapIntent)
-                }
+                }*/
             })
         )
 
         val allFiles = fileDownloadManager.getAllFiles(this)
 
         imageView4?.setOnClickListener {
+            currentType = SCREENS.AUGMENTED_IMAGE
+
+            imageView1.setColorFilter(Color.WHITE)
+            imageView2.setColorFilter(Color.WHITE)
+            imageView3.setColorFilter(Color.WHITE)
+            imageView4.setColorFilter(getColor(R.color.selectedColor))
+
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
                     val objects = realm.where(RealmDataPackageObject::class.java)
@@ -102,19 +144,29 @@ class LibActivity : AppCompatActivity() {
         }
 
         imageView3?.setOnClickListener {
+            currentType = SCREENS.LOCATION
+
+            imageView1.setColorFilter(Color.WHITE)
+            imageView2.setColorFilter(Color.WHITE)
+            imageView3.setColorFilter(getColor(R.color.selectedColor))
+            imageView4.setColorFilter(Color.WHITE)
+
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
-                    val objects = realm.where(RealmDataItemObject::class.java)
+                    val objects = realm.where(RealmDataPackageObject::class.java)
                         .findAll()
-                        .map { it.toDataItemObject() }
-                        .filter {
-                            it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName
+                        .map { it.toDataPackageObject() }
+                        .filter { packageItem ->
+                            realm.where(RealmDataItemObject::class.java)
+                                .findAll()
+                                .filter { it.dataPackageId == packageItem.id }
+                                .find { it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName } != null
                         }
-                        /*.filter { dataItemObj ->
-                            allFiles?.filter {
-                                it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
-                            }?.isNotEmpty() == true
-                        }*/
+                    /*.filter { dataItemObj ->
+                        allFiles?.filter {
+                            it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
+                        }?.isNotEmpty() == true
+                    }*/
 
                     assetsArray.clear()
 
@@ -122,9 +174,37 @@ class LibActivity : AppCompatActivity() {
 
                     adapter.replaceAll(assetsArray)
                 }
+
+            /*Realm.getDefaultInstance()
+                .executeTransaction { realm ->
+                    val objects = realm.where(RealmDataItemObject::class.java)
+                        .findAll()
+                        .map { it.toDataItemObject() }
+                        .filter {
+                            it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName
+                        }
+                        *//*.filter { dataItemObj ->
+                            allFiles?.filter {
+                                it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
+                            }?.isNotEmpty() == true
+                        }*//*
+
+                    assetsArray.clear()
+
+                    assetsArray.addAll(objects)
+
+                    adapter.replaceAll(assetsArray)
+                }*/
         }
 
         imageView2?.setOnClickListener {
+            currentType = SCREENS.AUGMENTED_FACES
+
+            imageView1.setColorFilter(Color.WHITE)
+            imageView2.setColorFilter(getColor(R.color.selectedColor))
+            imageView3.setColorFilter(Color.WHITE)
+            imageView4.setColorFilter(Color.WHITE)
+
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
                     val objects = realm.where(RealmDataPackageObject::class.java)
@@ -146,6 +226,15 @@ class LibActivity : AppCompatActivity() {
         }
 
         imageView1?.setOnClickListener {
+            currentType = SCREENS.SPACE
+
+            imageView1.setColorFilter(getColor(R.color.selectedColor))
+            imageView2.setColorFilter(Color.WHITE)
+            imageView3.setColorFilter(Color.WHITE)
+            imageView4.setColorFilter(Color.WHITE)
+
+            Log.e("SPLASH", "click 0")
+
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
                     val objects = realm.where(RealmDataPackageObject::class.java)
@@ -160,6 +249,8 @@ class LibActivity : AppCompatActivity() {
 
                     assetsArray.clear()
 
+                    Log.e("SPLASH", "click 1 ${objects.size}")
+
                     assetsArray.addAll(objects)
 
                     adapter.replaceAll(assetsArray)
@@ -173,7 +264,22 @@ class LibActivity : AppCompatActivity() {
                 }
         }
 
-        Realm.getDefaultInstance()
+        when (SettingsActivity.currentScreen) {
+            SCREENS.SPACE -> {
+                imageView1.performClick()
+            }
+            SCREENS.AUGMENTED_FACES -> {
+                imageView2.performClick()
+            }
+            SCREENS.AUGMENTED_IMAGE -> {
+                imageView4.performClick()
+            }
+            SCREENS.LOCATION -> {
+                imageView3.performClick()
+            }
+        }
+
+        /*Realm.getDefaultInstance()
             .executeTransaction { realm ->
                 val packages = realm.where(RealmDataPackageObject::class.java)
                     .findAll()
@@ -185,7 +291,7 @@ class LibActivity : AppCompatActivity() {
                 }
 
                 adapter.replaceAll(assetsArray)
-            }
+            }*/
 
         ivBack?.setOnClickListener {
             onBackPressed()
@@ -371,4 +477,32 @@ class LibActivity : AppCompatActivity() {
                         })
             }
     }
+
+    fun checkLocationSettings(): Boolean {
+        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var gps_enabled = false
+        var network_enabled = false
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        } catch (ex: Exception) {
+        }
+
+        if (!gps_enabled) {
+            // notify user
+            AlertDialog.Builder(this)
+                .setMessage(R.string.gps_network_not_enabled)
+                .setPositiveButton(R.string.open_location_settings,
+                    DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
+                        startActivity(
+                            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        )
+                    })
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        return gps_enabled
+    }
+
 }

@@ -111,7 +111,8 @@ class MyAugmentedFaceNode: Node {
         val context = scene.view.context
         // Face mesh material is embedded in a dummy renderable.
         ModelRenderable.builder()
-            .setSource(context, R.raw.sceneform_face_mesh)
+            //.setSource(context, R.raw.sceneform_face_mesh)
+            .setSource(context, R.raw.canonical_face_mesh)
             .build()
             .handle<Boolean>(
                 BiFunction { renderable: ModelRenderable, throwable: Throwable? ->
@@ -166,14 +167,20 @@ class MyAugmentedFaceNode: Node {
 
     private fun updateTransform() {
         // Update this node to be positioned at the center pose of the face.
-        val pose: Pose =
-            checkNotNull<AugmentedFace>(augmentedFace).getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
+        val pose: Pose = if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
+            checkNotNull<AugmentedFace>(augmentedFace)
+                .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
+        } else {
+            checkNotNull<AugmentedFace>(augmentedFace)
+                .centerPose
+        }
+
         worldPosition = Vector3(pose.tx(), pose.ty(), pose.tz())
         /*worldRotation =
             Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())*/
         var rotation: Quaternion? = Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())
-        val inverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
-        rotation = Quaternion.multiply(rotation, inverse)
+        /*val inverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
+        rotation = Quaternion.multiply(rotation, inverse)*/
 
         if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
             rotation = Quaternion()
@@ -188,10 +195,11 @@ class MyAugmentedFaceNode: Node {
                 0.2f,
                 0.2f
             )
+        } else if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.IMAGE.codeName) {
+            //localPosition = Vector3(0f, -0.5f, 0f)
         }
-
         worldRotation = rotation
-    }
+    }//[x=0.06771831, y=-0.14871326, z=-0.8137579]
 
     private fun updateRegionNodes() {
         // Update the pose of all the region nodes so that the bones in the face regions renderable
@@ -206,10 +214,18 @@ class MyAugmentedFaceNode: Node {
             )
             /*val pose: Pose = checkNotNull<AugmentedFace>(augmentedFace)
                 .getRegionPose(regionType)*/
-            val pose: Pose =
-                checkNotNull<AugmentedFace>(augmentedFace).getRegionPose(AugmentedFace.RegionType.NOSE_TIP)
+            val pose: Pose = if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
+                checkNotNull<AugmentedFace>(augmentedFace)
+                    .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
+            } else {
+                checkNotNull<AugmentedFace>(augmentedFace)
+                    .centerPose
+            }
+             //   checkNotNull<AugmentedFace>(augmentedFace)
+               //     .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)
             regionNode.worldPosition = Vector3(pose.tx(), pose.ty(), pose.tz())
 
+            Log.e("FACE_BUG", "regionNode.worldPosition : ${regionNode.worldPosition}")
             // Rotate the bones by 180 degrees because the .fbx template's coordinate system is
             // inversed of Sceneform's coordinate system. This is so the .fbx works with other
             // 3D rendering engines as well.
@@ -412,5 +428,12 @@ class MyAugmentedFaceNode: Node {
         }
         faceMeshDefinition =
             RenderableDefinition.builder().setVertices(vertices).setSubmeshes(submeshes).build()
+    }
+
+    fun pause() {
+        iArRenderObject?.pause()
+    }
+    fun resume() {
+        iArRenderObject?.resume()
     }
 }

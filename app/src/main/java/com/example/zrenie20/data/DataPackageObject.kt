@@ -55,6 +55,11 @@ fun DataPackageObject.toRealmDataPackageObject(): RealmDataPackageObject {
         order = order,
         isHidden = isHidden,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
+        dataItems = RealmList<RealmDataItemObject>().apply {
+            dataItems?.forEach {
+                add(it.toRealmDataItemObject())
+            }
+        }
     )
 }

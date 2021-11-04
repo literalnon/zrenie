@@ -4,6 +4,8 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
 import com.example.zrenie20.R
+import com.example.zrenie20.SCREENS
+import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.data.DataItemObject
 import com.example.zrenie20.data.TypeItemObjectCodeNames
 import com.google.ar.core.AugmentedImage
@@ -22,9 +24,23 @@ class ArRenderObjectFactory(
     private val context: Context,
     private val dataItemObject: DataItemObject,
     private val mScene: Scene? = null,
-    private val renderableFile: File? = null
+    var renderableFile: File? = null
 ) : IArRenderObjectFactory {
     override fun createRenderable(): IArRenderObject {
+        /*return ArWebViewRenderObject(
+            context = context,
+            dataItemObject = dataItemObject,
+            //mScene = mScene,
+            renderableFile = renderableFile
+        )*/
+
+        return ArAlphaVideoRenderObject(
+            context = context,
+            dataItemObject = dataItemObject,
+            //mScene = mScene,
+            renderableFile = renderableFile
+        )
+
         if (renderableFile == null) {
             return ArLoadingRenderObject(
                 context = context,
@@ -44,12 +60,20 @@ class ArRenderObjectFactory(
                 )
             }
             TypeItemObjectCodeNames.IMAGE.codeName -> {
-                ArImageRenderObject(
-                    context = context,
-                    dataItemObject = dataItemObject,
-                    //mScene = mScene,
-                    renderableFile = renderableFile!!
-                )
+                if (SettingsActivity.currentScreen == SCREENS.LOCATION) {
+                    ArImageRenderObjectForLocation(
+                        context = context,
+                        dataItemObject = dataItemObject,
+                        renderableFile = renderableFile!!
+                    )
+                } else {
+                    ArImageRenderObject(
+                        context = context,
+                        dataItemObject = dataItemObject,
+                        //mScene = mScene,
+                        renderableFile = renderableFile!!
+                    )
+                }
             }
             else -> {
                 ArGlbRenderObject(

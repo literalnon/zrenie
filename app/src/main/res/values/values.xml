@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MAlphaMovieView"><attr format="color" name="alphaColor"/><attr format="string" name="shader"/><attr format="float" name="accuracy"/></declare-styleable>
+</resources>

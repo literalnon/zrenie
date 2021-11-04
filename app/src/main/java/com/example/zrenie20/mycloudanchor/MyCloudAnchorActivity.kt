@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.zrenie20.R
 import com.example.zrenie20.common.helpers.SnackbarHelper
+import com.example.zrenie20.myarsample.BaseArActivity.Companion.BASE_MAX_SCALE
+import com.example.zrenie20.myarsample.BaseArActivity.Companion.BASE_MIN_SCALE
 import com.google.ar.core.Anchor
 import com.google.ar.core.Anchor.CloudAnchorState
 import com.google.ar.core.Plane
@@ -147,6 +149,10 @@ class MyCloudAnchorActivity : AppCompatActivity() {
         val node = AnchorNode(anchor)
         val transformableNode = TransformableNode(fragment.transformationSystem)
         transformableNode.renderable = renderable
+
+        transformableNode.scaleController.minScale = BASE_MIN_SCALE//Float.MIN_VALUE
+        transformableNode.scaleController.maxScale = BASE_MAX_SCALE//Float.MAX_VALUE
+
         transformableNode.setParent(node)
         fragment.arSceneView.scene.addChild(node)
         transformableNode.select()

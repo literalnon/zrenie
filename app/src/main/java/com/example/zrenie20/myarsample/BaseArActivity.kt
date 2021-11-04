@@ -3,7 +3,10 @@ package com.example.zrenie20.myarsample
 import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.camera2.CameraManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
@@ -41,11 +44,34 @@ import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
+import android.view.PixelCopy
+
+import android.os.HandlerThread
+import androidx.fragment.app.FragmentActivity
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import com.google.ar.core.exceptions.RecordingFailedException
+
+import com.google.ar.core.RecordingConfig
+import com.google.ar.core.Session
+import android.media.CamcorderProfile
+
+import com.example.zrenie20.space.VideoRecorder
+import android.provider.MediaStore
+
+import android.content.ContentValues
+import com.example.zrenie20.R
+import com.example.zrenie20.binakular.BinacularActivity
 
 
 abstract class BaseArActivity : AppCompatActivity() {
     companion object {
         var checkedPackageId: DataPackageId? = null
+
+        const val BASE_MIN_SCALE = 0.01f
+        const val BASE_MAX_SCALE = 5f
     }
 
     open var isNeedCreateAnchor: Boolean = true
@@ -60,12 +86,20 @@ abstract class BaseArActivity : AppCompatActivity() {
     var sceneView: ArSceneView? = null
     val vrObjectsMap = hashMapOf<DataItemObject, Node>()
 
+    var videoRecorder: VideoRecorder? = null
+
+    val VIDEO = "video"
+    val PHOTO = "photo"
+
+    var choice = PHOTO
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(layoutId)
 
         arFragment = mArFragment as ArFragment
         sceneView = arFragment?.arSceneView
+        sceneView?.planeRenderer?.isEnabled = false
 
         ivFlash?.setOnClickListener {
             Log.e("FLASH", "ivFlash setOnClickListener")
@@ -140,11 +174,18 @@ abstract class BaseArActivity : AppCompatActivity() {
             //anchorNode?.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
             //anchorNode = newAnchor
             anchorNode?.setParent(arFragment?.arSceneView?.scene)
+            val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
+
+            anchorNode?.localScale = Vector3(scale, scale, scale)
 
             currentRenderable?.start(
                 anchor = anchor,
                 onSuccess = {
                     TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+
+                        mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
+                        mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
+
                         node = mNode
                         node?.setParent(anchorNode)
                         //currentRenderable?.setParent(node!!)
@@ -152,7 +193,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                         node?.select()
 
                         //currentRenderable?.dataItemObject?.let {
-                            vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
+                        vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
                         //}
 
                         adapter?.notifyDataSetChanged()
@@ -178,6 +219,8 @@ abstract class BaseArActivity : AppCompatActivity() {
                 llMainActivities.visibility = View.GONE
             }
         }
+
+        ivChangeVisibility?.performClick()
 
         ivSettings?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -222,6 +265,188 @@ abstract class BaseArActivity : AppCompatActivity() {
         ivStack?.setOnClickListener {
             startActivity(Intent(this, LibActivity::class.java))
         }
+
+        videoRecorder = VideoRecorder(this)
+        val orientation = resources.configuration.orientation
+        videoRecorder?.setVideoQuality(CamcorderProfile.QUALITY_2160P, orientation)
+        videoRecorder?.setSceneView(arFragment!!.arSceneView)
+
+        choice = PHOTO
+
+        tvPhoto?.setOnClickListener {
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_photo_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.white))
+            tvVideo?.setTextColor(getColor(R.color.grayTextColor))
+
+            choice = PHOTO
+        }
+
+        tvVideo?.setOnClickListener {
+            //toggleRecording()
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_video_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.grayTextColor))
+            tvVideo?.setTextColor(getColor(R.color.white))
+
+            choice = VIDEO
+        }
+
+        btnPhoto.setOnClickListener {
+            if (choice == VIDEO) {
+                toggleRecording()
+            } else {
+                takePhoto()
+            }
+        }
+
+        ivVirtualReality?.setOnClickListener {
+            startActivity(Intent(this, BinacularActivity::class.java))
+        }
+        photoVideoRecorderInit()
+    }
+
+    fun photoVideoRecorderInit() {
+        videoRecorder = VideoRecorder(this)
+        val orientation = resources.configuration.orientation
+        videoRecorder?.setVideoQuality(CamcorderProfile.QUALITY_2160P, orientation)
+        videoRecorder?.setSceneView(arFragment!!.arSceneView)
+
+        choice = PHOTO
+
+        tvPhoto?.setOnClickListener {
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_photo_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.white))
+            tvVideo?.setTextColor(getColor(R.color.grayTextColor))
+
+            choice = PHOTO
+        }
+
+        tvVideo?.setOnClickListener {
+            //toggleRecording()
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_video_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.grayTextColor))
+            tvVideo?.setTextColor(getColor(R.color.white))
+
+            choice = VIDEO
+        }
+
+        btnPhoto.setOnClickListener {
+            if (choice == VIDEO) {
+                toggleRecording()
+            } else {
+                takePhoto()
+            }
+        }
+    }
+
+    fun toggleRecording() {
+        val recording: Boolean = videoRecorder?.onToggleRecord() == true
+        if (recording) {
+            //recordButton.setImageResource(R.drawable.round_stop)
+            btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
+            tvVideo.text = "stop"
+        } else {
+            tvVideo.text = "start"
+            btnPhoto.setImageResource(R.drawable.ic_video_button)
+            //recordButton.setImageResource(R.drawable.round_videocam)
+            val videoPath = videoRecorder?.videoPath?.absolutePath
+            //Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
+            Log.d("BaseArActivity", "Video saved: $videoPath")
+
+            // Send  notification of updated content.
+            val values = ContentValues()
+            values.put(MediaStore.Video.Media.TITLE, "Sceneform Video")
+            values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            values.put(MediaStore.Video.Media.DATA, videoPath)
+            contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+        }
+    }
+
+    fun takePhoto() {
+        val view = arFragment!!.arSceneView
+
+        // Create a bitmap the size of the scene view.
+        val bitmap = Bitmap.createBitmap(
+            view.width, view.height,
+            Bitmap.Config.ARGB_8888
+        )
+
+        // Create a handler thread to offload the processing of the image.
+        val handlerThread = HandlerThread("PixelCopier")
+        handlerThread.start()
+        // Make the request to copy.
+        PixelCopy.request(view, bitmap, { copyResult ->
+            if (copyResult === PixelCopy.SUCCESS) {
+                try {
+                    val file = saveBitmapToDisk(bitmap)
+
+                   /* val toast: Toast = Toast.makeText(
+                        this, "Screenshot saved in : ${file.canonicalPath}",
+                        Toast.LENGTH_LONG
+                    )
+                    toast.show()*/
+                } catch (e: IOException) {
+                    val toast: Toast = Toast.makeText(
+                        this, e.toString(),
+                        Toast.LENGTH_LONG
+                    )
+                    toast.show()
+                    return@request
+                }
+
+
+
+                Log.e("BaseArActivity", "Screenshot saved in /Pictures/Screenshots")
+            } else {
+                Log.e("BaseArActivity", "Failed to take screenshot")
+            }
+            handlerThread.quitSafely()
+        }, Handler(handlerThread.looper))
+    }
+
+    open fun saveBitmapToDisk(bitmap: Bitmap): File {
+
+        val videoDirectory = File(
+            Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
+        )
+
+        if (!videoDirectory.exists()) {
+            videoDirectory.mkdir()
+        }
+
+        /*val videoDirectory = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                .toString() + "/Screenshots"
+        )*/
+
+        //videoDirectory.mkdir()
+
+        val c = Calendar.getInstance()
+        val df = SimpleDateFormat("yyyy-MM-dd HH.mm.ss")
+        val formattedDate = df.format(c.time)
+
+        val mediaFile: File = File(
+            videoDirectory,
+            "FieldVisualizer$formattedDate.jpeg"
+        )
+
+        try {
+            mediaFile.createNewFile()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        Log.e("BaseArActivity", "mediaFile: ${mediaFile.canonicalPath}")
+
+        val fileOutputStream = FileOutputStream(mediaFile)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fileOutputStream)
+        fileOutputStream.flush()
+        fileOutputStream.close()
+
+        return mediaFile
     }
 
     override fun onStart() {
@@ -278,21 +503,28 @@ abstract class BaseArActivity : AppCompatActivity() {
 
                 if (isNeedFilterTrigger) {
                     //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
-                    dataItems = dataItems.filter { it.trigger?.type?.codeName == SettingsActivity.currentScreen.type.codeName }
+                    dataItems =
+                        dataItems.filter { it.trigger?.type?.codeName == SettingsActivity.currentScreen.type.codeName }
                 }
                 Log.e(
                     "FileDownloadManager",
                     "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
                 )
 
-                //if (dataItems.isNotEmpty()) {
-                    assetsArray = arrayListOf<DataItemObject>().apply {
-                        addAll(dataItems)
-                    }
+                if (dataItems.isNotEmpty()) {
+                    Glide.with(this)
+                        .load(activePackage?.thumbnailPath)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivStack)
+                }
 
-                    adapter.replaceAll(assetsArray)
+                assetsArray = arrayListOf<DataItemObject>().apply {
+                    addAll(dataItems)
+                }
 
-                    return@executeTransaction
+                adapter.replaceAll(assetsArray)
+
+                return@executeTransaction
                 //}
 
                 val observable =
@@ -327,10 +559,10 @@ abstract class BaseArActivity : AppCompatActivity() {
                             )
 
                             //if (currentPackageItems.isNotEmpty()) {
-                                assetsArray = arrayListOf<DataItemObject>().apply {
-                                    addAll(currentPackageItems)
-                                }
-                                adapter.replaceAll(assetsArray)
+                            assetsArray = arrayListOf<DataItemObject>().apply {
+                                addAll(currentPackageItems)
+                            }
+                            adapter.replaceAll(assetsArray)
                             //}
 
                             realm
@@ -363,7 +595,10 @@ abstract class BaseArActivity : AppCompatActivity() {
     }
 
     open fun isSelectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
-        Log.e("renderable", "isSelectedRenderable : ${currentRenderable?.dataItemObject?.id} : ${dataItemObjectDataClass.id}")
+        Log.e(
+            "renderable",
+            "isSelectedRenderable : ${currentRenderable?.dataItemObject?.id} : ${dataItemObjectDataClass.id}"
+        )
         return currentRenderable?.dataItemObject?.id == dataItemObjectDataClass.id
     }
 

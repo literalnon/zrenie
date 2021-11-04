@@ -7,6 +7,7 @@ import com.example.zrenie20.data.DataItemObject
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.AnchorNode
+import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.NodeParent
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
@@ -18,6 +19,15 @@ class ArLoadingRenderObject(
     override val dataItemObject: DataItemObject,
     override val renderableFile: File? = null
 ) : IArRenderObject {
+
+    override var onTouchListener: Node.OnTouchListener? = null
+        set(value) {
+            field = value
+
+            viewAnchorNode.setOnTouchListener { hitTestResult, motionEvent ->
+                return@setOnTouchListener value?.onTouch(hitTestResult, motionEvent) ?: false
+            }
+        }
     /*
     companion objectArLoadingRenderObject {
         val TAG = "ArGlbRenderObject"
@@ -88,7 +98,7 @@ class ArLoadingRenderObject(
 
 
     companion object {
-        val TAG = "DOWNLOAD_VIDEO_FILE"
+        val TAG = "DOWNLOAD_VIDEO_FILE1"
     }
 
     var viewRenderable: Renderable? = null

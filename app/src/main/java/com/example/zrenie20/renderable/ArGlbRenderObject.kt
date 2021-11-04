@@ -30,6 +30,16 @@ class ArGlbRenderObject(
     //override val mScene: Scene,
     override val renderableFile: File
 ) : IArRenderObject {
+
+    override var onTouchListener: Node.OnTouchListener? = null
+        set(value) {
+            field = value
+
+            cornerNode.setOnTouchListener { hitTestResult, motionEvent ->
+                return@setOnTouchListener value?.onTouch(hitTestResult, motionEvent) ?: false
+            }
+        }
+
     companion object {
         val TAG = "ArGlbRenderObject"
         var index = -1
@@ -60,33 +70,33 @@ class ArGlbRenderObject(
 
                 if (animator == null) {
                     animator = ModelAnimator(data, renderable)
+                    animator?.repeatCount = 100
+                    /*?.apply {
+                    addListener(object : Animator.AnimatorListener {
+                        override fun onAnimationStart(animation: Animator?) {
 
-                        /*?.apply {
-                        addListener(object : Animator.AnimatorListener {
-                            override fun onAnimationStart(animation: Animator?) {
+                        }
 
+                        override fun onAnimationEnd(animation: Animator?) {
+                            ++ind
+                            if (renderable?.animationDataCount > ind) {
+                                //animator?.setTarget(null)
+                                val anim = renderable?.getAnimationData(ind)
+                                animator = ModelAnimator(anim, renderable)
+                                animator?.start()
+                                Log.e(TAG, "playAnimation onAnimationEnd : ${ind} : ${anim.durationMs} : ${anim.name}")
                             }
+                        }
 
-                            override fun onAnimationEnd(animation: Animator?) {
-                                ++ind
-                                if (renderable?.animationDataCount > ind) {
-                                    //animator?.setTarget(null)
-                                    val anim = renderable?.getAnimationData(ind)
-                                    animator = ModelAnimator(anim, renderable)
-                                    animator?.start()
-                                    Log.e(TAG, "playAnimation onAnimationEnd : ${ind} : ${anim.durationMs} : ${anim.name}")
-                                }
-                            }
+                        override fun onAnimationCancel(animation: Animator?) {
 
-                            override fun onAnimationCancel(animation: Animator?) {
+                        }
 
-                            }
+                        override fun onAnimationRepeat(animation: Animator?) {
 
-                            override fun onAnimationRepeat(animation: Animator?) {
-
-                            }
-                        })
-                    }*/
+                        }
+                    })
+                }*/
 
                     /*(1 until renderable?.animationDataCount).forEach {
                         val anim = renderable?.getAnimationData(it)
@@ -111,11 +121,16 @@ class ArGlbRenderObject(
         onFailure: () -> Unit,
         augmentedImage: AugmentedImage?
     ) {
+        val scale = dataItemObject.scale?.toFloatOrNull() ?: 0.2f
+
         Log.e(TAG, "start")
         index++
         val builder = if (renderableFile.absolutePath.contains(".sfb")) {
             ModelRenderable.builder()
-                .setSource(context, renderableFile.toUri())//Uri.parse("file:///android_asset/e${index%9 + 1}.sfb"))//
+                .setSource(
+                    context,
+                    renderableFile.toUri()
+                )//Uri.parse("file:///android_asset/e${index%9 + 1}.sfb"))//
         } else {
             ModelRenderable.builder()
                 .setSource(
@@ -127,14 +142,13 @@ class ArGlbRenderObject(
                             renderableFile.toUri(),//Uri.parse("file:///android_asset/aImage/i6.glb"),//renderableFile.toUri(),//Uri.parse("file:///android_asset/aImage/i6.glb"),//renderableFile.toUri(), //renderableFile.toUri(),//Uri.parse(renderableFile.),//"file:///android_asset/aImage/i6.glb"),
                             RenderableSource.SourceType.GLB
                         )
-                        .setScale(0.05f) // Scale the original model to 50%.//dataItemObject.scale?.toFloatOrNull() ?:
+                        .setScale(scale) // Scale the original model to 50%.//dataItemObject.scale?.toFloatOrNull() ?:
                         .setRecenterMode(RenderableSource.RecenterMode.NONE)
                         .build()
                 )
         }
         //.setRegistryId(augmentedImage.name)
         builder
-            //.setScale(0.5f)
             .build()
             .thenAccept { renderable ->
                 Log.e(TAG, "thenAccept")
@@ -152,7 +166,7 @@ class ArGlbRenderObject(
             .exceptionally { throwable ->
                 Log.e(TAG, "exceptionally : ${throwable.message}")
                 throwable.printStackTrace()
-                Log.e(ArVideoRenderObject.TAG, "Could not create ModelRenderable", throwable)
+                Log.e("ArVideoRenderObject.TAG", "Could not create ModelRenderable", throwable)
                 onFailure()
                 return@exceptionally null
             }

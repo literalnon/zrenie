@@ -21,25 +21,28 @@ import android.util.Log
 import android.view.View
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
-import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.data.TypeItemObjectCodeNames
+import com.example.zrenie20.myarsample.BaseArActivity
 import com.google.ar.core.AugmentedFace
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.FrameTime
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.math.Quaternion
+import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
 import com.google.ar.sceneform.ux.AugmentedFaceNode
-import com.google.ar.sceneform.ux.TransformableNode
 import kotlinx.android.synthetic.main.activity_location.*
+import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.augmented_faces_activity.*
 import kotlinx.android.synthetic.main.augmented_faces_activity.ivChangeVisibility
 import kotlinx.android.synthetic.main.augmented_faces_activity.llFocus
 import kotlinx.android.synthetic.main.augmented_faces_activity.llMainActivities
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
+import java.util.concurrent.Callable
 import java.util.function.Consumer
 
 
@@ -87,12 +90,30 @@ class AugmentedFacesActivity : BaseArActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        /*ModelRenderable.builder()
+            .setSource(this, R.raw.canonical_face_mesh)
+            .build()
+            .thenAccept(
+                Consumer { modelRenderable: ModelRenderable ->
+                    faceRegionsRenderable = modelRenderable
+                    modelRenderable.isShadowCaster = false
+                    modelRenderable.isShadowReceiver = false
+                })
+
         Texture.builder()
-            .setSource(this, R.drawable.face4)
+            .setSource(this, R.raw.canonical_face_mesh)
             .build()
             .thenAccept(Consumer { texture: Texture ->
                 faceMeshTexture = texture
-            })
+            })*/
+
+        /*Texture.builder()
+            .setSource(this, R.drawable.face4)
+            //.setSource(this, R.raw.canonical_face_mesh)
+            .build()
+            .thenAccept(Consumer { texture: Texture ->
+                faceMeshTexture = texture
+            })*/
 
         /*ModelRenderable.builder()
             .setSource(this, R.raw.fox_face)
@@ -137,11 +158,20 @@ class AugmentedFacesActivity : BaseArActivity() {
             )
 
             for (face in faceList) {
+
                 if (!faceNodeMap.containsKey(face)) {
-                    val faceNode =
-                        MyAugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
+                    var faceNode: Node =
+                        if (currentRenderable?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName ||
+                            currentRenderable?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.OBJECT.codeName
+                        ) {
+                            MyAugmentedFaceNode(face)
+                        } else {
+                            AugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
+                        }
+
                     faceNode.setParent(scene)
 
+                    //val faceNode = MyAugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
 
                     //faceNode.worldRotation = rotation
                     //faceNode = face.createAnchor(face.centerPose)
@@ -152,22 +182,28 @@ class AugmentedFacesActivity : BaseArActivity() {
                         currentRenderable?.start(
                             anchor = null,//faceNode.augmentedFace?.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP)),
                             onSuccess = {
-                                faceNode.renderable = currentRenderable?.getRenderable()
-                                faceNode.iArRenderObject = currentRenderable
+                                //faceNode.renderable = currentRenderable?.getRenderable()
+                                //faceNode.faceRegionsRenderable = currentRenderable?.getRenderable()
+
+                                setRenderableFace(faceNode)
+                                //faceNode.iArRenderObject = currentRenderable
                             },
                             onFailure = {
 
                             }
                         )
                     } else {
-                        faceNode.renderable = currentRenderable?.getRenderable()
-                        faceNode.iArRenderObject = currentRenderable
+                        //faceNode.renderable = currentRenderable?.getRenderable()
+                        //faceNode.faceRegionsRenderable = currentRenderable?.getRenderable() as ModelRenderable
+                        setRenderableFace(faceNode)
+                        //faceNode.iArRenderObject = currentRenderable
                     }
                     // Overlay the 3D assets on the face.
                     //faceNode.faceRegionsRenderable = faceRegionsRenderable
-
+                    //faceNode.faceRegionsRenderable = faceRegionsRenderable
                     // Overlay a texture on the face.
-                    faceNode.setFaceMeshTexture(faceMeshTexture)
+
+                    //faceNode.faceMeshTexture = faceMeshTexture
 
                     //faceNode.faceMeshTexture = faceMeshTexture
                     faceNodeMap[face] = faceNode
@@ -184,10 +220,18 @@ class AugmentedFacesActivity : BaseArActivity() {
 
                 if (face.trackingState == TrackingState.STOPPED || face.trackingState == TrackingState.PAUSED) {
                     val faceNode = entry.value
+                    if (faceNode is MyAugmentedFaceNode) {
+                        faceNode.pause()
+                    }
+
                     faceNode!!.setParent(null)
                     iter.remove()
                 } else if (face.trackingState == TrackingState.TRACKING) {
                     val faceNode = entry.value
+
+                    if (faceNode is MyAugmentedFaceNode) {
+                        faceNode.resume()
+                    }
                     //faceNode?.anchor = face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
                 }
 
@@ -222,6 +266,47 @@ class AugmentedFacesActivity : BaseArActivity() {
         }
     }
 
+    fun setRenderableFace(faceNode: Node): Node {
+        if (faceNode is MyAugmentedFaceNode) {
+            val modelRenderable = currentRenderable?.getRenderable()
+
+            if (modelRenderable is ModelRenderable) {
+                faceNode.faceRegionsRenderable = modelRenderable
+            } else {
+                faceNode.renderable = modelRenderable
+            }
+
+            faceNode.iArRenderObject = currentRenderable
+
+            return faceNode
+        }
+
+        faceNode as AugmentedFaceNode
+
+        if (currentRenderable?.renderableFile?.name?.contains("png") == true ||
+            currentRenderable?.renderableFile?.name?.contains("jpeg") == true
+        ) {
+            Texture.builder()
+                .setSource { currentRenderable?.renderableFile?.inputStream() }
+                .build()
+                .thenAccept(Consumer { texture: Texture ->
+                    faceMeshTexture = texture
+                    faceNode.faceMeshTexture = faceMeshTexture
+                })
+        } else {
+            val modelRenderable = currentRenderable?.getRenderable()
+            modelRenderable?.isShadowCaster = false
+            modelRenderable?.isShadowReceiver = false
+
+            if (modelRenderable is ModelRenderable) {
+                faceNode.faceRegionsRenderable = modelRenderable
+            } else {
+                faceNode.renderable = modelRenderable
+            }
+        }
+
+        return faceNode
+    }
     override fun selectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
         val returnValue = super.selectedRenderable(dataItemObjectDataClass)
         val iter: MutableIterator<Map.Entry<AugmentedFace, Node?>> =

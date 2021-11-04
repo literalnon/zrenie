@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
@@ -12,6 +13,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.module.AppGlideModule
 import com.example.zrenie20.R
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
+import com.example.zrenie20.data.RealmDataItemObject
 import com.example.zrenie20.data.RealmDataPackageObject
 import com.example.zrenie20.data.toRealmDataPackageObject
 import com.example.zrenie20.location.LocationActivity
@@ -39,6 +41,7 @@ class SplashActivity : AppCompatActivity() {
                 Realm.getDefaultInstance()
                     .executeTransaction { realm ->
                         realm.delete(RealmDataPackageObject::class.java)
+                        realm.delete(RealmDataItemObject::class.java)
 
                         list.forEach { packageObject ->
                             realm.copyToRealm(packageObject.toRealmDataPackageObject())
@@ -51,6 +54,7 @@ class SplashActivity : AppCompatActivity() {
 
                 this.finish()
             }, {
+                Log.e("SPLASH", "error : ${it.message}")
                 //startActivity(Intent(this, SpaceActivity::class.java))
                 startActivity(Intent(this, AugmentedImageActivity::class.java))
                 it.printStackTrace()

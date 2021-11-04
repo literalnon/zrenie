@@ -6,9 +6,8 @@ import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.NodeParent
-import com.google.ar.sceneform.Scene
 import com.google.ar.sceneform.math.Quaternion
-import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.Renderable
 import java.io.File
 
@@ -18,6 +17,8 @@ interface IArRenderObject {
     val dataItemObject: DataItemObject
     //val mScene: Scene
     val renderableFile: File?
+
+    var onTouchListener: Node.OnTouchListener?
 
     fun pause()
 
@@ -37,4 +38,7 @@ interface IArRenderObject {
     fun setParent(parent: NodeParent)
 
     fun setWorldRotation(rotation: Quaternion)
+    fun setWorldPosition(rotation: Vector3) {}
+
+
 }

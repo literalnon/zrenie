@@ -8,6 +8,7 @@ import com.example.zrenie20.data.DataItemObject
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.AnchorNode
+import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.NodeParent
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
@@ -25,9 +26,19 @@ class ArVideoRenderObject(
         val TAG = "DOWNLOAD_VIDEO_FILE"
     }
 
+    override var onTouchListener: Node.OnTouchListener? = null
+        set(value) {
+            field = value
+
+            videoAnchorNode.setOnTouchListener { hitTestResult, motionEvent ->
+                return@setOnTouchListener value?.onTouch(hitTestResult, motionEvent) ?: false
+            }
+        }
+
     private var mediaPlayer: MediaPlayer = MediaPlayer()
     private var externalTexture: ExternalTexture = ExternalTexture().also {
         mediaPlayer.setSurface(it.surface)
+        mediaPlayer.isLooping = true
         //mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
     }
     var videoRenderable: ModelRenderable? = null
@@ -92,6 +103,8 @@ class ArVideoRenderObject(
                 videoAnchorNode.anchor?.detach()
                 videoAnchorNode.anchor = anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
 
+                val scale = dataItemObject.scale?.toFloatOrNull() ?: 4f
+
                 videoAnchorNode.localScale = if (augmentedImage != null) {
                     Vector3(
                         augmentedImage?.extentX, // width
@@ -100,9 +113,9 @@ class ArVideoRenderObject(
                     ) // height
                 } else {
                     Vector3(
-                        4f,//dataItemObject.scale?.toFloatOrNull() ?: 4f, // width
-                        4f,//dataItemObject.scale?.toFloatOrNull() ?: 4f,
-                        4f//dataItemObject.scale?.toFloatOrNull() ?: 4f
+                        scale,//dataItemObject.scale?.toFloatOrNull() ?: 4f, // width
+                        scale,//dataItemObject.scale?.toFloatOrNull() ?: 4f,
+                        scale//dataItemObject.scale?.toFloatOrNull() ?: 4f
                     )
                 }
 
@@ -120,8 +133,6 @@ class ArVideoRenderObject(
                 return@exceptionally null
             }
     }
-
-
 
     override fun getRenderable(): Renderable? {
         return videoRenderable

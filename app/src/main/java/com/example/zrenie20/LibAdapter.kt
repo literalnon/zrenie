@@ -38,7 +38,7 @@ class LibAdapter(
     ) {
         item as DataPackageObject
 
-        holder.tvLabel.text = item.id.toString()//"Label"
+        //holder.tvLabel.text = item.id.toString()//"Label"
         holder.tvTitle.text = item.name//"Название пакета"
         holder.tvContent.text = item.description//"Краткое описание"
         holder.tvTags.text = item.order//"#теги #теги #теги"

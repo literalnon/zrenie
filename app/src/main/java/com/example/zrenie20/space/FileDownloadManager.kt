@@ -75,6 +75,7 @@ class FileDownloadManager : IFileDownloadManager {
 
                     //val newFile = File(curFile.file.absolutePath)
                     newFile.createNewFile()
+
                     val fos = newFile.outputStream()//FileOutputStream(filepath)
                     //val buffer = "This will be writtent in test.txt".toByteArray()
                     fos.write(curFile.bytes, 0, curFile.bytes.size)
@@ -85,6 +86,20 @@ class FileDownloadManager : IFileDownloadManager {
                     newFile
                 }
         }
+    }
+
+    fun removeAllFiles(context: Context) {
+        val dirPath = context.cacheDir.path
+
+        val file = File(dirPath)
+        file.listFiles().forEach {
+            it.delete()
+        }
+    }
+
+    fun removeFile(filePath: String) {
+        val file = File(filePath)
+        file.delete()
     }
 }
 /*

@@ -38,6 +38,10 @@ android {
     realm {
         syncEnabled = true
     }
+
+    aaptOptions {
+        noCompress "mov"
+    }
 }
 
 def glideVersion = "4.10.0"
@@ -117,11 +121,20 @@ dependencies {
 
     /*implementation 'org.wlf:FileDownloader:0.3.2'*/
     implementation 'com.github.oussaki:RxDownloader:0.3'
+
+    implementation 'com.github.tsuryo:Swipeable-RecyclerView:1.1'
+
+    implementation 'com.alphamovie.library:alpha-movie:1.2.1'
 }
 
 //apply plugin: 'com.google.ar.sceneform.plugin'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'
+
+/*sceneform.asset('sampledata/surprised.fbx',
+        'default',
+        'sampledata/surprised.sfa',
+        'src/main/res/raw/surprised')*/
 
 /*sceneform.asset('sampledata/9mm Hand gun.fbx',
         'default',
@@ -143,7 +156,7 @@ sceneform.asset('sampledata/Motion gun.fbx',
         'sampledata/Motion gun.sfa',
         'src/main/res/raw/Motion gun')
 
-sceneform.asset('sampledata/Surprised.fbx',
+sceneform.asset('sampledata/surprised.fbx',
         'default',
         'sampledata/Surprised.sfa',
         'src/main/res/raw/Surprised')

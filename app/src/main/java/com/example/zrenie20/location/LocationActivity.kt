@@ -1,20 +1,28 @@
 package com.example.zrenie20.location
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.media.CamcorderProfile
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
+import android.provider.MediaStore
 import android.util.Log
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
+import android.view.*
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.marginBottom
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.R
+import com.example.zrenie20.SCREENS
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.arcorelocation.LocationMarker
@@ -22,11 +30,14 @@ import com.example.zrenie20.location.arcorelocation.LocationScene
 import com.example.zrenie20.location.arcorelocation.rendering.LocationNodeRender
 import com.example.zrenie20.location.arcorelocation.utils.ARLocationPermissionHelper
 import com.example.zrenie20.myarsample.BaseArActivity
+import com.example.zrenie20.myarsample.BaseArActivity.Companion.BASE_MAX_SCALE
+import com.example.zrenie20.myarsample.BaseArActivity.Companion.BASE_MIN_SCALE
 import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
 import com.example.zrenie20.renderable.ArRenderObjectFactory
 import com.example.zrenie20.renderable.ArVideoRenderObject
 import com.example.zrenie20.space.FileDownloadManager
+import com.example.zrenie20.space.VideoRecorder
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -54,6 +65,11 @@ import kotlinx.android.synthetic.main.activity_location.llFocus
 import kotlinx.android.synthetic.main.activity_location.llMainActivities
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.random.Random
 
 
@@ -69,6 +85,13 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private val anchorNode = AnchorNode()
 
+    var videoRecorder: VideoRecorder? = null
+
+    val VIDEO = "video"
+    val PHOTO = "photo"
+
+    var choice = PHOTO
+
     // Renderables for this example
     //private var exampleLayoutRenderable: ViewRenderable? = null
 
@@ -82,7 +105,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
     var arFragment: LocationArFragment? = null
 
     fun removeCurrentLocationMarker(lat: Double, lon: Double) {
-        locationScene?.mLocationMarkers?.filter {
+
+        /*locationScene?.mLocationMarkers?.filter {
             it.latitude == lat && it.longitude == lon
         }?.forEach { lm ->
             lm.anchorNode?.anchor?.detach()
@@ -90,7 +114,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             lm.anchorNode = null
 
             locationScene?.mLocationMarkers?.remove(lm)
-        }
+        }*/
     }
 
     // CompletableFuture requires api level 24
@@ -102,7 +126,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         arFragment = ar_fragment as LocationArFragment
         arSceneView = arFragment?.arSceneView!!
 
-        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment =
+            supportFragmentManager.findFragmentById(R.id.mapViewFragment) as SupportMapFragment?
         mapFragment!!.getMapAsync(this)
 
         loadData()
@@ -142,6 +167,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
 
                         if (lat != null && lon != null) {
                             Log.e("LOCATION_FILE", "1 lat : ${lat}, lon : ${lon}")
+
                             ViewRenderable.builder()
                                 .setView(this, R.layout.example_layout)
                                 .build()
@@ -165,27 +191,42 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                                             eView?.findViewById<ImageView>(R.id.ivMarker)
 
                                         when {
-                                            node.distance <= 100 -> {
+                                            node.distance <= 3000 -> {
                                                 markerView?.setImageResource(R.drawable.ic_less_100)
                                             }
-                                            node.distance <= 3000 -> {
+                                            /*node.distance <= 3000 -> {
                                                 markerView?.setImageResource(R.drawable.ic_less_3000)
-                                            }
+                                            }*/
                                             else -> {
                                                 markerView?.setImageResource(R.drawable.ic_logotype)
                                             }
                                         }
 
-                                        eView?.setOnTouchListener { v: View?, event: MotionEvent? ->
-                                            Toast.makeText(
-                                                this,
-                                                "exampleView Location marker touched.",
-                                                Toast.LENGTH_LONG
-                                            ).show()
+                                        eView?.setOnTouchListener { layoutView: View?, event: MotionEvent? ->
+
+                                            Log.e(
+                                                "LOCATION_FILE",
+                                                "eView?.setOnTouchListener"
+                                            )
+
+                                            if (layoutView?.visibility != View.VISIBLE) {
+                                                return@setOnTouchListener false
+                                            }
 
                                             if (dataItem.filePath?.isNotEmpty() != true) {
                                                 return@setOnTouchListener false
                                             }
+
+                                            if (node.distance > 100) {
+                                                Toast.makeText(
+                                                    this,
+                                                    "distance: ${node.distance}",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+
+                                                return@setOnTouchListener false
+                                            }
+
                                             Log.e(
                                                 "LOCATION_FILE",
                                                 "dataItem.filePath : ${dataItem.filePath}"
@@ -205,7 +246,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                                                     )
 
                                                     val arRenderObject = ArRenderObjectFactory(
-                                                        context = v?.context!!,
+                                                        context = layoutView?.context!!,
                                                         dataItemObject = dataItem,
                                                         mScene = null,
                                                         renderableFile = file
@@ -228,6 +269,26 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                                                                 "ViewRenderable 4 lon : ${lon}, lat : ${lat}"
                                                             )
 
+                                                            arRenderObject?.onTouchListener = Node.OnTouchListener { hitTestResult, motionEvent ->
+                                                                Log.e(
+                                                                    "LOCATION_FILE",
+                                                                    "base.setOnTouchListener"
+                                                                )
+                                                                if (layoutView?.visibility != View.VISIBLE) {
+                                                                    layoutView?.visibility =
+                                                                        View.VISIBLE
+
+                                                                    arRenderObject?.pause()
+                                                                } else {
+                                                                    layoutView?.visibility =
+                                                                        View.GONE
+
+                                                                    arRenderObject?.resume()
+                                                                }
+
+                                                                false
+                                                            }
+
                                                             val newLayoutLocationMarker =
                                                                 LocationMarker(
                                                                     lon,
@@ -235,23 +296,28 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                                                                     base
                                                                 )
 
-                                                            removeCurrentLocationMarker(lat, lon)
+                                                            layoutView?.visibility = View.GONE
+
+                                                            //removeCurrentLocationMarker(lat, lon)
 
                                                             locationScene?.mLocationMarkers?.add(
                                                                 newLayoutLocationMarker!!
                                                             )
-
                                                         },
                                                         onFailure = {
-                                                            removeCurrentLocationMarker(lat, lon)
-
+                                                            //removeCurrentLocationMarker(lat, lon)
+                                                            Toast.makeText(
+                                                                this,
+                                                                "failure load: error -1",
+                                                                Toast.LENGTH_LONG
+                                                            ).show()
                                                         }
                                                     )
 
                                                     arRenderObject?.setParent(arSceneView?.scene!!)
 
                                                     if (arRenderObject is ArVideoRenderObject) {
-                                                        arRenderObject?.videoAnchorNode?.setOnTouchListener { hitTestResult, motionEvent ->
+                                                        /*arRenderObject?.videoAnchorNode?.setOnTouchListener { hitTestResult, motionEvent ->
                                                             Log.e(
                                                                 "LOCATION_FILE",
                                                                 "arRenderObject?.videoAnchorNode?.setOnTouchListener"
@@ -260,7 +326,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
 
                                                             return@setOnTouchListener false
 
-                                                        }
+                                                        }*/
                                                         setmRotation(
                                                             arRenderObject as ArVideoRenderObject,
                                                             layoutLocationMarker
@@ -270,36 +336,6 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                                                 }, {
 
                                                 })
-
-                                            /*Log.e("NULL", "videoLocationmarker 1 : ${videoLocationmarker}")
-                                    Log.e("NULL", "videoLocationmarker 2: ${videoLocationmarker?.anchorNode}")
-                                    Log.e("NULL", "videoLocationmarker 3 : ${videoLocationmarker?.anchorNode?.anchor}")
-                                    Log.e(
-                                        "NULL",
-                                        "layoutLocationMarker 3 : ${layoutLocationMarker?.anchorNode?.anchor}"
-                                    )
-
-                                    val videoNode1 = Node()
-                                    videoNode1.renderable = videoRenderable*/
-
-                                            /*val videoLocationmarker1 = LocationMarker(
-                                        longitude2,
-                                        latitude2,
-                                        videoNode1
-                                    )
-
-                                    locationScene?.mLocationMarkers?.add(
-                                        videoLocationmarker1
-                                    )*/
-                                            /*addNodeToScene(
-                                        fragment = arFragment!!,
-                                        anchor = videoLocationmarker?.anchorNode?.anchor!!,
-                                        renderable = videoRenderable!!
-                                    )
-
-                                    //locationScene?.mLocationMarkers?.add(videoLocationmarker!!)
-
-                                    playbackArVideo()*/
 
                                             false
                                         }
@@ -335,11 +371,15 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             if (llFocus.visibility == View.VISIBLE) {
                 llFocus.visibility = View.GONE
                 llMainActivities.visibility = View.VISIBLE
+                mapViewFragment.view?.visibility = View.VISIBLE
             } else {
                 llFocus.visibility = View.VISIBLE
                 llMainActivities.visibility = View.GONE
+                mapViewFragment.view?.visibility = View.GONE
             }
         }
+
+        ivChangeVisibility?.performClick()
 
         ivSettings?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -348,9 +388,154 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         ivStack?.setOnClickListener {
             startActivity(Intent(this, LibActivity::class.java))
         }
+
+        photoVideoRecorderInit()
         // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
         //ARLocationPermissionHelper.requestPermission(this)
     }// Add  listeners etc here
+
+    fun photoVideoRecorderInit() {
+        videoRecorder = VideoRecorder(this)
+        val orientation = resources.configuration.orientation
+        videoRecorder?.setVideoQuality(CamcorderProfile.QUALITY_2160P, orientation)
+        videoRecorder?.setSceneView(arFragment!!.arSceneView)
+
+        choice = PHOTO
+
+        tvPhoto?.setOnClickListener {
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_photo_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.white))
+            tvVideo?.setTextColor(getColor(R.color.grayTextColor))
+
+            choice = PHOTO
+        }
+
+        tvVideo?.setOnClickListener {
+            //toggleRecording()
+            btnPhoto.setImageResource(com.example.zrenie20.R.drawable.ic_video_button)
+
+            tvPhoto?.setTextColor(getColor(R.color.grayTextColor))
+            tvVideo?.setTextColor(getColor(R.color.white))
+
+            choice = VIDEO
+        }
+
+        btnPhoto.setOnClickListener {
+            if (choice == VIDEO) {
+                toggleRecording()
+            } else {
+                takePhoto()
+            }
+        }
+    }
+
+    fun toggleRecording() {
+        val recording: Boolean = videoRecorder?.onToggleRecord() == true
+        if (recording) {
+            //recordButton.setImageResource(R.drawable.round_stop)
+            btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
+            tvVideo.text = "stop"
+        } else {
+            tvVideo.text = "start"
+            btnPhoto.setImageResource(R.drawable.ic_video_button)
+            //recordButton.setImageResource(R.drawable.round_videocam)
+            val videoPath = videoRecorder?.videoPath?.absolutePath
+            //Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
+            Log.d("AugmentedImageActivity", "Video saved: $videoPath")
+
+            // Send  notification of updated content.
+            val values = ContentValues()
+            values.put(MediaStore.Video.Media.TITLE, "Sceneform Video")
+            values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+            values.put(MediaStore.Video.Media.DATA, videoPath)
+            contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+        }
+    }
+
+    fun takePhoto() {
+        val view = arFragment!!.arSceneView
+
+        // Create a bitmap the size of the scene view.
+        val bitmap = Bitmap.createBitmap(
+            view.width, view.height,
+            Bitmap.Config.ARGB_8888
+        )
+
+        // Create a handler thread to offload the processing of the image.
+        val handlerThread = HandlerThread("PixelCopier")
+        handlerThread.start()
+        // Make the request to copy.
+        PixelCopy.request(view, bitmap, { copyResult ->
+            if (copyResult === PixelCopy.SUCCESS) {
+                try {
+                    val file = saveBitmapToDisk(bitmap)
+
+                    /* val toast: Toast = Toast.makeText(
+                         this, "Screenshot saved in : ${file.canonicalPath}",
+                         Toast.LENGTH_LONG
+                     )
+                     toast.show()*/
+                } catch (e: IOException) {
+                    val toast: Toast = Toast.makeText(
+                        this, e.toString(),
+                        Toast.LENGTH_LONG
+                    )
+                    toast.show()
+                    return@request
+                }
+
+
+
+                Log.e("AugmentedImageActivity", "Screenshot saved in /Pictures/Screenshots")
+            } else {
+                Log.e("AugmentedImageActivity", "Failed to take screenshot")
+            }
+            handlerThread.quitSafely()
+        }, Handler(handlerThread.looper))
+    }
+
+    open fun saveBitmapToDisk(bitmap: Bitmap): File {
+
+        val videoDirectory = File(
+            Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
+        )
+
+        if (!videoDirectory.exists()) {
+            videoDirectory.mkdir()
+        }
+
+        /*val videoDirectory = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                .toString() + "/Screenshots"
+        )*/
+
+        //videoDirectory.mkdir()
+
+        val c = Calendar.getInstance()
+        val df = SimpleDateFormat("yyyy-MM-dd HH.mm.ss")
+        val formattedDate = df.format(c.time)
+
+        val mediaFile: File = File(
+            videoDirectory,
+            "FieldVisualizer$formattedDate.jpeg"
+        )
+
+        try {
+            mediaFile.createNewFile()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        Log.e("AugmentedImageActivity", "mediaFile: ${mediaFile.canonicalPath}")
+
+        val fileOutputStream = FileOutputStream(mediaFile)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fileOutputStream)
+        fileOutputStream.flush()
+        fileOutputStream.close()
+
+        return mediaFile
+    }
 
     fun setmRotation(arRenderObject: ArVideoRenderObject, layoutLocationMarker: LocationMarker) {
 
@@ -438,47 +623,6 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         //arRenderObject.videoAnchorNode.localRotation = lookRotation
         //arRenderObject.videoAnchorNode.worldScale = Vector3(scale, scale, scale)
     }
-
-    private fun addNodeToScene(fragment: ArFragment, anchor: Anchor, renderable: Renderable) {
-        val node = AnchorNode(anchor)
-        val transformableNode = TransformableNode(fragment.transformationSystem)
-        transformableNode.renderable = renderable
-        transformableNode.setParent(node)
-        fragment.arSceneView.scene.addChild(node)
-        transformableNode.select()
-    }
-
-    /**
-     * Example node of a layout
-     *
-     * @return
-     */
-    /*private val exampleView: Node
-        private get() {
-            val base = Node()
-            base.renderable = exampleLayoutRenderable
-            val c: Context = this
-            // Add  listeners etc here
-
-            return base
-        }*/
-
-    /*private var videoNode: Node = Node()
-        private get() {
-            val base = Node()
-            base.renderable = videoRenderable
-            val c: Context = this
-
-            base.setOnTapListener { v: HitTestResult?, event: MotionEvent? ->
-                Toast.makeText(
-                    c, "videoRenderable touched.", Toast.LENGTH_LONG
-                )
-                    .show()
-
-                playbackArVideo()
-            }
-            return base
-        }*/
 
     fun createSession() {
         if (arSceneView?.session == null) {
@@ -721,6 +865,14 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                 )
 
                 if (dataItems.isNotEmpty()) {
+
+                    if (dataItems.isNotEmpty()) {
+                        Glide.with(this)
+                            .load(activePackage?.thumbnailPath)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            .into(ivStack)
+                    }
+
                     dataItemArr.clear()
                     dataItemArr.addAll(dataItems)
                     addItemToMap()
@@ -795,6 +947,16 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                         .position(LatLng(lat, lon))
                         .title(dataItem.name)
                 )
+                mGoogleMap?.setOnMarkerClickListener {
+                    //if (it.trigger?.type?.codeName == SCREENS) {
+                    val gmmIntentUri: Uri =
+                        Uri.parse("google.navigation:q=${it.position.latitude},${it.position.longitude}")
+                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                    mapIntent.setPackage("com.google.android.apps.maps")
+                    startActivity(mapIntent)
+                    return@setOnMarkerClickListener true
+                    //}
+                }
             }
         }
 

@@ -159,16 +159,8 @@
     <string name="remove_cache">Удалить весь кэш</string>
 
     <string name="plane_finding">Searching for surfaces&#8230;</string>
-    <!-- Resolve anchor has no result yet. [CHAR_LIMIT=NONE] -->
+    <string name="gps_network_not_enabled">gps network not enabled</string>
+    <string name="open_location_settings">open location settings</string>
 
-    <!--&lt;!&ndash; Strings used in privacy notice dialog messages. [CHAR_LIMIT=NONE] &ndash;&gt;
-    <string name="share_experience_title">Experience it together</string>
-    &lt;!&ndash; Privacy notice message. [CHAR_LIMIT=NONE] &ndash;&gt;
-    <string name="share_experience_message">To power this session, Google will process visual data from your camera.</string>
-    &lt;!&ndash; Privacy notice accept. [CHAR_LIMIT=NONE] &ndash;&gt;
-    <string name="agree_to_share">Start now</string>
-    &lt;!&ndash; Privacy notice learn more. [CHAR_LIMIT=NONE] &ndash;&gt;
-    <string name="learn_more">Learn more</string>
-    &lt;!&ndash; Cloud anchor privacy website. [CHAR_LIMIT=NONE] &ndash;&gt;
-    <string name="cloud_anchor_website">https://developers.google.com/ar/cloud-anchors-privacy</string>-->
+
 </resources>
