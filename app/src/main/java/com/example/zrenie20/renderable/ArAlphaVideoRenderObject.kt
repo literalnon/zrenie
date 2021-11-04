@@ -3,7 +3,6 @@ package com.example.zrenie20.renderable
 import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
-import android.view.TextureView
 import com.example.zrenie20.R
 import com.example.zrenie20.data.DataItemObject
 import com.example.zrenie20.renderable.alpha.MAlphaMovieView
@@ -22,7 +21,7 @@ import java.io.File
 class ArAlphaVideoRenderObject(
     override val context: Context,
     override val dataItemObject: DataItemObject,
-    override val renderableFile: File
+    override val renderableFile: File?
 ) : IArRenderObject {
     companion object {
         val TAG = "DOWNLOAD_VIDEO_FILE"
@@ -37,12 +36,15 @@ class ArAlphaVideoRenderObject(
             }
         }
 
-    private var mediaPlayer: MediaPlayer = MediaPlayer()
-    private var externalTexture: ExternalTexture = ExternalTexture().also {
-        mediaPlayer.setSurface(it.surface)
-        mediaPlayer.isLooping = true
+    //private var mediaPlayer: MediaPlayer = MediaPlayer()
+    private var player: MAlphaMovieView? = null
+
+    private var externalTexture: ExternalTexture = ExternalTexture().also { nnExternalTexture ->
+        //mediaPlayer.setSurface(it.surface)
+        //mediaPlayer.isLooping = true
         //mediaPlayer.setVideoScalingMode(MediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING)
     }
+
     var videoRenderable: ModelRenderable? = null
     private val anchorNode = AnchorNode()
     var videoAnchorNode: AnchorNode = anchorNode
@@ -55,25 +57,25 @@ class ArAlphaVideoRenderObject(
     }
 
     override fun pause() {
-        if (mediaPlayer.isPlaying) {
+        if (player?.mediaPlayer?.isPlaying == true) {
             videoAnchorNode.renderable = null
-            mediaPlayer.pause()
+            player?.mediaPlayer?.pause()
         }
     }
 
     override fun resume() {
-        if (!mediaPlayer.isPlaying) {
+        if (!(player?.mediaPlayer?.isPlaying == true)) {
             videoAnchorNode = anchorNode
-            mediaPlayer.start()
+            player?.mediaPlayer?.start()
             videoAnchorNode.renderable = videoRenderable
         }
     }
 
     override fun stop() {
-        if (mediaPlayer.isPlaying) {
+        if ((player?.mediaPlayer?.isPlaying == true)) {
             videoAnchorNode.anchor?.detach()
             videoAnchorNode.renderable = null
-            mediaPlayer.reset()
+            player?.mediaPlayer?.reset()
         }
     }
 
@@ -88,24 +90,30 @@ class ArAlphaVideoRenderObject(
             .setSource(context, R.raw.augmented_video_model)
             .build()
             .thenAccept { renderable ->
+                player = MAlphaMovieView(
+                    context = context,
+                    mSurface = externalTexture.surface,
+                    mSurfaceTexture = externalTexture.surfaceTexture
+                )
+                player?.setVideoFromAssets("ball.mp4")
+
                 videoRenderable = renderable
                 videoRenderable?.isShadowCaster = false
                 videoRenderable?.isShadowReceiver = false
                 videoRenderable?.material?.setExternalTexture("videoTexture", externalTexture)
 
-                val player = MAlphaMovieView(externalTexture.surface)
-                player.setVideoFromAssets("ball.mp4")
-                Log.e(TAG, "renderableFile.absolutePath : ${renderableFile.absolutePath}")
+                //Log.e(TAG, "renderableFile.absolutePath : ${renderableFile.absolutePath}")
                 //mediaPlayer.reset()
-                mediaPlayer.setDataSource(renderableFile.absolutePath)
+                //mediaPlayer.setDataSource(renderableFile.absolutePath)
 
-                mediaPlayer.isLooping = true
+                /*mediaPlayer.isLooping = true
                 mediaPlayer.prepare()
-                mediaPlayer.start()
+                mediaPlayer.start()*/
 
                 videoAnchorNode = anchorNode
                 videoAnchorNode.anchor?.detach()
-                videoAnchorNode.anchor = anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
+                videoAnchorNode.anchor =
+                    anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
 
                 val scale = dataItemObject.scale?.toFloatOrNull() ?: 4f
 
@@ -113,7 +121,7 @@ class ArAlphaVideoRenderObject(
                     Vector3(
                         augmentedImage?.extentX, // width
                         1.0f,
-                        augmentedImage?.extentZ * mediaPlayer.videoHeight / mediaPlayer.videoWidth
+                        augmentedImage?.extentZ * ((player?.mediaPlayer?.videoHeight ?: 0) / (player?.mediaPlayer?.videoWidth ?: 0))
                     ) // height
                 } else {
                     Vector3(

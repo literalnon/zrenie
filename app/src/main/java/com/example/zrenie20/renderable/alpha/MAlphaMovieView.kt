@@ -3,6 +3,7 @@ package com.example.zrenie20.renderable.alpha
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.Context
+import android.graphics.SurfaceTexture
 import android.media.MediaDataSource
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
@@ -17,12 +18,46 @@ import java.io.IOException
 import java.util.HashMap
 
 @SuppressLint("ViewConstructor")
-class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) {
-    val context = mTextureView.context
+class MAlphaMovieView(
+    val context: Context,
+    mSurface: Surface,
+    mSurfaceTexture: SurfaceTexture
+) : MGLTextureView(
+    mSurface,
+    mSurfaceTexture
+) {
+    //val context = mTextureView.context
+    var mediaPlayer: MediaPlayer = MediaPlayer().apply {
+        setScreenOnWhilePlaying(true)
+        setLooping(true)
+        setOnCompletionListener {
+            state = PlayerState.PAUSED
+            if (onVideoEndedListener != null) {
+                onVideoEndedListener!!.onVideoEnded()
+            }
+        }
+    }
+
     private var videoAspectRatio: Float = MAlphaMovieView.Companion.VIEW_ASPECT_RATIO
-    var renderer: MVideoRenderer? = null
-    var mediaPlayer: MediaPlayer? = null
-        private set
+    var renderer: MVideoRenderer = MVideoRenderer(
+        mSurfaceTexture = mSurfaceTexture,
+        mSurface = mSurface,
+        onSurfacePrepareListener = object :
+            MVideoRenderer.OnSurfacePrepareListener {
+
+            override fun surfacePrepared(surface: Surface?) {
+                Log.e("AlphaVideo", "MAlphaMovieView surfacePrepared : ${isDataSourceSet}")
+
+                isSurfaceCreated = true
+                mediaPlayer!!.setSurface(surface)
+                surface?.release()
+                if (isDataSourceSet) {
+                    prepareAndStartMediaPlayer()
+                }
+            }
+        }
+    )
+
     private var onVideoStartedListener: OnVideoStartedListener? = null
     private var onVideoEndedListener: OnVideoEndedListener? = null
     private var isSurfaceCreated = false
@@ -31,17 +66,16 @@ class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) 
         private set
 
     private fun init() {
-        setEGLContextClientVersion(MAlphaMovieView.Companion.GL_CONTEXT_VERSION)
-        setEGLConfigChooser(8, 8, 8, 8, 16, 0)
-        initMediaPlayer()
-        renderer = MVideoRenderer()
+        //setEGLContextClientVersion(MAlphaMovieView.Companion.GL_CONTEXT_VERSION)
+        //setEGLConfigChooser(8, 8, 8, 8, 16, 0)
+        //initMediaPlayer()
 
         obtainRendererOptions()
-        addOnSurfacePrepareListener()
+       // addOnSurfacePrepareListener()
         setRenderer(renderer)
-        mTextureView.bringToFront()
+        //mTextureView.bringToFront()
         preserveEGLContextOnPause = true
-        mTextureView.isOpaque = false
+        //mTextureView.isOpaque = false
     }
 
     private fun initMediaPlayer() {
@@ -74,22 +108,24 @@ class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) 
         //arr.recycle()
     }
 
-    private fun addOnSurfacePrepareListener() {
-        if (renderer != null) {
-            renderer!!.setOnSurfacePrepareListener(object :
-                MVideoRenderer.OnSurfacePrepareListener {
+    /*private fun addOnSurfacePrepareListener() {
+        Log.e("AlphaVideo", "MAlphaMovieView addOnSurfacePrepareListener")
+        renderer!!.setOnSurfacePrepareListener(object :
+            MVideoRenderer.OnSurfacePrepareListener {
 
-                override fun surfacePrepared(surface: Surface?) {
-                    isSurfaceCreated = true
-                    mediaPlayer!!.setSurface(surface)
-                    surface?.release()
-                    if (isDataSourceSet) {
-                        prepareAndStartMediaPlayer()
-                    }
+            override fun surfacePrepared(surface: Surface?) {
+                Log.e("AlphaVideo", "MAlphaMovieView surfacePrepared : ${isDataSourceSet}")
+
+                isSurfaceCreated = true
+                mediaPlayer!!.setSurface(surface)
+                surface?.release()
+                if (isDataSourceSet) {
+                    prepareAndStartMediaPlayer()
                 }
-            })
-        }
-    }
+            }
+        })
+
+    }*/
 
     private fun prepareAndStartMediaPlayer() {
         prepareAsync { start() }
@@ -99,8 +135,9 @@ class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) 
         if (videoWidth > 0 && videoHeight > 0) {
             videoAspectRatio = videoWidth.toFloat() / videoHeight
         }
-        mTextureView.requestLayout()
-        mTextureView.invalidate()
+
+        //mTextureView.requestLayout()
+        //mTextureView.invalidate()
     }
 
     /*override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -127,7 +164,10 @@ class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) 
         val videoHeight =
             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)!!
                 .toInt()
-        Log.e("MAlphaMovieView", "onDataSourceSet : videoWidth ${videoWidth}, videoHeight ${videoHeight}")
+        Log.e(
+            "MAlphaMovieView",
+            "onDataSourceSet : videoWidth ${videoWidth}, videoHeight ${videoHeight}, isSurfaceCreated : ${isSurfaceCreated}"
+        )
 
         calculateVideoAspectRatio(videoWidth, videoHeight)
         isDataSourceSet = true
@@ -229,10 +269,19 @@ class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) 
     }*/
 
     private fun prepareAsync(onPreparedListener: OnPreparedListener) {
+        Log.e(
+            "AlphaVideo",
+            "MAlphaMovieView prepareAsync mediaPlayer : ${mediaPlayer != null}, ${state}"
+        )
+
         if (mediaPlayer != null && state == PlayerState.NOT_PREPARED
             || state == PlayerState.STOPPED
         ) {
             mediaPlayer!!.setOnPreparedListener { mp ->
+                Log.e(
+                    "AlphaVideo",
+                    "MAlphaMovieView setOnPreparedListener"
+                )
                 state = PlayerState.PREPARED
                 onPreparedListener.onPrepared(mp)
             }
@@ -354,8 +403,8 @@ class MAlphaMovieView(mTextureView: TextureView) : MGLTextureView(mTextureView) 
     }
 
     init {
-        if (!mTextureView.isInEditMode) {
-            init()
-        }
+        //if (!mTextureView.isInEditMode) {
+        init()
+        //}
     }
 }

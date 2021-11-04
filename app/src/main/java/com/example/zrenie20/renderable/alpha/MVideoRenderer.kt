@@ -15,7 +15,12 @@ import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class MVideoRenderer : MGLTextureView.Renderer, OnFrameAvailableListener {
+class MVideoRenderer(
+    val mSurfaceTexture: SurfaceTexture,
+    val mSurface: Surface,
+    val onSurfacePrepareListener: OnSurfacePrepareListener
+) : MGLTextureView.Renderer,
+    OnFrameAvailableListener {
     private val triangleVerticesData = floatArrayOf( // X, Y, Z, U, V
         -1.0f, -1.0f, 0f, 0f, 0f,
         1.0f, -1.0f, 0f, 1f, 0f,
@@ -61,19 +66,20 @@ void main() {
     private var uSTMatrixHandle = 0
     private var aPositionHandle = 0
     private var aTextureHandle = 0
-    private var surface: SurfaceTexture? = null
+    //private var mSurfaceTexture: SurfaceTexture? = null
     private var updateSurface = false
-    private var onSurfacePrepareListener: OnSurfacePrepareListener? = null
+    //private var onSurfacePrepareListener: OnSurfacePrepareListener? = null
     private var isCustom = false
     private var redParam = 0.0f
     private var greenParam = 1.0f
     private var blueParam = 0.0f
 
     override fun onDrawFrame(gl: GL10?) {
+        Log.e("AlphaVideo", "MVideoRenderer onDrawFrame")
         synchronized(this) {
             if (updateSurface) {
-                surface!!.updateTexImage()
-                surface!!.getTransformMatrix(sTMatrix)
+                mSurfaceTexture!!.updateTexImage()
+                mSurfaceTexture!!.getTransformMatrix(sTMatrix)
                 updateSurface = false
             }
         }
@@ -116,6 +122,8 @@ void main() {
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+        Log.e("AlphaVideo", "MVideoRenderer onSurfaceCreated")
+
         program = createProgram(vertexShader, resolveShader())
         if (program == 0) {
             return
@@ -144,6 +152,7 @@ void main() {
     }
 
     private fun prepareSurface() {
+        Log.e("AlphaVideo", "MVideoRenderer prepareSurface")
         val textures = IntArray(1)
         GLES20.glGenTextures(1, textures, 0)
         textureID = textures[0]
@@ -157,10 +166,11 @@ void main() {
             MVideoRenderer.Companion.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
             GLES20.GL_LINEAR.toFloat()
         )
-        surface = SurfaceTexture(textureID)
-        surface!!.setOnFrameAvailableListener(this)
-        val surface = Surface(surface)
-        onSurfacePrepareListener!!.surfacePrepared(surface)
+        //mSurfaceTexture = SurfaceTexture(textureID)
+        mSurfaceTexture!!.setOnFrameAvailableListener(this)
+        //val surface = Surface(mSurfaceTexture)
+        Log.e("AlphaVideo", "MVideoRenderer surfacePrepared : ${mSurface != null}, ${mSurfaceTexture != null}")
+        onSurfacePrepareListener!!.surfacePrepared(mSurface)
         synchronized(this) { updateSurface = false }
     }
 
@@ -260,10 +270,6 @@ void main() {
         }
     }
 
-    fun setOnSurfacePrepareListener(onSurfacePrepareListener: OnSurfacePrepareListener?) {
-        this.onSurfacePrepareListener = onSurfacePrepareListener
-    }
-
     interface OnSurfacePrepareListener {
         fun surfacePrepared(surface: Surface?)
     }
@@ -286,5 +292,7 @@ void main() {
             .order(ByteOrder.nativeOrder()).asFloatBuffer()
         triangleVertices.put(triangleVerticesData).position(0)
         Matrix.setIdentityM(sTMatrix, 0)
+
+        onSurfaceCreated(null, null)
     }
 }

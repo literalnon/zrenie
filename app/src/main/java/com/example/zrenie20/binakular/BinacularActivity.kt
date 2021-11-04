@@ -28,7 +28,7 @@ open class BinacularActivity : BaseArActivity() {
         val textureView = findViewById<TextureView>(R.id.videoPlayer)
         //webView?.loadUrl("http://developer.alexanderklimov.ru/android/views/webview.php");
         //videoPlayer?.setVideoFromAssets("ball.mp4")//VideoSurfaceView
-        val player = MAlphaMovieView(textureView)
-        player.setVideoFromAssets("ball.mp4")
+        //val player = MAlphaMovieView(textureView)
+        //player.setVideoFromAssets("ball.mp4")
     }
 }

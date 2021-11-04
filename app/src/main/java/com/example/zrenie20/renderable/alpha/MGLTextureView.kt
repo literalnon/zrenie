@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLDebugHelper
 import android.util.AttributeSet
 import android.util.Log
+import android.view.Surface
 import android.view.TextureView
 import android.view.TextureView.SurfaceTextureListener
 import android.view.View
@@ -21,10 +22,13 @@ import javax.microedition.khronos.opengles.GL
 import javax.microedition.khronos.opengles.GL10
 
 open class MGLTextureView(
-    val mTextureView: TextureView
-    ) : SurfaceTextureListener, View.OnLayoutChangeListener {
+    //val mTextureView: TextureView
+    val mSurface: Surface,
+    val mSurfaceTexture: SurfaceTexture
+    ) : View.OnLayoutChangeListener,
+    SurfaceTexture.OnFrameAvailableListener
+{
 
-    private val mDebugFlags = 0
     val mPreserveEGLContextOnPause = false
 
     @Throws(Throwable::class)
@@ -41,7 +45,9 @@ open class MGLTextureView(
     }
 
     init {
-        mTextureView.surfaceTextureListener = this
+        //mTextureView.surfaceTextureListener = this
+        //mSurfaceTexture.setOnFrameAvailableListener(this)
+        //onFrameAvailable(mSurfaceTexture)
     }
     /**
      * Set the glWrapper. If the glWrapper is not null, its
@@ -105,6 +111,8 @@ open class MGLTextureView(
         mRenderer = renderer
         mGLThread = GLThread(mThisWeakRef)
         mGLThread!!.start()
+
+        onFrameAvailable(mSurfaceTexture)
     }
 
     /**
@@ -305,7 +313,7 @@ open class MGLTextureView(
      * This method is part of the SurfaceHolder.Callback interface, and is
      * not normally called or subclassed by clients of MGLTextureView.
      */
-    fun surfaceChanged(texture: SurfaceTexture?, format: Int, w: Int, h: Int) {
+    fun surfaceChanged(w: Int, h: Int) {
         mGLThread!!.onWindowResize(w, h)
     }
 
@@ -388,10 +396,10 @@ open class MGLTextureView(
         v: View, left: Int, top: Int, right: Int, bottom: Int,
         oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
     ) {
-        surfaceChanged(mTextureView.surfaceTexture, 0, right - left, bottom - top)
+        surfaceChanged(right - left, bottom - top)
     }
 
-    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+    /*override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         if (LOG_ATTACH_DETACH) {
             Log.d(
                 TAG,
@@ -412,14 +420,14 @@ open class MGLTextureView(
         mDetached = false
 
         surfaceCreated(surface)
-        surfaceChanged(surface, 0, width, height)
-    }
+        surfaceChanged(width, height)
+    }*/
 
-    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-        surfaceChanged(surface, 0, width, height)
-    }
+    /*override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+        surfaceChanged(width, height)
+    }*/
 
-    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+    /*override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         surfaceDestroyed(surface)
 
         if (LOG_ATTACH_DETACH) {
@@ -435,7 +443,7 @@ open class MGLTextureView(
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
         requestRender()
-    }
+    }*/
     // ----------------------------------------------------------------------
     /**
      * An interface used to wrap a GL interface.
@@ -947,7 +955,7 @@ open class MGLTextureView(
             val view = mGLSurfaceViewWeakRef.get()
             mEglSurface = view?.mEGLWindowSurfaceFactory?.createWindowSurface(
                 mEgl,
-                mEglDisplay, mEglConfig, view.mTextureView.surfaceTexture
+                mEglDisplay, mEglConfig, view.mSurfaceTexture
             )
             if (mEglSurface == null || mEglSurface === EGL10.EGL_NO_SURFACE) {
                 val error = mEgl!!.eglGetError()
@@ -1881,5 +1889,32 @@ open class MGLTextureView(
          */
         const val DEBUG_LOG_GL_CALLS = 2
         private val sGLThreadManager = GLThreadManager()
+    }
+
+    override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
+        if (LOG_ATTACH_DETACH) {
+            Log.d(
+                TAG,
+                "onAttachedToWindow reattach =$mDetached"
+            )
+        }
+
+        Log.e("AlphaVideo", "MGLTextureView onFrameAvailable : ${mDetached}, ${mRenderer != null}")
+
+        if (mDetached && mRenderer != null) {
+            var renderMode: Int = RENDERMODE_CONTINUOUSLY
+            if (mGLThread != null) {
+                renderMode = mGLThread!!.renderMode
+            }
+            mGLThread = GLThread(mThisWeakRef)
+            if (renderMode != RENDERMODE_CONTINUOUSLY) {
+                mGLThread!!.renderMode = renderMode
+            }
+            mGLThread!!.start()
+        }
+        mDetached = false
+
+        surfaceCreated(surfaceTexture)
+        //surfaceChanged(width, height)
     }
 }
