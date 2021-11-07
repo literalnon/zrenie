@@ -60,10 +60,13 @@ import android.media.CamcorderProfile
 
 import com.example.zrenie20.space.VideoRecorder
 import android.provider.MediaStore
-
 import android.content.ContentValues
 import com.example.zrenie20.R
-import com.example.zrenie20.binakular.BinacularActivity
+import kotlinx.android.synthetic.main.activity_location.*
+import kotlinx.android.synthetic.main.activity_my_sample.ivChangeVisibility
+import kotlinx.android.synthetic.main.activity_my_sample.llFocus
+import kotlinx.android.synthetic.main.activity_my_sample.llMainActivities
+import kotlinx.android.synthetic.main.activity_my_sample.svMirror
 
 
 abstract class BaseArActivity : AppCompatActivity() {
@@ -301,9 +304,49 @@ abstract class BaseArActivity : AppCompatActivity() {
         }
 
         ivVirtualReality?.setOnClickListener {
-            startActivity(Intent(this, BinacularActivity::class.java))
+            //startActivity(Intent(this, BinacularActivity::class.java))
+
+            if (svMirror.visibility == View.GONE) {
+                startBinacular(false)
+            } else {
+                stopBinakular(false)
+            }
         }
+
         photoVideoRecorderInit()
+    }
+
+    fun startBinacular(isLifecycle: Boolean) {
+        if (svMirror?.visibility == View.GONE && isLifecycle) {
+            return
+        }
+
+        svMirror?.visibility = View.VISIBLE
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+
+                arFragment?.arSceneView?.renderer?.startMirroring(
+                    surface,
+                    0,
+                    0,
+                    svMirror.width,
+                    svMirror.height
+                )
+            }
+        }
+    }
+
+    fun stopBinakular(isLifecycle: Boolean) {
+        if (!isLifecycle) {
+            svMirror?.visibility = View.GONE
+        }
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+                arFragment?.arSceneView?.renderer?.stopMirroring(surface)
+            }
+        }
     }
 
     fun photoVideoRecorderInit() {
@@ -383,11 +426,11 @@ abstract class BaseArActivity : AppCompatActivity() {
                 try {
                     val file = saveBitmapToDisk(bitmap)
 
-                   /* val toast: Toast = Toast.makeText(
-                        this, "Screenshot saved in : ${file.canonicalPath}",
-                        Toast.LENGTH_LONG
-                    )
-                    toast.show()*/
+                    /* val toast: Toast = Toast.makeText(
+                         this, "Screenshot saved in : ${file.canonicalPath}",
+                         Toast.LENGTH_LONG
+                     )
+                     toast.show()*/
                 } catch (e: IOException) {
                     val toast: Toast = Toast.makeText(
                         this, e.toString(),
@@ -508,7 +551,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                 }
                 Log.e(
                     "FileDownloadManager",
-                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
+                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}, checkedPackageId : ${checkedPackageId}"
                 )
 
                 if (dataItems.isNotEmpty()) {
@@ -637,5 +680,17 @@ abstract class BaseArActivity : AppCompatActivity() {
         ).show()
 
         adapter.notifyDataSetChanged()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        startBinacular(true)
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        stopBinakular(true)
     }
 }

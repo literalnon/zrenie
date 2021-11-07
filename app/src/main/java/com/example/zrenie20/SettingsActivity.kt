@@ -45,13 +45,6 @@ enum class SCREENS(val type: ArTypes) {
 
 class SettingsActivity : AppCompatActivity() {
 
-    companion object {
-        var currentScreen: SCREENS = SCREENS.AUGMENTED_IMAGE
-        val TAG = "SettingsActivity"
-        const val APP_PREFERENCES = "mysettings"
-        const val APP_PREFERENCES_CHECKED = "APP_PREFERENCES_CHECKED"
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -60,7 +53,7 @@ class SettingsActivity : AppCompatActivity() {
         val lastModified = mSettings.getLong(APP_PREFERENCES_CHECKED, 0L)
         chbSaveAr?.isChecked = lastModified == 0L
 
-        chbSaveAr?.setOnCheckedChangeListener{ btn, isChecked ->
+        chbSaveAr?.setOnCheckedChangeListener { btn, isChecked ->
             if (isChecked) {
                 mSettings.edit()
                     .putLong(APP_PREFERENCES_CHECKED, 0L)
@@ -83,12 +76,15 @@ class SettingsActivity : AppCompatActivity() {
 
         llAugmentedImage?.setOnClickListener {
             currentScreen = SCREENS.AUGMENTED_IMAGE
-            loadAugmentedImageData()
+            loadAugmentedImageData(
+                context = this,
+                llProgress = llProgress
+            )
             //startActivity(Intent(this, AugmentedImageActivity::class.java))
         }
 
         llLocation?.setOnClickListener {
-            if (checkLocationSettings()) {
+            if (checkLocationSettings(this)) {
                 currentScreen = SCREENS.LOCATION
                 startActivity(Intent(this, LocationActivity::class.java))
             }
@@ -98,7 +94,7 @@ class SettingsActivity : AppCompatActivity() {
             val fileDownloadManager = FileDownloadManager()
             fileDownloadManager?.removeAllFiles(this)
         }
-        
+
         tvLibAr?.setOnClickListener {
             startActivity(Intent(this, SearchActivity::class.java))
         }
@@ -168,195 +164,205 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    fun checkLocationSettings(): Boolean {
-        val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        var gps_enabled = false
-        var network_enabled = false
+    companion object {
+        var currentScreen: SCREENS = SCREENS.AUGMENTED_IMAGE
+        val TAG = "SettingsActivity"
+        const val APP_PREFERENCES = "mysettings"
+        const val APP_PREFERENCES_CHECKED = "APP_PREFERENCES_CHECKED"
 
-        try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        } catch (ex: Exception) {
-        }
+        fun getImageData(
+            llProgress: View?,
+            context: Context,
+            assetsArray: ArrayList<DataItemObject>
+        ) {
+            AugmentedImageFragment.bitmaps.clear()
 
-        if (!gps_enabled) {
-            // notify user
-            AlertDialog.Builder(this)
-                .setMessage(R.string.gps_network_not_enabled)
-                .setPositiveButton(R.string.open_location_settings,
-                    DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
-                        startActivity(
-                            Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                        )
-                    })
-                .setNegativeButton(R.string.cancel, null)
-                .show()
-        }
+            Log.e(TAG, "getImageData assetsArray: ${assetsArray.size}")
 
-        return gps_enabled
-    }
-
-    fun getImageData(assetsArray: ArrayList<DataItemObject>) {
-        AugmentedImageFragment.bitmaps.clear()
-
-        Log.e(TAG, "getImageData assetsArray: ${assetsArray.size}")
-
-        val nonEmptyAssetsArray = assetsArray.filter { itemObject ->
-            itemObject.trigger?.filePath?.isNotEmpty() == true
-        }
-
-        AugmentedImageFragment.assetsArray.clear()
-        AugmentedImageFragment.assetsArray.addAll(nonEmptyAssetsArray)
-
-        nonEmptyAssetsArray.forEach { itemObject ->
-            try {
-                Log.e(TAG, "getImageData trigger: ${itemObject.trigger}")
-                Log.e(TAG, "getImageData filePath: ${itemObject.trigger?.filePath}")
-
-                Glide.with(this)
-                    .asBitmap()
-                    .load(itemObject.trigger?.filePath)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(object : CustomTarget<Bitmap?>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap?>?
-                        ) {
-                            Log.e(TAG, "getImageData onResourceReady IVideoArFragment.bitmaps : ${AugmentedImageFragment.bitmaps.size}")
-                            AugmentedImageFragment.bitmaps[itemObject.trigger?.filePath!!] = resource
-                            if (AugmentedImageFragment.bitmaps.size == nonEmptyAssetsArray.size) {
-                                startActivity(Intent(this@SettingsActivity, AugmentedImageActivity::class.java))
-                            }
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            Log.e(TAG, "getImageData onLoadCleared IVideoArFragment.bitmaps : ${AugmentedImageFragment.bitmaps.size}")
-                        }
-                    })
-            } catch (e: IOException) {
-                Log.e(TAG, "IO exception loading augmented image bitmap.", e)
+            val nonEmptyAssetsArray = assetsArray.filter { itemObject ->
+                itemObject.trigger?.filePath?.isNotEmpty() == true
             }
-        }
 
-        llProgress?.visibility = View.GONE
-    }
+            AugmentedImageFragment.assetsArray.clear()
+            AugmentedImageFragment.assetsArray.addAll(nonEmptyAssetsArray)
 
-    open fun loadAugmentedImageData() {
-        llProgress?.visibility = View.VISIBLE
-        var assetsArray = arrayListOf<DataItemObject>()
+            nonEmptyAssetsArray.forEach { itemObject ->
+                try {
+                    Log.e(TAG, "getImageData trigger: ${itemObject.trigger}")
+                    Log.e(TAG, "getImageData filePath: ${itemObject.trigger?.filePath}")
 
-        val isNeedFilterTrigger = true
-
-        val service = createService(DataItemsService::class.java)
-
-        Log.e(TAG, "loadData")
-
-        Realm.getDefaultInstance()
-            .executeTransaction { realm ->
-                val packages = realm.where(RealmDataPackageObject::class.java)
-                    .findAll()
-                    .map { it.toDataPackageObject() }
-                    .sortedBy { it.order?.toLongOrNull() }
-
-                val activePackage = if (BaseArActivity.checkedPackageId == null) {
-                    val ap = packages.firstOrNull()
-                    BaseArActivity.checkedPackageId = ap?.id
-                    ap
-                } else {
-                    packages.firstOrNull {
-                        it.id == BaseArActivity.checkedPackageId
-                    }
-                }
-
-                Log.e(
-                    TAG,
-                    "loadData 1 activePackage?.dataItems?.isNotEmpty() : ${activePackage?.dataItems?.isNotEmpty()}"
-                )
-
-
-                val items = realm.where(RealmDataItemObject::class.java)
-                    .equalTo("dataPackageId", activePackage?.id)
-
-                var dataItems = items.findAll()
-                    .map { it.toDataItemObject() }
-
-                if (isNeedFilterTrigger) {
-                    //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
-                    dataItems =
-                        dataItems.filter { it.trigger?.typeId == SettingsActivity.currentScreen.type.id }
-                }
-                Log.e(
-                    TAG,
-                    "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
-                )
-
-                if (dataItems.isNotEmpty()) {
-                    assetsArray = arrayListOf<DataItemObject>().apply {
-                        addAll(dataItems)
-                    }
-
-                    getImageData(assetsArray)
-
-                    return@executeTransaction
-                }
-
-                val observable =
-                    /*Observable.fromIterable<DataPackageObject>(packages)
-                    .flatMap { packageObject ->*/
-                    service.getEntryTypes()//packageObject.id.toString()
-                        //}
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe({ items ->
-                            Log.e(
-                                TAG,
-                                "subscribe 2 checkedPackageId : ${BaseArActivity.checkedPackageId}, SettingsActivity.currentScreen.type.id : ${SettingsActivity.currentScreen.type.id}"
-                            )
-                            Log.e(TAG, "subscribe 3 items : ${items.count()}")
-                            Log.e(
-                                TAG,
-                                "subscribe 3 1 items : ${items.map { it?.triggerId }}"
-                            )
-                            val currentPackageItems = items
-                                .filter {
-                                    it?.dataPackageId == BaseArActivity.checkedPackageId && if (isNeedFilterTrigger) {
-                                        it?.trigger?.type?.id == SettingsActivity.currentScreen.type.id
-                                    } else {
-                                        true
-                                    }
-                                }
-
-                            Log.e(
-                                TAG,
-                                "subscribe 3 currentPackageItems : ${currentPackageItems.count()}"
-                            )
-
-                            if (currentPackageItems.isNotEmpty()) {
-                                assetsArray = arrayListOf<DataItemObject>().apply {
-                                    addAll(currentPackageItems)
+                    Glide.with(context)
+                        .asBitmap()
+                        .load(itemObject.trigger?.filePath)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(object : CustomTarget<Bitmap?>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap?>?
+                            ) {
+                                Log.e(
+                                    TAG,
+                                    "getImageData onResourceReady IVideoArFragment.bitmaps : ${AugmentedImageFragment.bitmaps.size}"
+                                )
+                                AugmentedImageFragment.bitmaps[itemObject.trigger?.filePath!!] =
+                                    resource
+                                if (AugmentedImageFragment.bitmaps.size == nonEmptyAssetsArray.size) {
+                                    context.startActivity(
+                                        Intent(
+                                            context,
+                                            AugmentedImageActivity::class.java
+                                        )
+                                    )
                                 }
                             }
 
-                            realm
-                                .executeTransaction { realm ->
+                            override fun onLoadCleared(placeholder: Drawable?) {
+                                Log.e(
+                                    TAG,
+                                    "getImageData onLoadCleared IVideoArFragment.bitmaps : ${AugmentedImageFragment.bitmaps.size}"
+                                )
+                            }
+                        })
+                } catch (e: IOException) {
+                    Log.e(TAG, "IO exception loading augmented image bitmap.", e)
+                }
+            }
 
-                                    realm.delete(RealmDataItemObject::class.java)
+            llProgress?.visibility = View.GONE
+        }
 
-                                    items.map {
-                                        realm.copyToRealm(it.toRealmDataItemObject())
+        open fun loadAugmentedImageData(
+            context: Context,
+            llProgress: View?
+        ) {
+            llProgress?.visibility = View.VISIBLE
+            var assetsArray = arrayListOf<DataItemObject>()
+
+            val isNeedFilterTrigger = true
+
+            val service = createService(DataItemsService::class.java)
+
+            Log.e(TAG, "loadData")
+
+            Realm.getDefaultInstance()
+                .executeTransaction { realm ->
+                    val packages = realm.where(RealmDataPackageObject::class.java)
+                        .findAll()
+                        .map { it.toDataPackageObject() }
+                        .sortedBy { it.order?.toLongOrNull() }
+
+                    val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                        val ap = packages.firstOrNull()
+                        BaseArActivity.checkedPackageId = ap?.id
+                        ap
+                    } else {
+                        packages.firstOrNull {
+                            it.id == BaseArActivity.checkedPackageId
+                        }
+                    }
+
+                    Log.e(
+                        TAG,
+                        "loadData 1 activePackage?.dataItems?.isNotEmpty() : ${activePackage?.dataItems?.isNotEmpty()}"
+                    )
+
+
+                    val items = realm.where(RealmDataItemObject::class.java)
+                        .equalTo("dataPackageId", activePackage?.id)
+
+                    var dataItems = items.findAll()
+                        .map { it.toDataItemObject() }
+
+                    if (isNeedFilterTrigger) {
+                        //items.equalTo("triggerId", SettingsActivity.currentScreen.type.id)
+                        dataItems =
+                            dataItems.filter { it.trigger?.typeId == SettingsActivity.currentScreen.type.id }
+                    }
+                    Log.e(
+                        TAG,
+                        "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}"
+                    )
+
+                    if (dataItems.isNotEmpty()) {
+                        assetsArray = arrayListOf<DataItemObject>().apply {
+                            addAll(dataItems)
+                        }
+
+                        getImageData(
+                            llProgress,
+                            context,
+                            assetsArray
+                        )
+
+                        return@executeTransaction
+                    }
+
+                    val observable =
+                        /*Observable.fromIterable<DataPackageObject>(packages)
+                    .flatMap { packageObject ->*/
+                        service.getEntryTypes()//packageObject.id.toString()
+                            //}
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({ items ->
+                                Log.e(
+                                    TAG,
+                                    "subscribe 2 checkedPackageId : ${BaseArActivity.checkedPackageId}, SettingsActivity.currentScreen.type.id : ${SettingsActivity.currentScreen.type.id}"
+                                )
+                                Log.e(TAG, "subscribe 3 items : ${items.count()}")
+                                Log.e(
+                                    TAG,
+                                    "subscribe 3 1 items : ${items.map { it?.triggerId }}"
+                                )
+                                val currentPackageItems = items
+                                    .filter {
+                                        it?.dataPackageId == BaseArActivity.checkedPackageId && if (isNeedFilterTrigger) {
+                                            it?.trigger?.type?.id == SettingsActivity.currentScreen.type.id
+                                        } else {
+                                            true
+                                        }
+                                    }
+
+                                Log.e(
+                                    TAG,
+                                    "subscribe 3 currentPackageItems : ${currentPackageItems.count()}"
+                                )
+
+                                if (currentPackageItems.isNotEmpty()) {
+                                    assetsArray = arrayListOf<DataItemObject>().apply {
+                                        addAll(currentPackageItems)
                                     }
                                 }
 
-                            getImageData(assetsArray)
+                                realm
+                                    .executeTransaction { realm ->
 
-                        }, {
-                            Log.e(TAG, "subscribe 4 error : ${it.message}")
-                            llProgress?.visibility = View.GONE
-                            Toast.makeText(this, "error load data from network : ${it.message}", Toast.LENGTH_LONG).show()
-                            it.printStackTrace()
-                        })
+                                        realm.delete(RealmDataItemObject::class.java)
+
+                                        items.map {
+                                            realm.copyToRealm(it.toRealmDataItemObject())
+                                        }
+                                    }
+
+                                getImageData(
+                                    llProgress = llProgress,
+                                    context = context,
+                                    assetsArray = assetsArray
+                                )
+
+                            }, {
+                                Log.e(TAG, "subscribe 4 error : ${it.message}")
+                                llProgress?.visibility = View.GONE
+                                /*Toast.makeText(
+                                    this,
+                                    "error load data from network : ${it.message}",
+                                    Toast.LENGTH_LONG
+                                ).show()*/
+                                it.printStackTrace()
+                            })
 
 
-                /*assetsArray = arrayListOf<DataItemObject>().apply {
+                    /*assetsArray = arrayListOf<DataItemObject>().apply {
                     addAll(firstPackage
                         ?.dataItems
                         ?.map {
@@ -365,7 +371,35 @@ class SettingsActivity : AppCompatActivity() {
                     )
                 }*/
 
-                //adapter.addAll(assetsArray)
+                    //adapter.addAll(assetsArray)
+                }
+        }
+
+        fun checkLocationSettings(context: Context): Boolean {
+            val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+            var gps_enabled = false
+            var network_enabled = false
+
+            try {
+                gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+            } catch (ex: Exception) {
             }
+
+            if (!gps_enabled) {
+                // notify user
+                AlertDialog.Builder(context)
+                    .setMessage(R.string.gps_network_not_enabled)
+                    .setPositiveButton(R.string.open_location_settings,
+                        DialogInterface.OnClickListener { paramDialogInterface, paramInt ->
+                            context.startActivity(
+                                Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                            )
+                        })
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            }
+
+            return gps_enabled
+        }
     }
 }

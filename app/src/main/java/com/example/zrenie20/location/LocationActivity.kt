@@ -37,6 +37,7 @@ import com.example.zrenie20.network.createService
 import com.example.zrenie20.renderable.ArRenderObjectFactory
 import com.example.zrenie20.renderable.ArVideoRenderObject
 import com.example.zrenie20.space.FileDownloadManager
+import com.example.zrenie20.space.SpaceArFragment
 import com.example.zrenie20.space.VideoRecorder
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
@@ -63,7 +64,6 @@ import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.activity_location.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_location.llFocus
 import kotlinx.android.synthetic.main.activity_location.llMainActivities
-import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.io.File
 import java.io.FileOutputStream
@@ -269,25 +269,26 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                                                                 "ViewRenderable 4 lon : ${lon}, lat : ${lat}"
                                                             )
 
-                                                            arRenderObject?.onTouchListener = Node.OnTouchListener { hitTestResult, motionEvent ->
-                                                                Log.e(
-                                                                    "LOCATION_FILE",
-                                                                    "base.setOnTouchListener"
-                                                                )
-                                                                if (layoutView?.visibility != View.VISIBLE) {
-                                                                    layoutView?.visibility =
-                                                                        View.VISIBLE
+                                                            arRenderObject?.onTouchListener =
+                                                                Node.OnTouchListener { hitTestResult, motionEvent ->
+                                                                    Log.e(
+                                                                        "LOCATION_FILE",
+                                                                        "base.setOnTouchListener"
+                                                                    )
+                                                                    if (layoutView?.visibility != View.VISIBLE) {
+                                                                        layoutView?.visibility =
+                                                                            View.VISIBLE
 
-                                                                    arRenderObject?.pause()
-                                                                } else {
-                                                                    layoutView?.visibility =
-                                                                        View.GONE
+                                                                        arRenderObject?.pause()
+                                                                    } else {
+                                                                        layoutView?.visibility =
+                                                                            View.GONE
 
-                                                                    arRenderObject?.resume()
+                                                                        arRenderObject?.resume()
+                                                                    }
+
+                                                                    false
                                                                 }
-
-                                                                false
-                                                            }
 
                                                             val newLayoutLocationMarker =
                                                                 LocationMarker(
@@ -428,6 +429,14 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                 takePhoto()
             }
         }
+
+        ivVirtualReality.setOnClickListener {
+            if (svMirror.visibility == View.GONE) {
+                startBinacular(false)
+            } else {
+                stopBinakular(false)
+            }
+        }
     }
 
     fun toggleRecording() {
@@ -450,6 +459,39 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
             values.put(MediaStore.Video.Media.DATA, videoPath)
             contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+        }
+    }
+
+    fun startBinacular(isLifecycle: Boolean) {
+        if (svMirror?.visibility == View.GONE && isLifecycle) {
+            return
+        }
+
+        svMirror?.visibility = View.VISIBLE
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+
+                arFragment?.arSceneView?.renderer?.startMirroring(
+                    surface,
+                    0,
+                    0,
+                    svMirror.width,
+                    svMirror.height
+                )
+            }
+        }
+    }
+
+    fun stopBinakular(isLifecycle: Boolean) {
+        if (!isLifecycle) {
+            svMirror?.visibility = View.GONE
+        }
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+                arFragment?.arSceneView?.renderer?.stopMirroring(surface)
+            }
         }
     }
 
@@ -669,6 +711,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         if (arSceneView?.session != null) {
             showLoadingMessage()
         }
+
+        startBinacular(true)
     }
 
     /**
@@ -680,6 +724,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             locationScene!!.pause()
         }
         arSceneView?.pause()
+        stopBinakular(true)
     }
 
     public override fun onDestroy() {

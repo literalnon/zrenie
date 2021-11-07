@@ -665,10 +665,13 @@ open class MGLTextureView(
             nativeWindow: Any?
         ): EGLSurface? {
 
+            Log.e("AlphaVideo", "MGLTextureView createWindowSurface 1")
             var result: EGLSurface? = null
             try {
                 result = egl?.eglCreateWindowSurface(display, config, nativeWindow, null)
+                Log.e("AlphaVideo", "MGLTextureView createWindowSurface 2")
             } catch (e: IllegalArgumentException) {
+                Log.e("AlphaVideo", "MGLTextureView createWindowSurface 3 : ${e.message}")
                 // This exception indicates that the surface flinger surface
                 // is not valid. This can happen if the surface flinger surface has
                 // been torn down, but the application has not yet been
@@ -929,6 +932,7 @@ open class MGLTextureView(
          * @return true if the surface was created successfully.
          */
         fun createSurface(): Boolean {
+            Log.e("AlphaVideo", "MGLTextureView createSurface")
             if (LOG_EGL) {
                 Log.w("EglHelper", "createSurface()  tid=" + Thread.currentThread().id)
             }
@@ -955,8 +959,13 @@ open class MGLTextureView(
             val view = mGLSurfaceViewWeakRef.get()
             mEglSurface = view?.mEGLWindowSurfaceFactory?.createWindowSurface(
                 mEgl,
-                mEglDisplay, mEglConfig, view.mSurfaceTexture
+                mEglDisplay,
+                mEglConfig,
+                view.mSurfaceTexture
             )
+
+            Log.e("AlphaVideo", "MGLTextureView createSurface 2 : ${mEglSurface}")
+
             if (mEglSurface == null || mEglSurface === EGL10.EGL_NO_SURFACE) {
                 val error = mEgl!!.eglGetError()
                 if (error == EGL10.EGL_BAD_NATIVE_WINDOW) {
@@ -965,6 +974,7 @@ open class MGLTextureView(
                 return false
             }
 
+            Log.e("AlphaVideo", "MGLTextureView createSurface 3")
             /*
              * Before we can issue GL commands, we need to make sure
              * the context is current and bound to a surface.
@@ -976,6 +986,9 @@ open class MGLTextureView(
                 logEglErrorAsWarning("EGLHelper", "eglMakeCurrent", mEgl!!.eglGetError())
                 return false
             }
+
+            Log.e("AlphaVideo", "MGLTextureView createSurface 4")
+
             return true
         }
 
@@ -1133,6 +1146,7 @@ open class MGLTextureView(
 
         @Throws(InterruptedException::class)
         private fun guardedRun() {
+            Log.e("AlphaVideo", "MGLTextureView guardedRun")
             mEglHelper = EglHelper(mGLSurfaceViewWeakRef)
             mHaveEglContext = false
             mHaveEglSurface = false
@@ -1150,8 +1164,10 @@ open class MGLTextureView(
                 var h = 0
                 var event: Runnable? = null
                 while (true) {
+                    Log.e("AlphaVideo", "MGLTextureView guardedRun 1")
                     synchronized(sGLThreadManager) {
                         while (true) {
+                            Log.e("AlphaVideo", "MGLTextureView guardedRun 2")
                             if (mShouldExit) {
                                 return
                             }
@@ -1276,8 +1292,12 @@ open class MGLTextureView(
                                 sGLThreadManager.notifyAll()
                             }
 
+                            Log.e("AlphaVideo", "MGLTextureView guardedRun 3")
+
                             // Ready to draw?
                             if (readyToDraw()) {
+
+                                Log.e("AlphaVideo", "MGLTextureView readyToDraw 4")
 
                                 // If we don't have an EGL context, try to acquire one.
                                 if (!mHaveEglContext) {
@@ -1302,6 +1322,7 @@ open class MGLTextureView(
                                 }
                                 if (mHaveEglContext && !mHaveEglSurface) {
                                     mHaveEglSurface = true
+                                    Log.e("AlphaVideo", "MGLTextureView createEglSurface = true 1")
                                     createEglSurface = true
                                     createGlInterface = true
                                     sizeChanged = true
@@ -1321,6 +1342,7 @@ open class MGLTextureView(
                                         }
 
                                         // Destroy and recreate the EGL surface.
+                                        Log.e("AlphaVideo", "MGLTextureView createEglSurface = true 2")
                                         createEglSurface = true
                                         mSizeChanged = false
                                     }
@@ -1360,11 +1382,13 @@ open class MGLTextureView(
                         }
                         if (!mEglHelper!!.createSurface()) {
                             synchronized(sGLThreadManager) {
+                                Log.e("AlphaVideo", "MGLTextureView createEglSurface mSurfaceIsBad = true")
                                 mSurfaceIsBad = true
                                 sGLThreadManager.notifyAll()
                             }
                             continue
                         }
+                        Log.e("AlphaVideo", "MGLTextureView createEglSurface = false 2")
                         createEglSurface = false
                     }
                     if (createGlInterface) {
@@ -1391,7 +1415,9 @@ open class MGLTextureView(
                     if (LOG_RENDERER_DRAW_FRAME) {
                         Log.w("GLThread", "onDrawFrame tid=$id")
                     }
+                    Log.e("AlphaVideo", "MGLTextureView run 5")
                     run {
+                        Log.e("AlphaVideo", "MGLTextureView onDrawFrame tid=$id")
                         val view = mGLSurfaceViewWeakRef.get()
                         view?.mRenderer?.onDrawFrame(gl)
                     }
@@ -1412,6 +1438,7 @@ open class MGLTextureView(
                             // Log the error to help developers understand why rendering stopped.
                             EglHelper.logEglErrorAsWarning("GLThread", "eglSwapBuffers", swapError)
                             synchronized(sGLThreadManager) {
+                                Log.e("AlphaVideo", "MGLTextureView else mSurfaceIsBad = true 1")
                                 mSurfaceIsBad = true
                                 sGLThreadManager.notifyAll()
                             }
@@ -1437,6 +1464,14 @@ open class MGLTextureView(
         }
 
         private fun readyToDraw(): Boolean {
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw !mPaused : ${!mPaused}")
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw mHasSurface : ${mHasSurface}")
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw !mSurfaceIsBad : ${!mSurfaceIsBad}")
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw mWidth : ${mWidth}")
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw mHeight : ${mHeight}")
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw mRequestRender : ${mRequestRender}")
+            Log.e("AlphaVideo", "MGLTextureView readyToDraw mRenderMode : ${mRenderMode}")
+
             return (!mPaused && mHasSurface && !mSurfaceIsBad
                     && mWidth > 0 && mHeight > 0
                     && (mRequestRender || mRenderMode == RENDERMODE_CONTINUOUSLY))

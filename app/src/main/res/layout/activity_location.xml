@@ -20,13 +20,29 @@
     android:layout_height="match_parent"
     android:background="@android:color/transparent">
 
+    <SurfaceView
+        android:id="@+id/svMirror"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/ar_fragment"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <fragment
         android:id="@+id/ar_fragment"
         android:name="com.example.zrenie20.location.LocationArFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/svMirror" />
 
-    <com.example.zrenie20.location.custom.RoundCornerLayout
+    <com.example.zrenie20.common.custom.RoundCornerLayout
         android:id="@+id/mapFrame"
         android:layout_width="match_parent"
         android:layout_height="200dp"
@@ -42,7 +58,7 @@
             android:layout_height="match_parent"
             android:background="@android:color/transparent" />
 
-    </com.example.zrenie20.location.custom.RoundCornerLayout>
+    </com.example.zrenie20.common.custom.RoundCornerLayout>
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/ivChangeVisibility"

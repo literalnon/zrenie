@@ -15,6 +15,7 @@ import android.view.TextureView
 import com.example.zrenie20.R
 import java.io.FileDescriptor
 import java.io.IOException
+import java.lang.Exception
 import java.util.HashMap
 
 @SuppressLint("ViewConstructor")
@@ -128,7 +129,9 @@ class MAlphaMovieView(
     }*/
 
     private fun prepareAndStartMediaPlayer() {
-        prepareAsync { start() }
+        prepareAsync {
+            start()
+        }
     }
 
     private fun calculateVideoAspectRatio(videoWidth: Int, videoHeight: Int) {
@@ -192,6 +195,7 @@ class MAlphaMovieView(
                 assetFileDescriptor.length
             )
             onDataSourceSet(retriever)
+
         } catch (e: IOException) {
             Log.e(MAlphaMovieView.Companion.TAG, e.message, e)
         }
@@ -284,8 +288,13 @@ class MAlphaMovieView(
                 )
                 state = PlayerState.PREPARED
                 onPreparedListener.onPrepared(mp)
+                surfaceChanged(mediaPlayer.videoWidth, mediaPlayer.videoHeight)
             }
-            mediaPlayer!!.prepareAsync()
+            try {
+                mediaPlayer!!.prepareAsync()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

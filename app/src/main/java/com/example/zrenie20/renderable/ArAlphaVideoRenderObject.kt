@@ -95,6 +95,7 @@ class ArAlphaVideoRenderObject(
                     mSurface = externalTexture.surface,
                     mSurfaceTexture = externalTexture.surfaceTexture
                 )
+
                 player?.setVideoFromAssets("ball.mp4")
 
                 videoRenderable = renderable
