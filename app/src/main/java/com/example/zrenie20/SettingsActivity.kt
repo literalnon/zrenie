@@ -27,6 +27,7 @@ import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
+import com.example.zrenie20.sharedcamera.SharedCameraActivity
 import com.example.zrenie20.space.FileDownloadManager
 import com.example.zrenie20.space.SpaceActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -67,6 +68,12 @@ class SettingsActivity : AppCompatActivity() {
         llSpace?.setOnClickListener {
             currentScreen = SCREENS.SPACE
             startActivity(Intent(this, SpaceActivity::class.java))
+        }
+
+        llSpace?.setOnLongClickListener {
+            startActivity(Intent(this, SharedCameraActivity::class.java))
+
+            true
         }
 
         llBodyPart?.setOnClickListener {

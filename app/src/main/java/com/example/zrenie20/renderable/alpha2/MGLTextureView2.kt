@@ -1,16 +1,14 @@
-package com.example.zrenie20.renderable.alpha
+package com.example.zrenie20.renderable.alpha2
 
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLDebugHelper
 import android.util.AttributeSet
 import android.util.Log
-import android.view.Surface
 import android.view.TextureView
 import android.view.TextureView.SurfaceTextureListener
 import android.view.View
 import com.alphamovie.lib.GLTextureView
-import com.alphamovie.lib.GLTextureView.*
 import java.io.Writer
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
@@ -21,15 +19,24 @@ import javax.microedition.khronos.egl.*
 import javax.microedition.khronos.opengles.GL
 import javax.microedition.khronos.opengles.GL10
 
-open class MGLTextureView(
-    //val mTextureView: TextureView
-    val mSurface: Surface,
-    val mSurfaceTexture: SurfaceTexture
-    ) : View.OnLayoutChangeListener,
-    SurfaceTexture.OnFrameAvailableListener
-{
+open class GLTextureView : TextureView, SurfaceTextureListener, View.OnLayoutChangeListener {
+    /**
+     * Standard View constructor. In order to render something, you
+     * must call [.setRenderer] to register a renderer.
+     */
+    constructor(context: Context?) : super(context!!) {
+        init()
+    }
 
-    val mPreserveEGLContextOnPause = false
+    /**
+     * Standard View constructor. In order to render something, you
+     * must call [.setRenderer] to register a renderer.
+     */
+    constructor(context: Context?, attrs: AttributeSet?) : super(
+        context!!, attrs
+    ) {
+        init()
+    }
 
     @Throws(Throwable::class)
     protected open fun finalize() {
@@ -40,15 +47,14 @@ open class MGLTextureView(
                 mGLThread!!.requestExitAndWait()
             }
         } finally {
-            //super.finalize()
+            super.finalize()
         }
     }
 
-    init {
-        //mTextureView.surfaceTextureListener = this
-        //mSurfaceTexture.setOnFrameAvailableListener(this)
-        //onFrameAvailable(mSurfaceTexture)
+    private fun init() {
+        surfaceTextureListener = this
     }
+
     /**
      * Set the glWrapper. If the glWrapper is not null, its
      * [GLWrapper.wrap] method is called
@@ -64,7 +70,7 @@ open class MGLTextureView(
      * The default value is null.
      * @param glWrapper the new GLWrapper
      */
-    fun setGLWrapper(glWrapper: MGLTextureView.GLWrapper?) {
+    fun setGLWrapper(glWrapper: GLTextureView.GLWrapper?) {
         mGLWrapper = glWrapper
     }
 
@@ -73,9 +79,9 @@ open class MGLTextureView(
      * will call the renderer, which in turn causes the rendering to start.
      *
      * This method should be called once and only once in the life-cycle of
-     * a MGLTextureView.
+     * a GLTextureView.
      *
-     * The following MGLTextureView methods can only be called *before*
+     * The following GLTextureView methods can only be called *before*
      * setRenderer is called:
      *
      *  * [.setEGLConfigChooser]
@@ -84,7 +90,7 @@ open class MGLTextureView(
      *
      *
      *
-     * The following MGLTextureView methods can only be called *after*
+     * The following GLTextureView methods can only be called *after*
      * setRenderer is called:
      *
      *  * [.getRenderMode]
@@ -97,22 +103,20 @@ open class MGLTextureView(
      *
      * @param renderer the renderer to use to perform OpenGL drawing.
      */
-    fun setRenderer(renderer: MGLTextureView.Renderer?) {
+    fun setRenderer(renderer: GLTextureView.Renderer?) {
         checkRenderThreadState()
         if (mEGLConfigChooser == null) {
-            mEGLConfigChooser = SimpleEGLConfigChooser(true)
+            mEGLConfigChooser = GLTextureView.SimpleEGLConfigChooser(true)
         }
         if (mEGLContextFactory == null) {
-            mEGLContextFactory = DefaultContextFactory()
+            mEGLContextFactory = GLTextureView.DefaultContextFactory()
         }
         if (mEGLWindowSurfaceFactory == null) {
-            mEGLWindowSurfaceFactory = DefaultWindowSurfaceFactory()
+            mEGLWindowSurfaceFactory = GLTextureView.DefaultWindowSurfaceFactory()
         }
         mRenderer = renderer
-        mGLThread = GLThread(mThisWeakRef)
+        mGLThread = GLTextureView.GLThread(mThisWeakRef)
         mGLThread!!.start()
-
-        onFrameAvailable(mSurfaceTexture)
     }
 
     /**
@@ -127,7 +131,7 @@ open class MGLTextureView(
      * a context will be created with no shared context and
      * with a null attribute list.
      */
-    fun setEGLContextFactory(factory: MGLTextureView.EGLContextFactory?) {
+    fun setEGLContextFactory(factory: GLTextureView.EGLContextFactory?) {
         checkRenderThreadState()
         mEGLContextFactory = factory
     }
@@ -143,7 +147,7 @@ open class MGLTextureView(
      * If this method is not called, then by default
      * a window surface will be created with a null attribute list.
      */
-    fun setEGLWindowSurfaceFactory(factory: MGLTextureView.EGLWindowSurfaceFactory?) {
+    fun setEGLWindowSurfaceFactory(factory: GLTextureView.EGLWindowSurfaceFactory?) {
         checkRenderThreadState()
         mEGLWindowSurfaceFactory = factory
     }
@@ -162,7 +166,7 @@ open class MGLTextureView(
      * at least 16 bits.
      * @param configChooser
      */
-    fun setEGLConfigChooser(configChooser: MGLTextureView.EGLConfigChooser?) {
+    fun setEGLConfigChooser(configChooser: GLTextureView.EGLConfigChooser?) {
         checkRenderThreadState()
         mEGLConfigChooser = configChooser
     }
@@ -184,7 +188,7 @@ open class MGLTextureView(
      * @param needDepth
      */
     fun setEGLConfigChooser(needDepth: Boolean) {
-        setEGLConfigChooser(SimpleEGLConfigChooser(needDepth))
+        setEGLConfigChooser(GLTextureView.SimpleEGLConfigChooser(needDepth))
     }
 
     /**
@@ -207,7 +211,7 @@ open class MGLTextureView(
         alphaSize: Int, depthSize: Int, stencilSize: Int
     ) {
         setEGLConfigChooser(
-            ComponentSizeChooser(
+            GLTextureView.ComponentSizeChooser(
                 redSize, greenSize,
                 blueSize, alphaSize, depthSize, stencilSize
             )
@@ -276,9 +280,9 @@ open class MGLTextureView(
      * @see .RENDERMODE_WHEN_DIRTY
      */
     var renderMode: Int
-        get() = mGLThread!!.renderMode
+        get() = mGLThread!!.getRenderMode()
         set(renderMode) {
-            mGLThread!!.renderMode = renderMode
+            mGLThread!!.setRenderMode(renderMode)
         }
 
     /**
@@ -294,7 +298,7 @@ open class MGLTextureView(
 
     /**
      * This method is part of the SurfaceHolder.Callback interface, and is
-     * not normally called or subclassed by clients of MGLTextureView.
+     * not normally called or subclassed by clients of GLTextureView.
      */
     fun surfaceCreated(texture: SurfaceTexture?) {
         mGLThread!!.surfaceCreated()
@@ -302,7 +306,7 @@ open class MGLTextureView(
 
     /**
      * This method is part of the SurfaceHolder.Callback interface, and is
-     * not normally called or subclassed by clients of MGLTextureView.
+     * not normally called or subclassed by clients of GLTextureView.
      */
     fun surfaceDestroyed(texture: SurfaceTexture?) {
         // Surface will be destroyed when we return
@@ -311,9 +315,9 @@ open class MGLTextureView(
 
     /**
      * This method is part of the SurfaceHolder.Callback interface, and is
-     * not normally called or subclassed by clients of MGLTextureView.
+     * not normally called or subclassed by clients of GLTextureView.
      */
-    fun surfaceChanged(w: Int, h: Int) {
+    fun surfaceChanged(texture: SurfaceTexture?, format: Int, w: Int, h: Int) {
         mGLThread!!.onWindowResize(w, h)
     }
 
@@ -350,100 +354,70 @@ open class MGLTextureView(
 
     /**
      * This method is used as part of the View class and is not normally
-     * called or subclassed by clients of MGLTextureView.
+     * called or subclassed by clients of GLTextureView.
      */
-    /*override fun onAttachedToWindow() {
+    override fun onAttachedToWindow() {
         super.onAttachedToWindow()
-
-        if (LOG_ATTACH_DETACH) {
+        if (GLTextureView.Companion.LOG_ATTACH_DETACH) {
             Log.d(
-                TAG,
+                GLTextureView.Companion.TAG,
                 "onAttachedToWindow reattach =$mDetached"
             )
         }
         if (mDetached && mRenderer != null) {
-            var renderMode: Int = RENDERMODE_CONTINUOUSLY
+            var renderMode: Int = GLTextureView.Companion.RENDERMODE_CONTINUOUSLY
             if (mGLThread != null) {
-                renderMode = mGLThread!!.renderMode
+                renderMode = mGLThread!!.getRenderMode()
             }
-            mGLThread = GLThread(mThisWeakRef)
-            if (renderMode != RENDERMODE_CONTINUOUSLY) {
-                mGLThread!!.renderMode = renderMode
+            mGLThread = GLTextureView.GLThread(mThisWeakRef)
+            if (renderMode != GLTextureView.Companion.RENDERMODE_CONTINUOUSLY) {
+                mGLThread!!.setRenderMode(renderMode)
             }
             mGLThread!!.start()
         }
         mDetached = false
-    }*/
+    }
 
     /**
      * This method is used as part of the View class and is not normally
-     * called or subclassed by clients of MGLTextureView.
+     * called or subclassed by clients of GLTextureView.
      * Must not be called before a renderer has been set.
      */
-    /*override fun onDetachedFromWindow() {
-        if (LOG_ATTACH_DETACH) {
-            Log.d(TAG, "onDetachedFromWindow")
+    override fun onDetachedFromWindow() {
+        if (GLTextureView.Companion.LOG_ATTACH_DETACH) {
+            Log.d(GLTextureView.Companion.TAG, "onDetachedFromWindow")
         }
         if (mGLThread != null) {
             mGLThread!!.requestExitAndWait()
         }
         mDetached = true
-
         super.onDetachedFromWindow()
-    }*/
+    }
 
     override fun onLayoutChange(
         v: View, left: Int, top: Int, right: Int, bottom: Int,
         oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int
     ) {
-        surfaceChanged(right - left, bottom - top)
+        surfaceChanged(surfaceTexture, 0, right - left, bottom - top)
     }
 
-    /*override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-        if (LOG_ATTACH_DETACH) {
-            Log.d(
-                TAG,
-                "onAttachedToWindow reattach =$mDetached"
-            )
-        }
-        if (mDetached && mRenderer != null) {
-            var renderMode: Int = RENDERMODE_CONTINUOUSLY
-            if (mGLThread != null) {
-                renderMode = mGLThread!!.renderMode
-            }
-            mGLThread = GLThread(mThisWeakRef)
-            if (renderMode != RENDERMODE_CONTINUOUSLY) {
-                mGLThread!!.renderMode = renderMode
-            }
-            mGLThread!!.start()
-        }
-        mDetached = false
-
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         surfaceCreated(surface)
-        surfaceChanged(width, height)
-    }*/
+        surfaceChanged(surface, 0, width, height)
+    }
 
-    /*override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-        surfaceChanged(width, height)
-    }*/
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+        surfaceChanged(surface, 0, width, height)
+    }
 
-    /*override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         surfaceDestroyed(surface)
-
-        if (LOG_ATTACH_DETACH) {
-            Log.d(TAG, "onDetachedFromWindow")
-        }
-        if (mGLThread != null) {
-            mGLThread!!.requestExitAndWait()
-        }
-        mDetached = true
-
         return true
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
         requestRender()
-    }*/
+    }
     // ----------------------------------------------------------------------
     /**
      * An interface used to wrap a GL interface.
@@ -483,9 +457,9 @@ open class MGLTextureView(
      * The renderer is responsible for making OpenGL calls to render a frame.
      *
      *
-     * MGLTextureView clients typically create their own classes that implement
+     * GLTextureView clients typically create their own classes that implement
      * this interface, and then call [GLTextureView.setRenderer] to
-     * register the renderer with the MGLTextureView.
+     * register the renderer with the GLTextureView.
      *
      *
      *
@@ -608,32 +582,36 @@ open class MGLTextureView(
         fun destroyContext(egl: EGL10?, display: EGLDisplay?, context: EGLContext?)
     }
 
-    private inner class DefaultContextFactory : MGLTextureView.EGLContextFactory {
+    private inner class DefaultContextFactory : GLTextureView.EGLContextFactory {
         private val EGL_CONTEXT_CLIENT_VERSION = 0x3098
-
         override fun createContext(
-            egl: EGL10?,
+            egl: EGL10,
             display: EGLDisplay?,
-            eglConfig: EGLConfig?
-        ): EGLContext? {
+            config: EGLConfig?
+        ): EGLContext {
             val attrib_list = intArrayOf(
-                EGL_CONTEXT_CLIENT_VERSION,
-                mEGLContextClientVersion,
+                EGL_CONTEXT_CLIENT_VERSION, mEGLContextClientVersion,
                 EGL10.EGL_NONE
             )
-            return egl?.eglCreateContext(
-                display, eglConfig, EGL10.EGL_NO_CONTEXT,
+            return egl.eglCreateContext(
+                display, config, EGL10.EGL_NO_CONTEXT,
                 if (mEGLContextClientVersion != 0) attrib_list else null
             )
         }
 
-        override fun destroyContext(egl: EGL10?, display: EGLDisplay?, context: EGLContext?) {
-            if (egl?.eglDestroyContext(display, context) != true) {
+        override fun destroyContext(
+            egl: EGL10, display: EGLDisplay,
+            context: EGLContext
+        ) {
+            if (!egl.eglDestroyContext(display, context)) {
                 Log.e("DefaultContextFactory", "display:$display context: $context")
-                if (LOG_THREADS) {
+                if (GLTextureView.Companion.LOG_THREADS) {
                     Log.i("DefaultContextFactory", "tid=" + Thread.currentThread().id)
                 }
-                EglHelper.throwEglException("eglDestroyContex", egl!!.eglGetError())
+                GLTextureView.EglHelper.Companion.throwEglException(
+                    "eglDestroyContex",
+                    egl.eglGetError()
+                )
             }
         }
     }
@@ -657,34 +635,31 @@ open class MGLTextureView(
         fun destroySurface(egl: EGL10?, display: EGLDisplay?, surface: EGLSurface?)
     }
 
-    private class DefaultWindowSurfaceFactory : MGLTextureView.EGLWindowSurfaceFactory {
+    private class DefaultWindowSurfaceFactory : GLTextureView.EGLWindowSurfaceFactory {
         override fun createWindowSurface(
-            egl: EGL10?,
-            display: EGLDisplay?,
-            config: EGLConfig?,
-            nativeWindow: Any?
+            egl: EGL10, display: EGLDisplay?,
+            config: EGLConfig?, nativeWindow: Any?
         ): EGLSurface? {
-
-            Log.e("AlphaVideo", "MGLTextureView createWindowSurface 1")
             var result: EGLSurface? = null
             try {
-                result = egl?.eglCreateWindowSurface(display, config, nativeWindow, null)
-                Log.e("AlphaVideo", "MGLTextureView createWindowSurface 2")
+                result = egl.eglCreateWindowSurface(display, config, nativeWindow, null)
             } catch (e: IllegalArgumentException) {
-                Log.e("AlphaVideo", "MGLTextureView createWindowSurface 3 : ${e.message}")
                 // This exception indicates that the surface flinger surface
                 // is not valid. This can happen if the surface flinger surface has
                 // been torn down, but the application has not yet been
                 // notified via SurfaceHolder.Callback.surfaceDestroyed.
                 // In theory the application should be notified first,
                 // but in practice sometimes it is not. See b/4588890
-                Log.e(TAG, "eglCreateWindowSurface", e)
+                Log.e(GLTextureView.Companion.TAG, "eglCreateWindowSurface", e)
             }
             return result
         }
 
-        override fun destroySurface(egl: EGL10?, display: EGLDisplay?, surface: EGLSurface?) {
-            egl?.eglDestroySurface(display, surface)
+        override fun destroySurface(
+            egl: EGL10, display: EGLDisplay?,
+            surface: EGLSurface?
+        ) {
+            egl.eglDestroySurface(display, surface)
         }
     }
 
@@ -709,14 +684,15 @@ open class MGLTextureView(
         fun chooseConfig(egl: EGL10?, display: EGLDisplay?): EGLConfig?
     }
 
-    abstract inner class BaseConfigChooser(configSpec: IntArray) :
-        MGLTextureView.EGLConfigChooser {
-
-        override fun chooseConfig(egl: EGL10?, display: EGLDisplay?): EGLConfig? {
-
+    private abstract inner class BaseConfigChooser(configSpec: IntArray) :
+        GLTextureView.EGLConfigChooser {
+        override fun chooseConfig(
+            egl: EGL10,
+            display: EGLDisplay?
+        ): EGLConfig {
             val num_config = IntArray(1)
             require(
-                egl!!.eglChooseConfig(
+                egl.eglChooseConfig(
                     display, mConfigSpec, null, 0,
                     num_config
                 )
@@ -725,7 +701,7 @@ open class MGLTextureView(
             require(numConfigs > 0) { "No configs match configSpec" }
             val configs = arrayOfNulls<EGLConfig>(numConfigs)
             require(
-                egl!!.eglChooseConfig(
+                egl.eglChooseConfig(
                     display, mConfigSpec, configs, numConfigs,
                     num_config
                 )
@@ -765,11 +741,11 @@ open class MGLTextureView(
      * Choose a configuration with exactly the specified r,g,b,a sizes,
      * and at least the specified depth and stencil sizes.
      */
-     open inner class ComponentSizeChooser(
+    private inner class ComponentSizeChooser(
         redSize: Int, greenSize: Int, blueSize: Int,
         alphaSize: Int, depthSize: Int, stencilSize: Int
     ) :
-        BaseConfigChooser(
+        GLTextureView.BaseConfigChooser(
             intArrayOf(
                 EGL10.EGL_RED_SIZE, redSize,
                 EGL10.EGL_GREEN_SIZE, greenSize,
@@ -780,23 +756,11 @@ open class MGLTextureView(
                 EGL10.EGL_NONE
             )
         ) {
-
         override fun chooseConfig(
-            egl: EGL10?,
-            display: EGLDisplay?,
-            configs: Array<EGLConfig?>?
+            egl: EGL10, display: EGLDisplay,
+            configs: Array<EGLConfig>
         ): EGLConfig? {
-
-            if (egl == null ||
-                display == null ||
-                configs == null
-            ) {
-                return null
-            }
-
             for (config in configs) {
-                config!!
-
                 val d = findConfigAttrib(
                     egl, display, config,
                     EGL10.EGL_DEPTH_SIZE, 0
@@ -868,18 +832,18 @@ open class MGLTextureView(
      *
      */
     private inner class SimpleEGLConfigChooser(withDepthBuffer: Boolean) :
-        ComponentSizeChooser(8, 8, 8, 0, if (withDepthBuffer) 16 else 0, 0)
+        GLTextureView.ComponentSizeChooser(8, 8, 8, 0, if (withDepthBuffer) 16 else 0, 0)
 
     /**
      * An EGL helper class.
      */
-    private class EglHelper(private val mGLSurfaceViewWeakRef: WeakReference<MGLTextureView?>) {
+    private class EglHelper(private val mGLSurfaceViewWeakRef: WeakReference<GLTextureView>) {
         /**
          * Initialize EGL for a given configuration spec.
          * @param
          */
         fun start() {
-            if (LOG_EGL) {
+            if (GLTextureView.Companion.LOG_EGL) {
                 Log.w("EglHelper", "start() tid=" + Thread.currentThread().id)
             }
             /*
@@ -905,18 +869,18 @@ open class MGLTextureView(
                 mEglConfig = null
                 mEglContext = null
             } else {
-                mEglConfig = view.mEGLConfigChooser?.chooseConfig(mEgl, mEglDisplay)
+                mEglConfig = view.mEGLConfigChooser.chooseConfig(mEgl, mEglDisplay)
 
                 /*
                 * Create an EGL context. We want to do this as rarely as we can, because an
                 * EGL context is a somewhat heavy object.
-                */mEglContext = view.mEGLContextFactory?.createContext(mEgl, mEglDisplay, mEglConfig)
+                */mEglContext = view.mEGLContextFactory.createContext(mEgl, mEglDisplay, mEglConfig)
             }
             if (mEglContext == null || mEglContext === EGL10.EGL_NO_CONTEXT) {
                 mEglContext = null
                 throwEglException("createContext")
             }
-            if (LOG_EGL) {
+            if (GLTextureView.Companion.LOG_EGL) {
                 Log.w(
                     "EglHelper",
                     "createContext " + mEglContext + " tid=" + Thread.currentThread().id
@@ -932,8 +896,7 @@ open class MGLTextureView(
          * @return true if the surface was created successfully.
          */
         fun createSurface(): Boolean {
-            Log.e("AlphaVideo", "MGLTextureView createSurface")
-            if (LOG_EGL) {
+            if (GLTextureView.Companion.LOG_EGL) {
                 Log.w("EglHelper", "createSurface()  tid=" + Thread.currentThread().id)
             }
             /*
@@ -959,13 +922,8 @@ open class MGLTextureView(
             val view = mGLSurfaceViewWeakRef.get()
             mEglSurface = view?.mEGLWindowSurfaceFactory?.createWindowSurface(
                 mEgl,
-                mEglDisplay,
-                mEglConfig,
-                view.mSurfaceTexture
+                mEglDisplay, mEglConfig, view.surfaceTexture
             )
-
-            Log.e("AlphaVideo", "MGLTextureView createSurface 2 : ${mEglSurface}")
-
             if (mEglSurface == null || mEglSurface === EGL10.EGL_NO_SURFACE) {
                 val error = mEgl!!.eglGetError()
                 if (error == EGL10.EGL_BAD_NATIVE_WINDOW) {
@@ -974,7 +932,6 @@ open class MGLTextureView(
                 return false
             }
 
-            Log.e("AlphaVideo", "MGLTextureView createSurface 3")
             /*
              * Before we can issue GL commands, we need to make sure
              * the context is current and bound to a surface.
@@ -983,12 +940,13 @@ open class MGLTextureView(
                  * Could not make the context current, probably because the underlying
                  * SurfaceView surface has been destroyed.
                  */
-                logEglErrorAsWarning("EGLHelper", "eglMakeCurrent", mEgl!!.eglGetError())
+                GLTextureView.EglHelper.Companion.logEglErrorAsWarning(
+                    "EGLHelper",
+                    "eglMakeCurrent",
+                    mEgl!!.eglGetError()
+                )
                 return false
             }
-
-            Log.e("AlphaVideo", "MGLTextureView createSurface 4")
-
             return true
         }
 
@@ -1001,20 +959,19 @@ open class MGLTextureView(
             val view = mGLSurfaceViewWeakRef.get()
             if (view != null) {
                 if (view.mGLWrapper != null) {
-                    gl = view.mGLWrapper!!.wrap(gl)
+                    gl = view.mGLWrapper.wrap(gl)
                 }
-
-                /*if (view.mDebugFlags and (DEBUG_CHECK_GL_ERROR or DEBUG_LOG_GL_CALLS) != 0) {
+                if (view.mDebugFlags and (GLTextureView.Companion.DEBUG_CHECK_GL_ERROR or GLTextureView.Companion.DEBUG_LOG_GL_CALLS) != 0) {
                     var configFlags = 0
                     var log: Writer? = null
-                    if (view.mDebugFlags and DEBUG_CHECK_GL_ERROR != 0) {
+                    if (view.mDebugFlags and GLTextureView.Companion.DEBUG_CHECK_GL_ERROR != 0) {
                         configFlags = configFlags or GLDebugHelper.CONFIG_CHECK_GL_ERROR
                     }
-                    if (view.mDebugFlags and DEBUG_LOG_GL_CALLS != 0) {
-                        log = MGLTextureView.LogWriter()
+                    if (view.mDebugFlags and GLTextureView.Companion.DEBUG_LOG_GL_CALLS != 0) {
+                        log = GLTextureView.LogWriter()
                     }
                     gl = GLDebugHelper.wrap(gl, configFlags, log)
-                }*/
+                }
             }
             return gl
         }
@@ -1030,7 +987,7 @@ open class MGLTextureView(
         }
 
         fun destroySurface() {
-            if (LOG_EGL) {
+            if (GLTextureView.Companion.LOG_EGL) {
                 Log.w("EglHelper", "destroySurface()  tid=" + Thread.currentThread().id)
             }
             destroySurfaceImp()
@@ -1050,7 +1007,7 @@ open class MGLTextureView(
         }
 
         fun finish() {
-            if (LOG_EGL) {
+            if (GLTextureView.Companion.LOG_EGL) {
                 Log.w("EglHelper", "finish() tid=" + Thread.currentThread().id)
             }
             if (mEglContext != null) {
@@ -1065,7 +1022,7 @@ open class MGLTextureView(
         }
 
         private fun throwEglException(function: String) {
-            throwEglException(function, mEgl!!.eglGetError())
+            GLTextureView.EglHelper.Companion.throwEglException(function, mEgl!!.eglGetError())
         }
 
         var mEgl: EGL10? = null
@@ -1075,9 +1032,10 @@ open class MGLTextureView(
         var mEglContext: EGLContext? = null
 
         companion object {
-            fun throwEglException(function: String, error: Int) {
-                val message = formatEglError(function, error)
-                if (LOG_THREADS) {
+            fun throwEglException(function: String?, error: Int) {
+                val message: String =
+                    GLTextureView.EglHelper.Companion.formatEglError(function, error)
+                if (GLTextureView.Companion.LOG_THREADS) {
                     Log.e(
                         "EglHelper", "throwEglException tid=" + Thread.currentThread().id + " "
                                 + message
@@ -1086,8 +1044,8 @@ open class MGLTextureView(
                 throw RuntimeException(message)
             }
 
-            fun logEglErrorAsWarning(tag: String?, function: String, error: Int) {
-                Log.w(tag, formatEglError(function, error))
+            fun logEglErrorAsWarning(tag: String?, function: String?, error: Int) {
+                Log.w(tag, GLTextureView.EglHelper.Companion.formatEglError(function, error))
             }
 
             fun formatEglError(function: String, error: Int): String {
@@ -1105,11 +1063,11 @@ open class MGLTextureView(
      * sGLThreadManager object. This avoids multiple-lock ordering issues.
      *
      */
-    internal class GLThread(glSurfaceViewWeakRef: WeakReference<MGLTextureView?>) :
+    internal class GLThread(glSurfaceViewWeakRef: WeakReference<GLTextureView>) :
         Thread() {
         override fun run() {
             name = "GLThread $id"
-            if (LOG_THREADS) {
+            if (GLTextureView.Companion.LOG_THREADS) {
                 Log.i("GLThread", "starting tid=$id")
             }
             try {
@@ -1117,7 +1075,7 @@ open class MGLTextureView(
             } catch (e: InterruptedException) {
                 // fall thru and exit normally
             } finally {
-                sGLThreadManager.threadExiting(this)
+                GLTextureView.Companion.sGLThreadManager.threadExiting(this)
             }
         }
 
@@ -1140,14 +1098,13 @@ open class MGLTextureView(
             if (mHaveEglContext) {
                 mEglHelper!!.finish()
                 mHaveEglContext = false
-                sGLThreadManager.releaseEglContextLocked(this)
+                GLTextureView.Companion.sGLThreadManager.releaseEglContextLocked(this)
             }
         }
 
         @Throws(InterruptedException::class)
         private fun guardedRun() {
-            Log.e("AlphaVideo", "MGLTextureView guardedRun")
-            mEglHelper = EglHelper(mGLSurfaceViewWeakRef)
+            mEglHelper = GLTextureView.EglHelper(mGLSurfaceViewWeakRef)
             mHaveEglContext = false
             mHaveEglSurface = false
             try {
@@ -1164,10 +1121,8 @@ open class MGLTextureView(
                 var h = 0
                 var event: Runnable? = null
                 while (true) {
-                    Log.e("AlphaVideo", "MGLTextureView guardedRun 1")
-                    synchronized(sGLThreadManager) {
+                    synchronized(GLTextureView.Companion.sGLThreadManager) {
                         while (true) {
-                            Log.e("AlphaVideo", "MGLTextureView guardedRun 2")
                             if (mShouldExit) {
                                 return
                             }
@@ -1181,8 +1136,8 @@ open class MGLTextureView(
                             if (mPaused != mRequestPaused) {
                                 pausing = mRequestPaused
                                 mPaused = mRequestPaused
-                                sGLThreadManager.notifyAll()
-                                if (LOG_PAUSE_RESUME) {
+                                GLTextureView.Companion.sGLThreadManager.notifyAll()
+                                if (GLTextureView.Companion.LOG_PAUSE_RESUME) {
                                     Log.i(
                                         "GLThread",
                                         "mPaused is now " + mPaused + " tid=" + id
@@ -1192,7 +1147,7 @@ open class MGLTextureView(
 
                             // Do we need to give up the EGL context?
                             if (mShouldReleaseEglContext) {
-                                if (LOG_SURFACE) {
+                                if (GLTextureView.Companion.LOG_SURFACE) {
                                     Log.i(
                                         "GLThread",
                                         "releasing EGL context because asked to tid=" + id
@@ -1213,7 +1168,7 @@ open class MGLTextureView(
 
                             // When pausing, release the EGL surface:
                             if (pausing && mHaveEglSurface) {
-                                if (LOG_SURFACE) {
+                                if (GLTextureView.Companion.LOG_SURFACE) {
                                     Log.i(
                                         "GLThread",
                                         "releasing EGL surface because paused tid=" + id
@@ -1228,9 +1183,9 @@ open class MGLTextureView(
                                     mGLSurfaceViewWeakRef.get()
                                 val preserveEglContextOnPause =
                                     view?.mPreserveEGLContextOnPause ?: false
-                                if (!preserveEglContextOnPause || sGLThreadManager.shouldReleaseEGLContextWhenPausing()) {
+                                if (!preserveEglContextOnPause || GLTextureView.Companion.sGLThreadManager.shouldReleaseEGLContextWhenPausing()) {
                                     stopEglContextLocked()
-                                    if (LOG_SURFACE) {
+                                    if (GLTextureView.Companion.LOG_SURFACE) {
                                         Log.i(
                                             "GLThread",
                                             "releasing EGL context because paused tid=" + id
@@ -1241,9 +1196,9 @@ open class MGLTextureView(
 
                             // When pausing, optionally terminate EGL:
                             if (pausing) {
-                                if (sGLThreadManager.shouldTerminateEGLWhenPausing()) {
+                                if (GLTextureView.Companion.sGLThreadManager.shouldTerminateEGLWhenPausing()) {
                                     mEglHelper!!.finish()
-                                    if (LOG_SURFACE) {
+                                    if (GLTextureView.Companion.LOG_SURFACE) {
                                         Log.i(
                                             "GLThread",
                                             "terminating EGL because paused tid=" + id
@@ -1254,7 +1209,7 @@ open class MGLTextureView(
 
                             // Have we lost the SurfaceView surface?
                             if (!mHasSurface && !mWaitingForSurface) {
-                                if (LOG_SURFACE) {
+                                if (GLTextureView.Companion.LOG_SURFACE) {
                                     Log.i(
                                         "GLThread",
                                         "noticed surfaceView surface lost tid=" + id
@@ -1265,22 +1220,22 @@ open class MGLTextureView(
                                 }
                                 mWaitingForSurface = true
                                 mSurfaceIsBad = false
-                                sGLThreadManager.notifyAll()
+                                GLTextureView.Companion.sGLThreadManager.notifyAll()
                             }
 
                             // Have we acquired the surface view surface?
                             if (mHasSurface && mWaitingForSurface) {
-                                if (LOG_SURFACE) {
+                                if (GLTextureView.Companion.LOG_SURFACE) {
                                     Log.i(
                                         "GLThread",
                                         "noticed surfaceView surface acquired tid=" + id
                                     )
                                 }
                                 mWaitingForSurface = false
-                                sGLThreadManager.notifyAll()
+                                GLTextureView.Companion.sGLThreadManager.notifyAll()
                             }
                             if (doRenderNotification) {
-                                if (LOG_SURFACE) {
+                                if (GLTextureView.Companion.LOG_SURFACE) {
                                     Log.i(
                                         "GLThread",
                                         "sending render notification tid=" + id
@@ -1289,40 +1244,35 @@ open class MGLTextureView(
                                 wantRenderNotification = false
                                 doRenderNotification = false
                                 mRenderComplete = true
-                                sGLThreadManager.notifyAll()
+                                GLTextureView.Companion.sGLThreadManager.notifyAll()
                             }
-
-                            Log.e("AlphaVideo", "MGLTextureView guardedRun 3")
 
                             // Ready to draw?
                             if (readyToDraw()) {
-
-                                Log.e("AlphaVideo", "MGLTextureView readyToDraw 4")
 
                                 // If we don't have an EGL context, try to acquire one.
                                 if (!mHaveEglContext) {
                                     if (askedToReleaseEglContext) {
                                         askedToReleaseEglContext = false
-                                    } else if (sGLThreadManager.tryAcquireEglContextLocked(
+                                    } else if (GLTextureView.Companion.sGLThreadManager.tryAcquireEglContextLocked(
                                             this
                                         )
                                     ) {
                                         try {
                                             mEglHelper!!.start()
                                         } catch (t: RuntimeException) {
-                                            sGLThreadManager.releaseEglContextLocked(
+                                            GLTextureView.Companion.sGLThreadManager.releaseEglContextLocked(
                                                 this
                                             )
                                             throw t
                                         }
                                         mHaveEglContext = true
                                         createEglContext = true
-                                        sGLThreadManager.notifyAll()
+                                        GLTextureView.Companion.sGLThreadManager.notifyAll()
                                     }
                                 }
                                 if (mHaveEglContext && !mHaveEglSurface) {
                                     mHaveEglSurface = true
-                                    Log.e("AlphaVideo", "MGLTextureView createEglSurface = true 1")
                                     createEglSurface = true
                                     createGlInterface = true
                                     sizeChanged = true
@@ -1333,7 +1283,7 @@ open class MGLTextureView(
                                         w = mWidth
                                         h = mHeight
                                         wantRenderNotification = true
-                                        if (LOG_SURFACE) {
+                                        if (GLTextureView.Companion.LOG_SURFACE) {
                                             Log.i(
                                                 "GLThread",
                                                 "noticing that we want render notification tid="
@@ -1342,18 +1292,17 @@ open class MGLTextureView(
                                         }
 
                                         // Destroy and recreate the EGL surface.
-                                        Log.e("AlphaVideo", "MGLTextureView createEglSurface = true 2")
                                         createEglSurface = true
                                         mSizeChanged = false
                                     }
                                     mRequestRender = false
-                                    sGLThreadManager.notifyAll()
+                                    GLTextureView.Companion.sGLThreadManager.notifyAll()
                                     break
                                 }
                             }
 
                             // By design, this is the only place in a GLThread thread where we wait().
-                            if (LOG_THREADS) {
+                            if (GLTextureView.Companion.LOG_THREADS) {
                                 Log.i(
                                     "GLThread", ("waiting tid=" + id
                                             + " mHaveEglContext: " + mHaveEglContext
@@ -1368,7 +1317,7 @@ open class MGLTextureView(
                                             + " mRenderMode: " + mRenderMode)
                                 )
                             }
-                            sGLThreadManager.wait()
+                            GLTextureView.Companion.sGLThreadManager.wait()
                         }
                     } // end of synchronized(sGLThreadManager)
                     if (event != null) {
@@ -1377,27 +1326,25 @@ open class MGLTextureView(
                         continue
                     }
                     if (createEglSurface) {
-                        if (LOG_SURFACE) {
+                        if (GLTextureView.Companion.LOG_SURFACE) {
                             Log.w("GLThread", "egl createSurface")
                         }
                         if (!mEglHelper!!.createSurface()) {
-                            synchronized(sGLThreadManager) {
-                                Log.e("AlphaVideo", "MGLTextureView createEglSurface mSurfaceIsBad = true")
+                            synchronized(GLTextureView.Companion.sGLThreadManager) {
                                 mSurfaceIsBad = true
-                                sGLThreadManager.notifyAll()
+                                GLTextureView.Companion.sGLThreadManager.notifyAll()
                             }
                             continue
                         }
-                        Log.e("AlphaVideo", "MGLTextureView createEglSurface = false 2")
                         createEglSurface = false
                     }
                     if (createGlInterface) {
                         gl = mEglHelper!!.createGL() as GL10
-                        sGLThreadManager.checkGLDriver(gl)
+                        GLTextureView.Companion.sGLThreadManager.checkGLDriver(gl)
                         createGlInterface = false
                     }
                     if (createEglContext) {
-                        if (LOG_RENDERER) {
+                        if (GLTextureView.Companion.LOG_RENDERER) {
                             Log.w("GLThread", "onSurfaceCreated")
                         }
                         val view = mGLSurfaceViewWeakRef.get()
@@ -1405,19 +1352,17 @@ open class MGLTextureView(
                         createEglContext = false
                     }
                     if (sizeChanged) {
-                        if (LOG_RENDERER) {
+                        if (GLTextureView.Companion.LOG_RENDERER) {
                             Log.w("GLThread", "onSurfaceChanged($w, $h)")
                         }
                         val view = mGLSurfaceViewWeakRef.get()
                         view?.mRenderer?.onSurfaceChanged(gl, w, h)
                         sizeChanged = false
                     }
-                    if (LOG_RENDERER_DRAW_FRAME) {
+                    if (GLTextureView.Companion.LOG_RENDERER_DRAW_FRAME) {
                         Log.w("GLThread", "onDrawFrame tid=$id")
                     }
-                    Log.e("AlphaVideo", "MGLTextureView run 5")
                     run {
-                        Log.e("AlphaVideo", "MGLTextureView onDrawFrame tid=$id")
                         val view = mGLSurfaceViewWeakRef.get()
                         view?.mRenderer?.onDrawFrame(gl)
                     }
@@ -1426,7 +1371,7 @@ open class MGLTextureView(
                         EGL10.EGL_SUCCESS -> {
                         }
                         EGL11.EGL_CONTEXT_LOST -> {
-                            if (LOG_SURFACE) {
+                            if (GLTextureView.Companion.LOG_SURFACE) {
                                 Log.i("GLThread", "egl context lost tid=$id")
                             }
                             lostEglContext = true
@@ -1436,11 +1381,14 @@ open class MGLTextureView(
                             // probably because the SurfaceView surface has been destroyed,
                             // but we haven't been notified yet.
                             // Log the error to help developers understand why rendering stopped.
-                            EglHelper.logEglErrorAsWarning("GLThread", "eglSwapBuffers", swapError)
-                            synchronized(sGLThreadManager) {
-                                Log.e("AlphaVideo", "MGLTextureView else mSurfaceIsBad = true 1")
+                            GLTextureView.EglHelper.Companion.logEglErrorAsWarning(
+                                "GLThread",
+                                "eglSwapBuffers",
+                                swapError
+                            )
+                            synchronized(GLTextureView.Companion.sGLThreadManager) {
                                 mSurfaceIsBad = true
-                                sGLThreadManager.notifyAll()
+                                GLTextureView.Companion.sGLThreadManager.notifyAll()
                             }
                         }
                     }
@@ -1452,7 +1400,7 @@ open class MGLTextureView(
                 /*
                  * clean-up everything...
                  */
-                synchronized(sGLThreadManager) {
+                synchronized(GLTextureView.Companion.sGLThreadManager) {
                     stopEglSurfaceLocked()
                     stopEglContextLocked()
                 }
@@ -1464,48 +1412,40 @@ open class MGLTextureView(
         }
 
         private fun readyToDraw(): Boolean {
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw !mPaused : ${!mPaused}")
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw mHasSurface : ${mHasSurface}")
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw !mSurfaceIsBad : ${!mSurfaceIsBad}")
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw mWidth : ${mWidth}")
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw mHeight : ${mHeight}")
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw mRequestRender : ${mRequestRender}")
-            Log.e("AlphaVideo", "MGLTextureView readyToDraw mRenderMode : ${mRenderMode}")
-
-            return (!mPaused && mHasSurface && (!mSurfaceIsBad || true)
+            return (!mPaused && mHasSurface && !mSurfaceIsBad
                     && mWidth > 0 && mHeight > 0
-                    && (mRequestRender || mRenderMode == RENDERMODE_CONTINUOUSLY))
+                    && (mRequestRender || mRenderMode == GLTextureView.Companion.RENDERMODE_CONTINUOUSLY))
         }
 
         var renderMode: Int
             get() {
-                synchronized(sGLThreadManager) { return mRenderMode }
+                synchronized(GLTextureView.Companion.sGLThreadManager) { return mRenderMode }
             }
             set(renderMode) {
-                require((RENDERMODE_WHEN_DIRTY <= renderMode && renderMode <= RENDERMODE_CONTINUOUSLY)) { "renderMode" }
-                synchronized(sGLThreadManager) {
+                require((GLTextureView.Companion.RENDERMODE_WHEN_DIRTY <= renderMode && renderMode <= GLTextureView.Companion.RENDERMODE_CONTINUOUSLY)) { "renderMode" }
+                synchronized(GLTextureView.Companion.sGLThreadManager) {
                     mRenderMode = renderMode
-                    sGLThreadManager.notifyAll()
+                    GLTextureView.Companion.sGLThreadManager.notifyAll()
                 }
             }
 
         fun requestRender() {
-            synchronized(sGLThreadManager) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
                 mRequestRender = true
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
             }
         }
 
         fun surfaceCreated() {
-            synchronized(sGLThreadManager) {
-                if (LOG_THREADS) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
+                if (GLTextureView.Companion.LOG_THREADS) {
                     Log.i("GLThread", "surfaceCreated tid=" + id)
                 }
                 mHasSurface = true
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
                 while ((mWaitingForSurface) && (!mExited)) {
                     try {
-                        sGLThreadManager.wait()
+                        GLTextureView.Companion.sGLThreadManager.wait()
                     } catch (e: InterruptedException) {
                         currentThread().interrupt()
                     }
@@ -1514,15 +1454,15 @@ open class MGLTextureView(
         }
 
         fun surfaceDestroyed() {
-            synchronized(sGLThreadManager) {
-                if (LOG_THREADS) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
+                if (GLTextureView.Companion.LOG_THREADS) {
                     Log.i("GLThread", "surfaceDestroyed tid=" + id)
                 }
                 mHasSurface = false
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
                 while ((!mWaitingForSurface) && (!mExited)) {
                     try {
-                        sGLThreadManager.wait()
+                        GLTextureView.Companion.sGLThreadManager.wait()
                     } catch (e: InterruptedException) {
                         currentThread().interrupt()
                     }
@@ -1531,18 +1471,18 @@ open class MGLTextureView(
         }
 
         fun onPause() {
-            synchronized(sGLThreadManager) {
-                if (LOG_PAUSE_RESUME) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
+                if (GLTextureView.Companion.LOG_PAUSE_RESUME) {
                     Log.i("GLThread", "onPause tid=" + id)
                 }
                 mRequestPaused = true
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
                 while ((!mExited) && (!mPaused)) {
-                    if (LOG_PAUSE_RESUME) {
+                    if (GLTextureView.Companion.LOG_PAUSE_RESUME) {
                         Log.i("Main thread", "onPause waiting for mPaused.")
                     }
                     try {
-                        sGLThreadManager.wait()
+                        GLTextureView.Companion.sGLThreadManager.wait()
                     } catch (ex: InterruptedException) {
                         currentThread().interrupt()
                     }
@@ -1551,20 +1491,20 @@ open class MGLTextureView(
         }
 
         fun onResume() {
-            synchronized(sGLThreadManager) {
-                if (LOG_PAUSE_RESUME) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
+                if (GLTextureView.Companion.LOG_PAUSE_RESUME) {
                     Log.i("GLThread", "onResume tid=" + id)
                 }
                 mRequestPaused = false
                 mRequestRender = true
                 mRenderComplete = false
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
                 while ((!mExited) && mPaused && (!mRenderComplete)) {
-                    if (LOG_PAUSE_RESUME) {
+                    if (GLTextureView.Companion.LOG_PAUSE_RESUME) {
                         Log.i("Main thread", "onResume waiting for !mPaused.")
                     }
                     try {
-                        sGLThreadManager.wait()
+                        GLTextureView.Companion.sGLThreadManager.wait()
                     } catch (ex: InterruptedException) {
                         currentThread().interrupt()
                     }
@@ -1573,26 +1513,26 @@ open class MGLTextureView(
         }
 
         fun onWindowResize(w: Int, h: Int) {
-            synchronized(sGLThreadManager) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
                 mWidth = w
                 mHeight = h
                 mSizeChanged = true
                 mRequestRender = true
                 mRenderComplete = false
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
 
                 // Wait for thread to react to resize and render a frame
                 while ((!mExited && !mPaused && !mRenderComplete
                             && ableToDraw())
                 ) {
-                    if (LOG_SURFACE) {
+                    if (GLTextureView.Companion.LOG_SURFACE) {
                         Log.i(
                             "Main thread",
                             "onWindowResize waiting for render complete from tid=" + id
                         )
                     }
                     try {
-                        sGLThreadManager.wait()
+                        GLTextureView.Companion.sGLThreadManager.wait()
                     } catch (ex: InterruptedException) {
                         currentThread().interrupt()
                     }
@@ -1603,12 +1543,12 @@ open class MGLTextureView(
         fun requestExitAndWait() {
             // don't call this from GLThread thread or it is a guaranteed
             // deadlock!
-            synchronized(sGLThreadManager) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
                 mShouldExit = true
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
                 while (!mExited) {
                     try {
-                        sGLThreadManager.wait()
+                        GLTextureView.Companion.sGLThreadManager.wait()
                     } catch (ex: InterruptedException) {
                         currentThread().interrupt()
                     }
@@ -1618,7 +1558,7 @@ open class MGLTextureView(
 
         fun requestReleaseEglContextLocked() {
             mShouldReleaseEglContext = true
-            sGLThreadManager.notifyAll()
+            GLTextureView.Companion.sGLThreadManager.notifyAll()
         }
 
         /**
@@ -1627,44 +1567,44 @@ open class MGLTextureView(
          */
         fun queueEvent(r: Runnable?) {
             requireNotNull(r) { "r must not be null" }
-            synchronized(sGLThreadManager) {
+            synchronized(GLTextureView.Companion.sGLThreadManager) {
                 mEventQueue.add(r)
-                sGLThreadManager.notifyAll()
+                GLTextureView.Companion.sGLThreadManager.notifyAll()
             }
         }
 
         // Once the thread is started, all accesses to the following member
         // variables are protected by the sGLThreadManager monitor
-        var mShouldExit = false
-        var mExited = false
-        var mRequestPaused = false
-        var mPaused = false
-        var mHasSurface = false
-        var mSurfaceIsBad = false
-        var mWaitingForSurface = false
-        var mHaveEglContext = false
-        var mHaveEglSurface = false
-        var mShouldReleaseEglContext = false
-        var mWidth = 0
-        var mHeight = 0
-        var mRenderMode: Int
-        var mRequestRender = true
-        var mRenderComplete = false
-        var mEventQueue = ArrayList<Runnable>()
-        var mSizeChanged = true
+        private var mShouldExit = false
+        private val mExited = false
+        private var mRequestPaused = false
+        private var mPaused = false
+        private var mHasSurface = false
+        private var mSurfaceIsBad = false
+        private var mWaitingForSurface = false
+        private var mHaveEglContext = false
+        private var mHaveEglSurface = false
+        private var mShouldReleaseEglContext = false
+        private var mWidth = 0
+        private var mHeight = 0
+        private var mRenderMode: Int
+        private var mRequestRender = true
+        private var mRenderComplete = false
+        private val mEventQueue = ArrayList<Runnable>()
+        private var mSizeChanged = true
 
         // End of member variables protected by the sGLThreadManager monitor.
-        private var mEglHelper: EglHelper? = null
+        private var mEglHelper: GLTextureView.EglHelper? = null
 
         /**
          * Set once at thread construction time, nulled out when the parent view is garbage
-         * called. This weak reference allows the MGLTextureView to be garbage collected while
+         * called. This weak reference allows the GLTextureView to be garbage collected while
          * the GLThread is still alive.
          */
-        private val mGLSurfaceViewWeakRef: WeakReference<MGLTextureView?>
+        private val mGLSurfaceViewWeakRef: WeakReference<GLTextureView>
 
         init {
-            mRenderMode = RENDERMODE_CONTINUOUSLY
+            mRenderMode = GLTextureView.Companion.RENDERMODE_CONTINUOUSLY
             mGLSurfaceViewWeakRef = glSurfaceViewWeakRef
         }
     }
@@ -1703,11 +1643,11 @@ open class MGLTextureView(
         check(mGLThread == null) { "setRenderer has already been called for this instance." }
     }
 
-    private class GLThreadManager: Object() {
+    private class GLThreadManager {
         @Synchronized
-        fun threadExiting(thread: GLThread) {
-            if (LOG_THREADS) {
-                Log.i("GLThread", "exiting tid=" + thread.id)
+        fun threadExiting(thread: GLTextureView.GLThread) {
+            if (GLTextureView.Companion.LOG_THREADS) {
+                Log.i("GLThread", "exiting tid=" + thread.getId())
             }
             thread.mExited = true
             if (mEglOwner === thread) {
@@ -1723,7 +1663,7 @@ open class MGLTextureView(
          *
          * @return true if the right to use an EGL context was acquired.
          */
-        fun tryAcquireEglContextLocked(thread: GLThread): Boolean {
+        fun tryAcquireEglContextLocked(thread: GLTextureView.GLThread): Boolean {
             if (mEglOwner === thread || mEglOwner == null) {
                 mEglOwner = thread
                 notifyAll()
@@ -1747,7 +1687,7 @@ open class MGLTextureView(
          * Releases the EGL context. Requires that we are already in the
          * sGLThreadManager monitor when this is called.
          */
-        fun releaseEglContextLocked(thread: GLThread) {
+        fun releaseEglContextLocked(thread: GLTextureView.GLThread) {
             if (mEglOwner === thread) {
                 mEglOwner = null
             }
@@ -1773,14 +1713,15 @@ open class MGLTextureView(
             if (!mGLESDriverCheckComplete) {
                 checkGLESVersion()
                 val renderer = gl.glGetString(GL10.GL_RENDERER)
-                if (mGLESVersion < kGLES_20) {
-                    mMultipleGLESContextsAllowed = !renderer.startsWith(kMSM7K_RENDERER_PREFIX)
+                if (mGLESVersion < GLTextureView.GLThreadManager.Companion.kGLES_20) {
+                    mMultipleGLESContextsAllowed =
+                        !renderer.startsWith(GLTextureView.GLThreadManager.Companion.kMSM7K_RENDERER_PREFIX)
                     notifyAll()
                 }
                 mLimitedGLESContexts = !mMultipleGLESContextsAllowed
-                if (LOG_SURFACE) {
+                if (GLTextureView.Companion.LOG_SURFACE) {
                     Log.w(
-                        TAG,
+                        GLTextureView.GLThreadManager.Companion.TAG,
                         "checkGLDriver renderer = \"" + renderer + "\" multipleContextsAllowed = "
                                 + mMultipleGLESContextsAllowed
                                 + " mLimitedGLESContexts = " + mLimitedGLESContexts
@@ -1816,7 +1757,7 @@ open class MGLTextureView(
         private var mGLESDriverCheckComplete = false
         private var mMultipleGLESContextsAllowed = false
         private var mLimitedGLESContexts = false
-        private var mEglOwner: GLThread? = null
+        private var mEglOwner: GLTextureView.GLThread? = null
 
         companion object {
             private const val TAG = "GLThreadManager"
@@ -1825,14 +1766,14 @@ open class MGLTextureView(
         }
     }
 
-    private val mThisWeakRef = WeakReference<MGLTextureView?>(this)
-    private var mGLThread: GLThread? = null
-    private var mRenderer: MGLTextureView.Renderer? = null
+    private val mThisWeakRef = WeakReference<GLTextureView>(this)
+    private var mGLThread: GLTextureView.GLThread? = null
+    private var mRenderer: GLTextureView.Renderer? = null
     private var mDetached = false
-    private var mEGLConfigChooser: MGLTextureView.EGLConfigChooser? = null
-    private var mEGLContextFactory: MGLTextureView.EGLContextFactory? = null
-    private var mEGLWindowSurfaceFactory: MGLTextureView.EGLWindowSurfaceFactory? = null
-    private var mGLWrapper: MGLTextureView.GLWrapper? = null
+    private var mEGLConfigChooser: GLTextureView.EGLConfigChooser? = null
+    private var mEGLContextFactory: GLTextureView.EGLContextFactory? = null
+    private var mEGLWindowSurfaceFactory: GLTextureView.EGLWindowSurfaceFactory? = null
+    private var mGLWrapper: GLTextureView.GLWrapper? = null
     /**
      * Get the current value of the debug flags.
      * @return the current value of the debug flags.
@@ -1853,19 +1794,19 @@ open class MGLTextureView(
      * @return true if the EGL context will be preserved when paused
      */
     /**
-     * Control whether the EGL context is preserved when the MGLTextureView is paused and
+     * Control whether the EGL context is preserved when the GLTextureView is paused and
      * resumed.
      *
      *
-     * If set to true, then the EGL context may be preserved when the MGLTextureView is paused.
+     * If set to true, then the EGL context may be preserved when the GLTextureView is paused.
      * Whether the EGL context is actually preserved or not depends upon whether the
      * Android device that the program is running on can support an arbitrary number of EGL
      * contexts or not. Devices that can only support a limited number of EGL contexts must
      * release the  EGL context in order to allow multiple applications to share the GPU.
      *
      *
-     * If set to false, the EGL context will be released when the MGLTextureView is paused,
-     * and recreated when the MGLTextureView is resumed.
+     * If set to false, the EGL context will be released when the GLTextureView is paused,
+     * and recreated when the GLTextureView is resumed.
      *
      *
      *
@@ -1923,33 +1864,6 @@ open class MGLTextureView(
          * @see .setDebugFlags
          */
         const val DEBUG_LOG_GL_CALLS = 2
-        private val sGLThreadManager = GLThreadManager()
-    }
-
-    override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-        if (LOG_ATTACH_DETACH) {
-            Log.d(
-                TAG,
-                "onAttachedToWindow reattach =$mDetached"
-            )
-        }
-
-        Log.e("AlphaVideo", "MGLTextureView onFrameAvailable : ${mDetached}, ${mRenderer != null}")
-
-        if (mDetached && mRenderer != null) {
-            var renderMode: Int = RENDERMODE_CONTINUOUSLY
-            if (mGLThread != null) {
-                renderMode = mGLThread!!.renderMode
-            }
-            mGLThread = GLThread(mThisWeakRef)
-            if (renderMode != RENDERMODE_CONTINUOUSLY) {
-                mGLThread!!.renderMode = renderMode
-            }
-            mGLThread!!.start()
-        }
-        mDetached = false
-
-        surfaceCreated(surfaceTexture)
-        //surfaceChanged(width, height)
+        private val sGLThreadManager = GLTextureView.GLThreadManager()
     }
 }

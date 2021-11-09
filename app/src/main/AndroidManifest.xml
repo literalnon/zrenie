@@ -35,8 +35,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Zrenie20">
         <activity
-            android:name=".binakular.BinacularActivity"
+            android:name=".mSharedCamera.SharedActivity"
             android:exported="false" />
+
         <activity android:name=".mycloudanchor.MyCloudAnchorActivity" />
         <activity
             android:name=".SearchActivity"

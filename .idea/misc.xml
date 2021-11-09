@@ -8,11 +8,13 @@
         <entry key="app/src/main/res/layout/activity_binacular.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_location.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_my_sample.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_settings.xml" value="0.1" />
         <entry key="app/src/main/res/layout/cloud_anchor.xml" value="0.1703125" />
         <entry key="app/src/main/res/layout/example_alpha_video.xml" value="0.16979166666666667" />
         <entry key="app/src/main/res/layout/example_web_view.xml" value="0.10364583333333334" />
         <entry key="app/src/main/res/layout/layout_main_activities.xml" value="0.1" />
         <entry key="app/src/main/res/layout/resolve_dialog.xml" value="0.1703125" />
+        <entry key="app/src/main/res/layout/shared_camera.xml" value="0.1703125" />
       </map>
     </option>
   </component>

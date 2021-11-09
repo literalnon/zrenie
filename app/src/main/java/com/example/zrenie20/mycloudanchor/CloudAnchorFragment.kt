@@ -12,5 +12,4 @@ class CloudAnchorFragment : ArFragment() {
         config.cloudAnchorMode = Config.CloudAnchorMode.ENABLED
         return config
     }
-
 }

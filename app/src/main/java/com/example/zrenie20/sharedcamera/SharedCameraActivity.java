@@ -46,6 +46,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.zrenie20.R;
 import com.google.ar.core.Anchor;
@@ -368,7 +369,7 @@ public class SharedCameraActivity extends AppCompatActivity
     statusTextView = findViewById(R.id.text_view);
 
     // Switch to allow pausing and resuming of ARCore.
-    Switch arcoreSwitch = findViewById(R.id.arcore_switch);
+    SwitchCompat arcoreSwitch = findViewById(R.id.arcore_switch);
     // Ensure initial switch position is set based on initial value of `arMode` variable.
     arcoreSwitch.setChecked(arMode);
     arcoreSwitch.setOnCheckedChangeListener(

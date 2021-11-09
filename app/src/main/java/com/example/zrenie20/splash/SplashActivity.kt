@@ -25,6 +25,7 @@ import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataPackageService
 import com.example.zrenie20.network.createService
+import com.example.zrenie20.sharedcamera.SharedCameraActivity
 import com.example.zrenie20.space.SpaceActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -75,6 +76,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun showDeepLinkOffer(intent: Intent) {
+
         val appLinkAction: String? = intent?.action
         val appLinkData: Uri? = intent?.data
 

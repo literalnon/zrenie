@@ -7,22 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/purple_700">
 
-    <!--<com.example.zrenie20.common.custom.BinakularView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/blue"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/llFocus">-->
-
-    <!--<androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            app:srcCompat="@drawable/splash"
-            />-->
-
     <SurfaceView
         android:id="@+id/svMirror"
         android:layout_width="0dp"
@@ -36,7 +20,7 @@
 
     <fragment
         android:id="@+id/mArFragment"
-        android:name="com.example.zrenie20.space.SpaceArFragment"
+        android:name="com.example.zrenie20.mSharedCamera.SharedArFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
