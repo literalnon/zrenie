@@ -134,5 +134,8 @@ class SearchActivity : AppCompatActivity() {
                     adapter.replaceAll(assetsArray)
                 }
         //}
+
+        //mAlphaMovie2?.setVideoFromAssets("ball.mp4")
+        //mAlphaMovie2?.
     }
 }

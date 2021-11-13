@@ -13,9 +13,7 @@ import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.NodeParent
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
-import com.google.ar.sceneform.rendering.ExternalTexture
-import com.google.ar.sceneform.rendering.ModelRenderable
-import com.google.ar.sceneform.rendering.Renderable
+import com.google.ar.sceneform.rendering.*
 import java.io.File
 
 class ArAlphaVideoRenderObject(
@@ -25,6 +23,8 @@ class ArAlphaVideoRenderObject(
 ) : IArRenderObject {
     companion object {
         val TAG = "DOWNLOAD_VIDEO_FILE"
+
+        private val CHROMA_KEY_COLOR = Color(0.1843f, 1.0f, 0.098f)
     }
 
     override var onTouchListener: Node.OnTouchListener? = null
@@ -87,29 +87,19 @@ class ArAlphaVideoRenderObject(
     ) {
 
         ModelRenderable.builder()
-            .setSource(context, R.raw.augmented_video_model)
+            .setSource(context, R.raw.chroma_key_video)
             .build()
             .thenAccept { renderable ->
-                player = MAlphaMovieView(
-                    context = context,
-                    mSurface = externalTexture.surface,
-                    mSurfaceTexture = externalTexture.surfaceTexture
-                )
-
-                player?.setVideoFromAssets("ball.mp4")
 
                 videoRenderable = renderable
                 videoRenderable?.isShadowCaster = false
                 videoRenderable?.isShadowReceiver = false
                 videoRenderable?.material?.setExternalTexture("videoTexture", externalTexture)
 
-                //Log.e(TAG, "renderableFile.absolutePath : ${renderableFile.absolutePath}")
-                //mediaPlayer.reset()
-                //mediaPlayer.setDataSource(renderableFile.absolutePath)
-
-                /*mediaPlayer.isLooping = true
-                mediaPlayer.prepare()
-                mediaPlayer.start()*/
+                renderable.material.setFloat4(
+                    "keyColor",
+                    CHROMA_KEY_COLOR
+                )
 
                 videoAnchorNode = anchorNode
                 videoAnchorNode.anchor?.detach()

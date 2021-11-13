@@ -34,12 +34,12 @@ class ArRenderObjectFactory(
             renderableFile = renderableFile
         )*/
 
-        return ArAlphaVideoRenderObject(
+        /*return ArAlphaVideoRenderObject(
             context = context,
             dataItemObject = dataItemObject,
             //mScene = mScene,
             renderableFile = renderableFile
-        )
+        )*/
 
         if (renderableFile == null) {
             return ArLoadingRenderObject(
