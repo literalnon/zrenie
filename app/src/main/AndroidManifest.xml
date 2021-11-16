@@ -50,6 +50,9 @@
             android:label="@string/title_activity_base"
             android:theme="@style/Theme.Zrenie20.NoActionBar" />
         <activity android:name=".space.SpaceActivity" />
+
+        <activity android:name=".cloudAnchor2.MainActivity"/>
+
         <activity
             android:name=".splash.SplashActivity"
             android:label="@string/app_name"

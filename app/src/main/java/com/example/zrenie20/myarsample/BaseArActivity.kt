@@ -1,5 +1,6 @@
 package com.example.zrenie20.myarsample
 
+import android.app.ActionBar
 import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.camera2.CameraManager
@@ -61,6 +62,7 @@ import android.media.CamcorderProfile
 import com.example.zrenie20.space.VideoRecorder
 import android.provider.MediaStore
 import android.content.ContentValues
+import android.view.ViewGroup
 import com.example.zrenie20.R
 import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.activity_my_sample.ivChangeVisibility
@@ -303,25 +305,64 @@ abstract class BaseArActivity : AppCompatActivity() {
             }
         }
 
-        ivVirtualReality?.setOnClickListener {
-            //startActivity(Intent(this, BinacularActivity::class.java))
+        //flMirror?.visibility = View.GONE
 
-            if (svMirror.visibility == View.GONE) {
-                startBinacular(false)
-            } else {
-                stopBinakular(false)
-            }
+        ivArrowBack?.setOnClickListener {
+
+            ivArrowBack?.visibility = View.GONE
+
+            llFocus.visibility = View.GONE
+            llMainActivities.visibility = View.VISIBLE
+
+            val height = ViewGroup.LayoutParams.MATCH_PARENT
+
+            flMirror.visibility = View.GONE
+
+            val mArFragmentLayoutParams = flInArFragment.layoutParams
+            mArFragmentLayoutParams.height = height
+            flInArFragment.layoutParams = mArFragmentLayoutParams
+
+            ivChangeVisibility.visibility = View.VISIBLE
+
+            stopBinakular(false)
+        }
+
+        ivVirtualReality?.setOnClickListener {
+            ivArrowBack?.visibility = View.VISIBLE
+
+            llFocus.visibility = View.GONE
+            llMainActivities.visibility = View.GONE
+
+            val height = pxFromDp(350)
+
+            val mArFragmentLayoutParams = flInArFragment.layoutParams
+            mArFragmentLayoutParams.height = height
+            flInArFragment.layoutParams = mArFragmentLayoutParams
+
+            ivChangeVisibility.visibility = View.GONE
+
+            flMirror.visibility = View.VISIBLE
+
+            startBinacular(false)
         }
 
         photoVideoRecorderInit()
+
+        flMirror.post {
+            flMirror.visibility = View.GONE
+        }
+    }
+
+    fun pxFromDp(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     fun startBinacular(isLifecycle: Boolean) {
-        if (svMirror?.visibility == View.GONE && isLifecycle) {
+        if (isLifecycle) {
             return
         }
 
-        svMirror?.visibility = View.VISIBLE
+        //svMirror?.visibility = View.VISIBLE
 
         svMirror?.post {
             svMirror?.holder?.surface?.let { surface ->
@@ -338,9 +379,9 @@ abstract class BaseArActivity : AppCompatActivity() {
     }
 
     fun stopBinakular(isLifecycle: Boolean) {
-        if (!isLifecycle) {
+        /*if (!isLifecycle) {
             svMirror?.visibility = View.GONE
-        }
+        }*/
 
         svMirror?.post {
             svMirror?.holder?.surface?.let { surface ->

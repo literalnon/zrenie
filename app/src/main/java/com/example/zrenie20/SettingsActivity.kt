@@ -22,6 +22,7 @@ import com.bumptech.glide.request.transition.Transition
 import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageFragment
+import com.example.zrenie20.cloudAnchor2.MainActivity
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
@@ -70,8 +71,8 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, SpaceActivity::class.java))
         }
 
-        llSpace?.setOnLongClickListener {
-            startActivity(Intent(this, SharedCameraActivity::class.java))
+        llShare?.setOnLongClickListener {
+            startActivity(Intent(this, MainActivity::class.java))
 
             true
         }

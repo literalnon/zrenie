@@ -15,7 +15,7 @@ import io.realm.RealmList
 
 
 open class SpaceActivity : BaseArActivity() {
-    override val layoutId: Int = R.layout.activity_my_sample
+    override val layoutId: Int = R.layout.activity_my_sample_2
 
     init {
         assetsArray = arrayListOf<DataItemObject>()
