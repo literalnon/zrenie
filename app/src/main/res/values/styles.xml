@@ -15,6 +15,16 @@
 -->
 <resources>
 
+  <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+
+  </style>
+
+  <style name="AppTheme" parent="AppBaseTheme">
+    <item name="colorButtonNormal">@color/accent</item>
+    <item name="android:colorAccent">@color/accent</item>
+    <item name="android:colorPrimary">@color/primary</item>
+  </style>
+
   <style name="AlertDialogCustom" parent="Theme.AppCompat.Light.Dialog.Alert">
     <item name="android:gravity">center</item>
     <item name="android:windowBackground">@drawable/dialog_bg</item>
@@ -34,6 +44,69 @@
   <style name="AppButtonTheme" parent="Widget.AppCompat.Button.Colored">
     <item name="colorButtonNormal">#1A73E8</item>
     <item name="android:textAllCaps">false</item>
+  </style>
+
+  <style name="Text" parent="TextAppearance.AppCompat.Body1">
+    <item name="android:textColor">#ffffff</item>
+  </style>
+  <style name="Title" parent="Text">
+    <item name="android:textSize">20sp</item>
+  </style>
+
+  <style name="LicenseTitle" parent="TextAppearance.AppCompat.Body1">
+    <item name="android:layout_marginTop">32dp</item>
+    <item name="android:textSize">16sp</item>
+    <item name="android:textColor">@android:color/white</item>
+  </style>
+
+  <style name="LicenseType" parent="TextAppearance.AppCompat.Body1">
+    <item name="android:layout_marginTop">16dp</item>
+    <item name="android:textColor">@android:color/white</item>
+  </style>
+
+  <style name="LicenseBody" parent="TextAppearance.AppCompat.Body1">
+    <item name="android:layout_marginTop">16dp</item>
+    <item name="android:textColor">@android:color/white</item>
+  </style>
+
+  <style name="OverlayText">
+    <item name="android:textColor">@android:color/white</item>
+    <item name="android:textSize">20sp</item>
+    <item name="android:lineSpacingExtra">6dp</item>
+    <item name="android:gravity">center_horizontal</item>
+  </style>
+
+  <style name="ButtonText">
+    <item name="android:textColor">@android:color/white</item>
+    <item name="android:textSize">20sp</item>
+    <item name="android:gravity">center</item>
+    <item name="android:textAllCaps">false</item>
+    <item name="android:paddingTop">8dp</item>
+    <item name="android:paddingBottom">8dp</item>
+    <item name="android:paddingStart">30dp</item>
+    <item name="android:paddingEnd">30dp</item>
+    <item name="android:background">@drawable/ripple_bg_transparent_button</item>
+  </style>
+
+  <style name="ButtonText.Inverse" parent="ButtonText">
+    <item name="android:background">@drawable/ripple_bg_button_inverse</item>
+    <item name="android:textColor">@android:color/black</item>
+    <item name="android:textSize">12sp</item>
+    <item name="android:gravity">center</item>
+    <item name="android:paddingStart">16dp</item>
+    <item name="android:paddingEnd">16dp</item>
+    <item name="android:paddingTop">4dp</item>
+    <item name="android:paddingBottom">4dp</item>
+
+  </style>
+
+  <style name="MenuItem" parent="TextAppearance.AppCompat.Medium">
+    <item name="android:paddingBottom">12dp</item>
+    <item name="android:minWidth">150dp</item>
+    <item name="android:paddingEnd">32dp</item>
+    <item name="android:paddingStart">32dp</item>
+    <item name="android:paddingTop">12dp</item>
+    <item name="android:textColor">@android:color/white</item>
   </style>
 
 </resources>

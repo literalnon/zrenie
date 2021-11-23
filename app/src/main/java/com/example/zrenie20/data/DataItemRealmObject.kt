@@ -66,7 +66,10 @@ open class RealmDataItemObject(
     var updatedAt: String? = null,
     var type: RealmTypeItemObject? = null,
     var trigger: RealmTriggerItemObject? = null,
-    var actionUrl: String? = null
+    var actionUrl: String? = null,
+    var offsetX: Int? = null,
+    var offsetY: Int? = null,
+    var offsetZ: Int? = null
 ) : RealmObject()
 
 fun RealmDataItemObject.toDataItemObject(): DataItemObject {
@@ -86,6 +89,9 @@ fun RealmDataItemObject.toDataItemObject(): DataItemObject {
         updatedAt = updatedAt,
         type = type?.toTypeItemObject(),
         trigger = trigger?.toTriggerItemObject(),
-        actionUrl = actionUrl
+        actionUrl = actionUrl,
+        offsetX = offsetX,
+        offsetY = offsetY,
+        offsetZ = offsetZ
     )
 }

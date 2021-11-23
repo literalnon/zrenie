@@ -34,6 +34,7 @@ import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.Scene
 import com.google.ar.sceneform.assets.RenderableSource
+import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ExternalTexture
 import com.google.ar.sceneform.rendering.ModelRenderable
@@ -82,6 +83,7 @@ class AugmentedImageNode(
             onFailure = {},
             augmentedImage = image
         )
+
         rend?.setParent(this)
 
         // Make the 4 corner nodes.

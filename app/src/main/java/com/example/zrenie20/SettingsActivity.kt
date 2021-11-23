@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
@@ -28,7 +27,6 @@ import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
-import com.example.zrenie20.sharedcamera.SharedCameraActivity
 import com.example.zrenie20.space.FileDownloadManager
 import com.example.zrenie20.space.SpaceActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -37,12 +35,12 @@ import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.IOException
 import java.util.*
-
 enum class SCREENS(val type: ArTypes) {
     SPACE(type = ArTypes.ArOSpaceType()),
     AUGMENTED_FACES(type = ArTypes.ArFaceType()),
     AUGMENTED_IMAGE(type = ArTypes.ArImageType()),
-    LOCATION(type = ArTypes.ArGeoType())
+    LOCATION(type = ArTypes.ArGeoType()),
+    SHARED(type = ArTypes.ArOSpaceType())
 }
 
 class SettingsActivity : AppCompatActivity() {
@@ -71,10 +69,9 @@ class SettingsActivity : AppCompatActivity() {
             startActivity(Intent(this, SpaceActivity::class.java))
         }
 
-        llShare?.setOnLongClickListener {
+        llShare?.setOnClickListener {
+            currentScreen = SCREENS.SHARED
             startActivity(Intent(this, MainActivity::class.java))
-
-            true
         }
 
         llBodyPart?.setOnClickListener {
@@ -123,6 +120,10 @@ class SettingsActivity : AppCompatActivity() {
         tvBodyPart.setTextColor(Color.WHITE)
         ivBodyPart.setColorFilter(Color.WHITE)
 
+        ivShareSelected.visibility = View.GONE
+        tvShare.setTextColor(Color.WHITE)
+        ivShare.setColorFilter(Color.WHITE)
+
         ivBack?.setOnClickListener {
             onBackPressed()
         }
@@ -150,6 +151,11 @@ class SettingsActivity : AppCompatActivity() {
                 ivLocation.setColorFilter(selectedColor)
                 ivLocationSelected.visibility = View.VISIBLE
             }
+            SCREENS.SHARED -> {
+                tvShare.setTextColor(selectedColor)
+                ivShare.setColorFilter(selectedColor)
+                ivShareSelected.visibility = View.VISIBLE
+            }
         }
 
         val fileDownloadManager = FileDownloadManager()
@@ -169,6 +175,10 @@ class SettingsActivity : AppCompatActivity() {
 
                     tvRemoveAr.text = tvRemoveAr.text.toString() + " : " + (objects?.count() ?: "")
                 }
+        }
+
+        tvInstruction?.setOnClickListener {
+            startActivity(Intent(this, InstructionActivity::class.java))
         }
     }
 

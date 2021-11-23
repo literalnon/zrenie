@@ -1,102 +1,164 @@
-package com.example.zrenie20.cloudAnchor2;
+package com.example.zrenie20.cloudAnchor2
 
-import android.content.Context;
-import android.util.Log;
+import android.content.Context
+import android.util.Log
+import com.example.zrenie20.cloudAnchor2.StorageManager.ShortCodeListener
+import com.example.zrenie20.data.DataItemId
+import com.google.firebase.FirebaseApp
+import com.google.firebase.database.*
 
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
-import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
+/** Helper class for Firebase storage of cloud anchor IDs.  */
+class StorageManager(context: Context?) {
 
-/** Helper class for Firebase storage of cloud anchor IDs. */
-class StorageManager {
-
-    /** Listener for a new Cloud Anchor ID from the Firebase Database. */
+    /** Listener for a new Cloud Anchor ID from the Firebase Database.  */
     interface CloudAnchorIdListener {
-        void onCloudAnchorIdAvailable(String cloudAnchorId);
+        fun onCloudAnchorIdAvailable(cloudAnchorId: String?, itemId: DataItemId?)
     }
 
-    /** Listener for a new short code from the Firebase Database. */
+    /** Listener for a new short code from the Firebase Database.  */
     interface ShortCodeListener {
-        void onShortCodeAvailable(Integer shortCode);
+        fun onShortCodeAvailable(shortCode: Int?)
     }
 
-    private static final String TAG = "CloudAnchors";//StorageManager.class.getName();
-    private static final String KEY_ROOT_DIR = "shared_anchor_codelab_root";
-    private static final String KEY_NEXT_SHORT_CODE = "next_short_code";
-    private static final String KEY_PREFIX = "anchor;";
-    private static final int INITIAL_SHORT_CODE = 142;
-    private final DatabaseReference rootRef;
+    private val rootRef: DatabaseReference
 
-    StorageManager(Context context) {
-        FirebaseApp firebaseApp = FirebaseApp.initializeApp(context);
-        rootRef = FirebaseDatabase.getInstance(firebaseApp).getReference().child(KEY_ROOT_DIR);
-        DatabaseReference.goOnline();
-    }
-
-    /** Gets a new short code that can be used to store the anchor ID. */
-    void nextShortCode(ShortCodeListener listener) {
+    /** Gets a new short code that can be used to store the anchor ID.  */
+    fun nextShortCode(listener: ShortCodeListener) {
         // Run a transaction on the node containing the next short code available. This increments the
         // value in the database and retrieves it in one atomic all-or-nothing operation.
         rootRef
-                .child(KEY_NEXT_SHORT_CODE)
-                .runTransaction(
-                        new Transaction.Handler() {
-                            @Override
-                            public Transaction.Result doTransaction(MutableData currentData) {
-                                Integer shortCode = currentData.getValue(Integer.class);
-                                if (shortCode == null) {
-                                    shortCode = INITIAL_SHORT_CODE - 1;
-                                }
-                                currentData.setValue(shortCode + 1);
-                                return Transaction.success(currentData);
-                            }
+            .child(KEY_NEXT_SHORT_CODE)
+            .runTransaction(
+                object : Transaction.Handler {
+                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                        var shortCode = currentData.getValue(Int::class.java)
+                        if (shortCode == null) {
+                            shortCode = INITIAL_SHORT_CODE - 1
+                        }
+                        currentData.value = shortCode + 1
+                        return Transaction.success(currentData)
+                    }
 
-                            @Override
-                            public void onComplete(
-                                    DatabaseError error, boolean committed, DataSnapshot currentData) {
-                                if (!committed) {
-                                    Log.e(TAG, "Firebase Error", error.toException());
-                                    listener.onShortCodeAvailable(null);
-                                } else {
-                                    listener.onShortCodeAvailable(currentData.getValue(Integer.class));
-                                }
-                            }
-                        });
+                    override fun onComplete(
+                        error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?
+                    ) {
+                        if (!committed) {
+                            Log.e(TAG, "Firebase Error", error!!.toException())
+                            listener.onShortCodeAvailable(null)
+                        } else {
+                            listener.onShortCodeAvailable(currentData!!.getValue(Int::class.java))
+                        }
+                    }
+                })
     }
 
-    /** Stores the cloud anchor ID in the configured Firebase Database. */
-    void storeUsingShortCode(int shortCode, String cloudAnchorId) {
-        rootRef.child(KEY_PREFIX + shortCode).setValue(cloudAnchorId);
+    /** Stores the cloud anchor ID in the configured Firebase Database.  */
+    fun storeUsingShortCodeWithId(shortCode: Int, cloudAnchorId: String, itemId: String) {
+        rootRef.child(KEY_PREFIX + shortCode + DELIMITER + itemId)
+            .setValue(cloudAnchorId)
+    }
+
+    /** Stores the cloud anchor ID in the configured Firebase Database.  */
+    /*fun storeUsingShortCode(shortCode: Int, cloudAnchorId: String?) {
+        rootRef.child(KEY_PREFIX + shortCode).setValue(cloudAnchorId)
+    }*/
+
+    fun getCloudAnchor(listener: CloudAnchorIdListener) {
+        rootRef
+            .addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                    Log.e(
+                        TAG,
+                        "onChildAdded: " + snapshot.value + " a " + snapshot.key + " : " + snapshot.exists()
+                    )
+
+                    val ids = snapshot.key
+                        .toString()
+                        .split(DELIMITER)
+
+                    val cloudId = snapshot.value?.toString()
+                    val itemId = ids.lastOrNull()
+                        ?.toLongOrNull()
+
+                    if (cloudId != null && itemId != null) {
+                        listener.onCloudAnchorIdAvailable(cloudId, itemId)
+                    }
+                }
+
+                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                    Log.e(
+                        TAG,
+                        "onChildChanged: "
+                    )
+                }
+
+                override fun onChildRemoved(snapshot: DataSnapshot) {
+                    Log.e(
+                        TAG,
+                        "onChildRemoved: "
+                    )
+                }
+
+                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
+                    Log.e(
+                        TAG,
+                        "onChildMoved:"
+                    )
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e(
+                        TAG,
+                        "onCancelled:"
+                    )
+                }
+
+            })
     }
 
     /**
      * Retrieves the cloud anchor ID using a short code. Returns an empty string if a cloud anchor ID
      * was not stored for this short code.
      */
-    void getCloudAnchorID(int shortCode, CloudAnchorIdListener listener) {
+    /*fun getCloudAnchorID(shortCode: Int, listener: CloudAnchorIdListener) {
         rootRef
-                .child(KEY_PREFIX + shortCode)
-                .addListenerForSingleValueEvent(
-                        new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                Log.e(TAG, "onDataChange: " + dataSnapshot.getValue() + " a " + dataSnapshot.getKey() + " : " + dataSnapshot.exists());
+            .child(KEY_PREFIX + shortCode)
+            .addListenerForSingleValueEvent(
+                object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        Log.e(
+                            TAG,
+                            "onDataChange: " + dataSnapshot.value + " a " + dataSnapshot.key + " : " + dataSnapshot.exists()
+                        )
+                        val ids = dataSnapshot.value.toString().split(DELIMITER)
 
-                                listener.onCloudAnchorIdAvailable(String.valueOf(dataSnapshot.getValue()));
-                            }
+                        listener.onCloudAnchorIdAvailable(ids.firstOrNull(), ids.getOrNull(1)?.toLongOrNull())
 
-                            @Override
-                            public void onCancelled(DatabaseError error) {
-                                Log.e(TAG, "The database operation for getCloudAnchorID was cancelled.",
-                                        error.toException());
-                                listener.onCloudAnchorIdAvailable(null);
-                            }
-                        });
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e(
+                            TAG, "The database operation for getCloudAnchorID was cancelled.",
+                            error.toException()
+                        )
+                        listener.onCloudAnchorIdAvailable(null, null)
+                    }
+                })
+    }*/
+
+    companion object {
+        private const val TAG = "MainActivityCloudAnchors" //StorageManager.class.getName();
+        private const val KEY_ROOT_DIR = "shared_anchor_codelab_root"
+        private const val KEY_NEXT_SHORT_CODE = "next_short_code"
+        private const val KEY_PREFIX = "anchor;"
+        private const val INITIAL_SHORT_CODE = 142
+
+        const val DELIMITER = ":"
+    }
+
+    init {
+        val firebaseApp = FirebaseApp.initializeApp(context!!)
+        rootRef = FirebaseDatabase.getInstance(firebaseApp!!).reference.child(KEY_ROOT_DIR)
+        DatabaseReference.goOnline()
     }
 }

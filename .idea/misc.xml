@@ -5,21 +5,41 @@
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.21388888888888888" />
         <entry key="../../.gradle/caches/transforms-2/files-2.1/04d7a730c3cf557381af71f854cf03e7/jetified-sceneform-ux-1.17.1/res/layout/sceneform_ux_fragment_layout.xml" value="0.17604166666666668" />
+        <entry key="app/src/main/res/drawable/arrow_tooltip.xml" value="0.2111111111111111" />
+        <entry key="app/src/main/res/layout/activity_about.xml" value="0.18885869565217392" />
         <entry key="app/src/main/res/layout/activity_binacular.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_instruction.xml" value="0.13958333333333334" />
         <entry key="app/src/main/res/layout/activity_lib.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_location.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1546875" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1868252071451673" />
+        <entry key="app/src/main/res/layout/activity_main_2.xml" value="0.13125" />
         <entry key="app/src/main/res/layout/activity_my_sample.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_my_sample_2.xml" value="0.18885869565217392" />
+        <entry key="app/src/main/res/layout/activity_new_shared.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_permissions.xml" value="0.1609375" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_settings.xml" value="0.20956719817767655" />
+        <entry key="app/src/main/res/layout/activity_shared2.xml" value="0.12552083333333333" />
+        <entry key="app/src/main/res/layout/arrow_tooltip.xml" value="0.18885869565217392" />
+        <entry key="app/src/main/res/layout/augmented_image_activity.xml" value="0.1" />
         <entry key="app/src/main/res/layout/cloud_anchor.xml" value="0.1703125" />
+        <entry key="app/src/main/res/layout/cloud_anchor_activity.xml" value="0.1609375" />
+        <entry key="app/src/main/res/layout/computer_vision.xml" value="0.1609375" />
         <entry key="app/src/main/res/layout/example_alpha_video.xml" value="0.16979166666666667" />
         <entry key="app/src/main/res/layout/example_web_view.xml" value="0.10364583333333334" />
+        <entry key="app/src/main/res/layout/fragment_first.xml" value="0.1609375" />
+        <entry key="app/src/main/res/layout/fragment_second.xml" value="0.5072344646586047" />
+        <entry key="app/src/main/res/layout/item_image_pager_layout.xml" value="0.15364583333333334" />
         <entry key="app/src/main/res/layout/layout_focus.xml" value="0.15070921985815602" />
         <entry key="app/src/main/res/layout/layout_main_activities.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/main_lobby.xml" value="0.1609375" />
         <entry key="app/src/main/res/layout/resolve_dialog.xml" value="0.1703125" />
         <entry key="app/src/main/res/layout/shared_camera.xml" value="0.1703125" />
+        <entry key="app/src/main/res/layout/view_draw_prompt.xml" value="0.1265625" />
+        <entry key="app/src/main/res/layout/view_finding_surfaces.xml" value="0.1265625" />
+        <entry key="app/src/main/res/layout/view_pair.xml" value="0.12552083333333333" />
+        <entry key="app/src/main/res/layout/view_pair_button.xml" value="0.1484375" />
+        <entry key="app/src/main/res/layout/view_pair_button_tool_tip.xml" value="0.1484375" />
       </map>
     </option>
   </component>

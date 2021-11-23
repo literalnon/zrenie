@@ -79,7 +79,7 @@ open class AugmentedImageFragment : ArFragment() {
         if (!setupAugmentedImageDatabase(config, session)) {
             Toast.makeText(
                 requireContext(),
-                "Пакет не выбран",
+                R.string.packege_not_choosed,
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -191,6 +191,7 @@ open class AugmentedImageFragment : ArFragment() {
                         mScene = arSceneView.scene
                     ).apply {
                         setImage(augmentedImage)
+
                         arSceneView.scene.addChild(this)
                     }
                 }

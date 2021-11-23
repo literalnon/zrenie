@@ -1,195 +1,247 @@
-package com.example.zrenie20.cloudAnchor2;
+package com.example.zrenie20.cloudAnchor2
 
-import android.app.AlertDialog;
-import android.net.Uri;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.Button;
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.AlertDialog
+import android.os.Bundle
+import android.util.Log
+import android.view.MotionEvent
+import android.view.View
+import android.widget.Button
+import com.example.zrenie20.R
+import com.example.zrenie20.myarsample.BaseArActivity
+import com.google.ar.sceneform.Scene.OnUpdateListener
+import com.google.ar.sceneform.FrameTime
+import com.google.ar.sceneform.ux.BaseArFragment.OnTapArPlaneListener
+import com.google.ar.core.HitResult
+import com.google.ar.core.Anchor.CloudAnchorState
+import com.example.zrenie20.cloudAnchor2.StorageManager.ShortCodeListener
+import com.example.zrenie20.data.DataItemId
+import com.google.ar.core.Anchor
+import com.google.ar.core.Plane
+import com.google.ar.sceneform.AnchorNode
+import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.rendering.Renderable
+import com.google.ar.sceneform.ux.TransformableNode
 
-import com.example.zrenie20.R;
-import com.google.ar.core.Anchor;
-import com.google.ar.core.HitResult;
-import com.google.ar.core.Plane;
-import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.FrameTime;
-import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.Renderable;
-import com.google.ar.sceneform.ux.ArFragment;
-import com.google.ar.sceneform.ux.TransformableNode;
+class MainActivity : BaseArActivity() {
+    private var cloudAnchor: Anchor? = null
+    override val layoutId: Int
+        get() = R.layout.activity_shared2
 
-public class MainActivity extends AppCompatActivity {
-
-    private CustomArFragment fragment;
-    private Anchor cloudAnchor;
-
-    private enum AppAnchorState {
-        NONE,
-        HOSTING,
-        HOSTED,
-        RESOLVING,
-        RESOLVED
+    private enum class AppAnchorState {
+        NONE, HOSTING, HOSTED, RESOLVING, RESOLVED
     }
 
-    private AppAnchorState appAnchorState = AppAnchorState.NONE;
+    private var appAnchorState = AppAnchorState.NONE
+    private val snackbarHelper = SnackbarHelper()
+    private var storageManager: StorageManager? = null
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    private SnackbarHelper snackbarHelper = new SnackbarHelper();
-
-    private StorageManager storageManager;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        fragment = (CustomArFragment) getSupportFragmentManager().findFragmentById(R.id.sceneform_fragment);
         //To add
-        fragment.getPlaneDiscoveryController().hide();
-        fragment.getArSceneView()
-                .getScene()
-                .addOnUpdateListener(this::onUpdateFrame);
-                //.setOnUpdateListener();
+        arFragment
+            ?.getPlaneDiscoveryController()
+            ?.hide()
 
-        Button clearButton = findViewById(R.id.clear_button);
-        clearButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                setCloudAnchor(null);
+        arFragment
+            ?.getArSceneView()
+            ?.scene
+            ?.addOnUpdateListener { frameTime: FrameTime -> onUpdateFrame(frameTime) }
+        //.setOnUpdateListener();
+        /*val clearButton = findViewById<Button>(R.id.clear_button)
+        clearButton.setOnClickListener { setCloudAnchor(null) }
+        val resolveButton = findViewById<Button>(R.id.resolve_button)
+        resolveButton.setOnClickListener(View.OnClickListener {
+            if (cloudAnchor != null) {
+                snackbarHelper.showMessageWithDismiss(parent, "Please clear Anchor")
+                return@OnClickListener
             }
-        });
+            val dialog = ResolveDialogFragment()
+            dialog.setOkListener { dialogValue: String -> onResolveOkPressed(dialogValue) }
+            dialog.show(supportFragmentManager, "Resolve")
+        })*/
 
+        storageManager = StorageManager(this)
+        storageManager!!.getCloudAnchor(object : StorageManager.CloudAnchorIdListener {
+            override fun onCloudAnchorIdAvailable(cloudAnchorId: String?, itemId: DataItemId?) {
+                Log.e("MainActivity", "onResolveOkPressed cloudAnchorId : $cloudAnchorId")
 
-        Button resolveButton = findViewById(R.id.resolve_button);
-        resolveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (cloudAnchor != null){
-                    snackbarHelper.showMessageWithDismiss(getParent(), "Please clear Anchor");
-                    return;
+                if (vrObjectsMap.keys.find { it.id == itemId } != null) {
+                    return
                 }
-                ResolveDialogFragment dialog = new ResolveDialogFragment();
-                dialog.setOkListener(MainActivity.this::onResolveOkPressed);
-                dialog.show(getSupportFragmentManager(), "Resolve");
 
+                val resolvedAnchor = arFragment
+                    ?.getArSceneView()
+                    ?.session
+                    ?.resolveCloudAnchor(cloudAnchorId)
+
+                setCloudAnchor(resolvedAnchor)
+                placeObject(cloudAnchor, itemId)
+                snackbarHelper.showMessage(this@MainActivity, "Now Resolving Anchor...")
+                appAnchorState = AppAnchorState.RESOLVING
             }
-        });
-
-
-        fragment.setOnTapArPlaneListener(
-                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-
-                    if (plane.getType() != Plane.Type.HORIZONTAL_UPWARD_FACING ||
-                            appAnchorState != AppAnchorState.NONE){
-                        return;
-                    }
-
-                    Anchor newAnchor = fragment.getArSceneView()
-                            .getSession()
-                            .hostCloudAnchor(hitResult.createAnchor());
-
-                    setCloudAnchor(newAnchor);
-
-                    appAnchorState = AppAnchorState.HOSTING;
-                    snackbarHelper.showMessage(this, "Now hosting anchor...");
-
-                    placeObject(fragment, cloudAnchor, Uri.parse("Fox.sfb"));
-
-                }
-        );
-
-        storageManager = new StorageManager(this);
+        })
     }
 
-    private void onResolveOkPressed(String dialogValue){
-        int shortCode = Integer.parseInt(dialogValue);
-        storageManager.getCloudAnchorID(shortCode,(cloudAnchorId) -> {
-            Log.e("CloudAnchors", "onResolveOkPressed cloudAnchorId : " + cloudAnchorId + " shortCode : " + shortCode);
-            Anchor resolvedAnchor = fragment.getArSceneView().getSession().resolveCloudAnchor(cloudAnchorId);
-            setCloudAnchor(resolvedAnchor);
-            placeObject(fragment, cloudAnchor, Uri.parse("Fox.sfb"));
-            snackbarHelper.showMessage(this, "Now Resolving Anchor...");
-            appAnchorState = AppAnchorState.RESOLVING;
-        });
-    }
+    override fun onTapArPlane(hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent?) {
+        Log.e("MainActivity", "onTapArPlane ${plane?.type != Plane.Type.HORIZONTAL_UPWARD_FACING}, ${appAnchorState != AppAnchorState.NONE}, ${currentRenderable == null}")
 
-    private void setCloudAnchor (Anchor newAnchor){
-        if (cloudAnchor != null){
-            cloudAnchor.detach();
+        /*
+        plane?.type != Plane.Type.HORIZONTAL_UPWARD_FACING ||
+                appAnchorState != AppAnchorState.NONE ||
+                */
+                if (currentRenderable == null
+        ) {
+            return
         }
 
-        cloudAnchor = newAnchor;
-        appAnchorState = AppAnchorState.NONE;
-        snackbarHelper.hide(this);
+        val newAnchor = arFragment!!.arSceneView
+            .session
+            ?.hostCloudAnchor(hitResult.createAnchor())
+
+        setCloudAnchor(newAnchor)
+        appAnchorState = AppAnchorState.HOSTING
+        snackbarHelper.showMessage(this, "Now hosting anchor...")
+        placeObject(cloudAnchor, currentRenderable!!.dataItemObject.id)
     }
 
-    private void onUpdateFrame(FrameTime frameTime){
-        checkUpdatedAnchor();
+    /*private fun onResolveOkPressed(dialogValue: String) {
+        val shortCode = dialogValue.toInt()
+        storageManager!!.getCloudAnchorID(
+            shortCode,
+            object : StorageManager.CloudAnchorIdListener {
+                override fun onCloudAnchorIdAvailable(cloudAnchorId: String?, itemId: DataItemId?) {
+                Log.e(
+                    "CloudAnchors",
+                    "onResolveOkPressed cloudAnchorId : $cloudAnchorId shortCode : $shortCode"
+                )
+                val resolvedAnchor = arFragment
+                    ?.getArSceneView()
+                    ?.session
+                    ?.resolveCloudAnchor(cloudAnchorId)
+
+                setCloudAnchor(resolvedAnchor)
+                placeObject(cloudAnchor, null)
+                snackbarHelper.showMessage(this@MainActivity, "Now Resolving Anchor...")
+                appAnchorState = AppAnchorState.RESOLVING
+            }})
+    }*/
+
+    private fun setCloudAnchor(newAnchor: Anchor?) {
+        Log.e("MainActivity", "setCloudAnchor")
+        /*if (cloudAnchor != null) {
+            cloudAnchor!!.detach()
+        }*/
+        cloudAnchor = newAnchor
+        appAnchorState = AppAnchorState.NONE
+        snackbarHelper.hide(this)
     }
 
-    private synchronized void checkUpdatedAnchor(){
-        if (appAnchorState != AppAnchorState.HOSTING && appAnchorState != AppAnchorState.RESOLVING){
-            return;
+    private fun onUpdateFrame(frameTime: FrameTime) {
+        //Log.e("MainActivity", "onUpdateFrame")
+        checkUpdatedAnchor()
+    }
+
+    @Synchronized
+    private fun checkUpdatedAnchor() {
+        if (appAnchorState != AppAnchorState.HOSTING && appAnchorState != AppAnchorState.RESOLVING) {
+            return
         }
-        Anchor.CloudAnchorState cloudState = cloudAnchor.getCloudAnchorState();
+        val cloudState = cloudAnchor!!.cloudAnchorState
         if (appAnchorState == AppAnchorState.HOSTING) {
-            if (cloudState.isError()) {
-                snackbarHelper.showMessageWithDismiss(this, "Error hosting anchor.. "
-                        + cloudState);
-                appAnchorState = AppAnchorState.NONE;
-            } else if (cloudState == Anchor.CloudAnchorState.SUCCESS) {
-                storageManager.nextShortCode((shortCode) -> {
-                    if (shortCode == null){
-                        snackbarHelper.showMessageWithDismiss(this, "Could not get shortCode");
-                        return;
+            if (cloudState.isError) {
+                Log.e("MainActivity", "checkUpdatedAnchor error hosting cloudState : ${cloudState}")
+                snackbarHelper.showMessageWithDismiss(
+                    this, "Error hosting anchor.. "
+                            + cloudState
+                )
+                appAnchorState = AppAnchorState.NONE
+            } else if (cloudState == CloudAnchorState.SUCCESS) {
+                storageManager!!.nextShortCode(object : ShortCodeListener {
+                    override fun onShortCodeAvailable(shortCode: Int?) {
+                        if (shortCode == null) {
+                            snackbarHelper.showMessageWithDismiss(this@MainActivity, "Could not get shortCode")
+                            return
+                        }
+                        storageManager!!.storeUsingShortCodeWithId(
+                            shortCode,
+                            cloudAnchor!!.cloudAnchorId,
+                            currentRenderable!!.dataItemObject.id.toString()
+                        )
+                        snackbarHelper.showMessageWithDismiss(
+                            this@MainActivity, "Anchor hosted! Cloud Short Code: " +
+                                    shortCode
+                        )
                     }
-                    storageManager.storeUsingShortCode(shortCode, cloudAnchor.getCloudAnchorId());
-
-                    snackbarHelper.showMessageWithDismiss(this, "Anchor hosted! Cloud Short Code: " +
-                            shortCode);
-                });
-
-                appAnchorState = AppAnchorState.HOSTED;
+                })
+                appAnchorState = AppAnchorState.HOSTED
+            }
+        } else if (appAnchorState == AppAnchorState.RESOLVING) {
+            if (cloudState.isError) {
+                Log.e("MainActivity", "checkUpdatedAnchor error resolving cloudState : ${cloudState}")
+                snackbarHelper.showMessageWithDismiss(
+                    this, "Error resolving anchor.. "
+                            + cloudState
+                )
+                appAnchorState = AppAnchorState.NONE
+            } else if (cloudState == CloudAnchorState.SUCCESS) {
+                snackbarHelper.showMessageWithDismiss(this, "Anchor resolved successfully")
+                appAnchorState = AppAnchorState.RESOLVED
             }
         }
+    }
 
-        else if (appAnchorState == AppAnchorState.RESOLVING){
-            if (cloudState.isError()) {
-                snackbarHelper.showMessageWithDismiss(this, "Error resolving anchor.. "
-                        + cloudState);
-                appAnchorState = AppAnchorState.NONE;
-            } else if (cloudState == Anchor.CloudAnchorState.SUCCESS){
-                snackbarHelper.showMessageWithDismiss(this, "Anchor resolved successfully");
-                appAnchorState = AppAnchorState.RESOLVED;
+    fun showCurrentRenderable(anchor: Anchor?) {
+        Log.e("MainActivity", "showCurrentRenderable")
+        anchorNode = AnchorNode(anchor)
+        Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
+
+        anchorNode?.setParent(arFragment?.arSceneView?.scene)
+        val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
+
+        anchorNode?.localScale = Vector3(scale, scale, scale)
+
+        currentRenderable?.start(
+            anchor = anchor,
+            onSuccess = {
+                TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+
+                    mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
+                    mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
+
+                    node = mNode
+                    node?.setParent(anchorNode)
+
+                    node?.renderable = currentRenderable?.getRenderable()
+                    node?.select()
+
+                    vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
+
+                    adapter?.notifyDataSetChanged()
+                }
+            },
+            onFailure = {
+                if (currentRenderable != null && isSelectedRenderable(currentRenderable!!.dataItemObject)) {
+                    renderableUploadedFailed(currentRenderable!!.dataItemObject)
+                }
             }
+        )
+    }
+
+    private fun placeObject(anchor: Anchor?, itemId: DataItemId?) {
+        Log.e("MainActivity", "placeObject itemId : ${itemId},  currentRenderable?.dataItemObject?.id : ${ currentRenderable?.dataItemObject?.id}")
+
+        if (itemId != null && currentRenderable?.dataItemObject?.id != itemId) {
+            if (cashedAssets[itemId] != null) {
+                currentRenderable = cashedAssets[itemId]
+            } else {
+                loadRenderableById(itemId, anchor)
+                return
+            }
+        } else {
+            showCurrentRenderable(anchor)
         }
-
     }
 
-
-    private void placeObject(ArFragment fragment, Anchor anchor, Uri model) {
-        ModelRenderable.builder()
-                .setSource(fragment.getContext(), R.raw.andy_dance)
-                .build()
-                .thenAccept(renderable -> addNodeToScene(fragment, anchor, renderable))
-                .exceptionally((throwable -> {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setMessage(throwable.getMessage())
-                            .setTitle("Error!");
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                    return null;
-                }));
-
-    }
-
-    private void addNodeToScene(ArFragment fragment, Anchor anchor, Renderable renderable) {
-        AnchorNode anchorNode = new AnchorNode(anchor);
-        TransformableNode node = new TransformableNode(fragment.getTransformationSystem());
-        node.setRenderable(renderable);
-        node.setParent(anchorNode);
-        fragment.getArSceneView().getScene().addChild(anchorNode);
-        node.select();
-    }
 }

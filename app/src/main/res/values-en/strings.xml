@@ -1,0 +1,33 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">Zrenie 2.0</string>
+
+    <string name="ApiKey" translatable="false">AIzaSyAsG6GJeJ4I3LzeADBB8Ouv1jZQTknvG3I</string>
+
+    <string name="cancel">Cancel</string>
+
+    <string name="photo">Photo</string>
+    <string name="video">Video</string>
+    <string name="ar_types">AR display modes</string>
+    <string name="ar_options">Additional options</string>
+    <string name="ar_save_ar">Save AR</string>
+    <string name="ar_lib_ar">Library of saved AR</string>
+    <string name="ar_remove_ar">Delete the entire cache</string>
+    <string name="settings">Settings</string>
+    <string name="image">Image</string>
+    <string name="location">Location</string>
+    <string name="bodyPart">Body part</string>
+    <string name="space">Space</string>
+    <string name="share">Cooperative</string>
+    <string name="ar_instruction">Watch <a href="https://www.google.ru /">instruction</a></string>
+    <string name="ar_web">Go to <a href="https://www.google.ru /">website</a></string>
+    <string name="ar_search">AR search</string>
+    <string name="ar_lib">Ar library</string>
+    <string name="ar_search_hint">Enter a name and select the content</string>
+    <string name="remove_cache">Delete the entire cache</string>
+    <string name="packege_not_choosed">Package not selected</string>
+
+    <string name="plane_finding">Searching for surfaces</string>
+    <string name="gps_network_not_enabled">gps network not enabled</string>
+    <string name="open_location_settings">open location settings</string>
+
+</resources>

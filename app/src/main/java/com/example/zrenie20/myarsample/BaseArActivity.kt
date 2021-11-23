@@ -27,8 +27,6 @@ import com.example.zrenie20.network.DataItemsService
 import com.example.zrenie20.network.createService
 import com.example.zrenie20.renderable.IArRenderObject
 import com.example.zrenie20.space.FileDownloadManager
-import com.google.ar.core.HitResult
-import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.Node
@@ -55,8 +53,6 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import com.google.ar.core.exceptions.RecordingFailedException
 
-import com.google.ar.core.RecordingConfig
-import com.google.ar.core.Session
 import android.media.CamcorderProfile
 
 import com.example.zrenie20.space.VideoRecorder
@@ -64,6 +60,9 @@ import android.provider.MediaStore
 import android.content.ContentValues
 import android.view.ViewGroup
 import com.example.zrenie20.R
+import com.example.zrenie20.renderable.ArRenderObjectFactory
+import com.google.ar.core.*
+import com.google.ar.sceneform.assets.RenderableSource
 import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.activity_my_sample.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_my_sample.llFocus
@@ -97,6 +96,9 @@ abstract class BaseArActivity : AppCompatActivity() {
     val PHOTO = "photo"
 
     var choice = PHOTO
+
+    var anchorNode: AnchorNode? = null
+    var node: TransformableNode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,64 +157,8 @@ abstract class BaseArActivity : AppCompatActivity() {
             return@setOnTouchListener false
         }*/
 
-        var anchorNode: AnchorNode? = null
-        var node: TransformableNode? = null
-
         arFragment?.setOnTapArPlaneListener { hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent? ->
-
-            /*if (currentRenderable == null) {
-                return@setOnTapArPlaneListener
-            }
-
-            if (!isNeedCreateAnchor) {
-                return@setOnTapArPlaneListener
-            }*/
-
-            //node?.let { arFragment?.arSceneView?.scene?.removeChild(node) }
-            //anchorNode?.let { arFragment?.arSceneView?.scene?.removeChild(anchorNode) }
-            // Create the Anchor.
-            val anchor = hitResult.createAnchor()
-            //val newAnchor = AnchorNode()
-            //newAnchor.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
-            anchorNode = AnchorNode(anchor)
-            Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
-            //anchorNode?.worldPosition = Vector3(-0.068282515f, -0.6458561f, -0.46753782f)
-            //anchorNode = newAnchor
-            anchorNode?.setParent(arFragment?.arSceneView?.scene)
-            val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
-
-            anchorNode?.localScale = Vector3(scale, scale, scale)
-
-            currentRenderable?.start(
-                anchor = anchor,
-                onSuccess = {
-                    TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
-
-                        mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
-                        mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
-
-                        node = mNode
-                        node?.setParent(anchorNode)
-                        //currentRenderable?.setParent(node!!)
-                        node?.renderable = currentRenderable?.getRenderable()
-                        node?.select()
-
-                        //currentRenderable?.dataItemObject?.let {
-                        vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
-                        //}
-
-                        adapter?.notifyDataSetChanged()
-                    }
-                },
-                onFailure = {
-                    if (currentRenderable != null && isSelectedRenderable(currentRenderable!!.dataItemObject)) {
-                        renderableUploadedFailed(currentRenderable!!.dataItemObject)
-                    }
-                }
-            )
-
-            // Create the transformable andy and add it to the anchor.
-
+            onTapArPlane(hitResult, plane, motionEvent)
         }
 
         ivChangeVisibility?.setOnClickListener {
@@ -316,7 +262,7 @@ abstract class BaseArActivity : AppCompatActivity() {
 
             val height = ViewGroup.LayoutParams.MATCH_PARENT
 
-            flMirror.visibility = View.GONE
+            flMirror?.visibility = View.GONE
 
             val mArFragmentLayoutParams = flInArFragment.layoutParams
             mArFragmentLayoutParams.height = height
@@ -341,16 +287,57 @@ abstract class BaseArActivity : AppCompatActivity() {
 
             ivChangeVisibility.visibility = View.GONE
 
-            flMirror.visibility = View.VISIBLE
+            flMirror?.visibility = View.VISIBLE
 
             startBinacular(false)
         }
 
         photoVideoRecorderInit()
 
-        flMirror.post {
-            flMirror.visibility = View.GONE
+        flMirror?.post {
+            flMirror?.visibility = View.GONE
         }
+    }
+
+    fun positionRenderableOnPlane(anchor: Anchor?) {
+        anchorNode = AnchorNode(anchor)
+        Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
+
+        anchorNode?.setParent(arFragment?.arSceneView?.scene)
+        val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
+
+        anchorNode?.localScale = Vector3(scale, scale, scale)
+
+        currentRenderable?.start(
+            anchor = anchor,
+            onSuccess = {
+                TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+
+                    mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
+                    mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
+
+                    node = mNode
+                    node?.setParent(anchorNode)
+
+                    node?.renderable = currentRenderable?.getRenderable()
+                    node?.select()
+
+                    vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
+
+                    adapter?.notifyDataSetChanged()
+                }
+            },
+            onFailure = {
+                if (currentRenderable != null && isSelectedRenderable(currentRenderable!!.dataItemObject)) {
+                    renderableUploadedFailed(currentRenderable!!.dataItemObject)
+                }
+            }
+        )
+    }
+
+    open fun onTapArPlane(hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent?) {
+        val anchor = hitResult.createAnchor()
+        positionRenderableOnPlane(anchor)
     }
 
     fun pxFromDp(dp: Int): Int {
@@ -595,7 +582,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                     "loadData 11 dataItems : ${dataItems.isNotEmpty()}, ${dataItems.count()}, checkedPackageId : ${checkedPackageId}"
                 )
 
-                if (dataItems.isNotEmpty()) {
+                if (ivStack != null && dataItems.isNotEmpty()) {
                     Glide.with(this)
                         .load(activePackage?.thumbnailPath)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -703,7 +690,8 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     open fun renderableUploaded(
         dataItemObjectDataClass: DataItemObject,
-        renderable: IArRenderObject
+        renderable: IArRenderObject,
+        anchor: Anchor? = null
     ) {
         flProgressBar.visibility = View.GONE
 
@@ -711,6 +699,10 @@ abstract class BaseArActivity : AppCompatActivity() {
         cashedAssets[dataItemObjectDataClass.id!!] = renderable
 
         adapter.notifyDataSetChanged()
+
+        if (anchor != null) {
+            positionRenderableOnPlane(anchor)
+        }
     }
 
     open fun renderableUploadedFailed(dataItemObjectDataClass: DataItemObject) {
@@ -733,5 +725,36 @@ abstract class BaseArActivity : AppCompatActivity() {
         super.onPause()
 
         stopBinakular(true)
+    }
+
+    val fileDownloadManager = FileDownloadManager()
+
+    fun loadRenderableById(itemId: DataItemId, anchor: Anchor? = null) {
+        val context = this
+
+        val item = assetsArray.find { it.id == itemId } ?: return
+
+        fileDownloadManager.downloadFile(item.filePath!!, context)
+            .subscribe({ file ->
+                Log.e("renderable", "item.filePath : ${item.filePath}")
+
+                val arRenderObject = ArRenderObjectFactory(
+                    context = context,
+                    dataItemObject = item,
+                    mScene = null,
+                    renderableFile = file
+                ).createRenderable()
+
+                Log.e("renderable", "isSelectedRenderable : ${isSelectedRenderable(item)}")
+
+                renderableUploaded(item, arRenderObject, anchor)
+
+            }, {
+                Log.e("renderable", "error : ${it.message}")
+                Log.e("FileDownloadManager", "subscribe 2 ${it.message}")
+                if (isSelectedRenderable(item)) {
+                    renderableUploadedFailed(item)
+                }
+            })
     }
 }

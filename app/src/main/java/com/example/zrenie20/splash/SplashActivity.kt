@@ -3,20 +3,14 @@ package com.example.zrenie20.splash
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.bumptech.glide.Glide
-import com.bumptech.glide.annotation.GlideModule
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.module.AppGlideModule
 import com.example.zrenie20.R
 import com.example.zrenie20.SCREENS
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
+import com.example.zrenie20.cloudAnchor2.MainActivity
 import com.example.zrenie20.data.DataPackageId
 import com.example.zrenie20.data.RealmDataItemObject
 import com.example.zrenie20.data.RealmDataPackageObject
@@ -25,7 +19,6 @@ import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.network.DataPackageService
 import com.example.zrenie20.network.createService
-import com.example.zrenie20.sharedcamera.SharedCameraActivity
 import com.example.zrenie20.space.SpaceActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -107,13 +100,17 @@ class SplashActivity : AppCompatActivity() {
                 SettingsActivity.currentScreen = SCREENS.SPACE
                 startActivity(Intent(this, SpaceActivity::class.java))
             }
+            "shared" -> {
+                SettingsActivity.currentScreen = SCREENS.SHARED
+                startActivity(Intent(this, MainActivity::class.java))
+            }
             else -> {
-                val address = Uri.parse("zrenie2://space?package=13")
-                val openLinkIntent = Intent(Intent.ACTION_VIEW, address)
-                startActivity(openLinkIntent);
+                //val address = Uri.parse("zrenie2://space?package=13")
+                //val openLinkIntent = Intent(Intent.ACTION_VIEW, address)
+                //startActivity(openLinkIntent);
 
-                //SettingsActivity.currentScreen = SCREENS.AUGMENTED_IMAGE
-                //startActivity(Intent(this, AugmentedImageActivity::class.java))
+                SettingsActivity.currentScreen = SCREENS.AUGMENTED_IMAGE
+                startActivity(Intent(this, AugmentedImageActivity::class.java))
             }
         }
     }

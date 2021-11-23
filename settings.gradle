@@ -6,3 +6,6 @@ project(':sceneform').projectDir=new File('sceneformsrc/sceneform')
 
 include ':sceneformux'
 project(':sceneformux').projectDir=new File('sceneformux/ux')
+
+include ':vecmath'
+project(':vecmath').projectDir = new File(rootProject.projectDir, './third_party/vecmath')

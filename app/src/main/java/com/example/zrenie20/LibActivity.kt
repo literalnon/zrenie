@@ -24,6 +24,7 @@ import com.example.zrenie20.augmentedFace.augmentedfaces.AugmentedFacesActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageActivity
 import com.example.zrenie20.augmentedimage.AugmentedImageFragment
 import com.example.zrenie20.base.adapters.DelegationAdapter
+import com.example.zrenie20.cloudAnchor2.MainActivity
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.LocationActivity
 import com.example.zrenie20.myarsample.BaseArActivity
@@ -37,6 +38,7 @@ import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_lib.*
 import kotlinx.android.synthetic.main.activity_lib.ivBack
+import kotlinx.android.synthetic.main.activity_lib.ivShare
 import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.IOException
 import java.util.*
@@ -84,6 +86,10 @@ class LibActivity : AppCompatActivity() {
                             startActivity(Intent(this, LocationActivity::class.java))
                         }
                     }
+                    SCREENS.SHARED -> {
+                        SettingsActivity.currentScreen = SCREENS.SHARED
+                        startActivity(Intent(this, MainActivity::class.java))
+                    }
                 }
             })
         )
@@ -113,6 +119,7 @@ class LibActivity : AppCompatActivity() {
         imageView4?.setOnClickListener {
             currentType = SCREENS.AUGMENTED_IMAGE
 
+            ivShare.setColorFilter(Color.WHITE)
             imageView1.setColorFilter(Color.WHITE)
             imageView2.setColorFilter(Color.WHITE)
             imageView3.setColorFilter(Color.WHITE)
@@ -146,6 +153,7 @@ class LibActivity : AppCompatActivity() {
         imageView3?.setOnClickListener {
             currentType = SCREENS.LOCATION
 
+            ivShare.setColorFilter(Color.WHITE)
             imageView1.setColorFilter(Color.WHITE)
             imageView2.setColorFilter(Color.WHITE)
             imageView3.setColorFilter(getColor(R.color.selectedColor))
@@ -174,32 +182,12 @@ class LibActivity : AppCompatActivity() {
 
                     adapter.replaceAll(assetsArray)
                 }
-
-            /*Realm.getDefaultInstance()
-                .executeTransaction { realm ->
-                    val objects = realm.where(RealmDataItemObject::class.java)
-                        .findAll()
-                        .map { it.toDataItemObject() }
-                        .filter {
-                            it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName
-                        }
-                        *//*.filter { dataItemObj ->
-                            allFiles?.filter {
-                                it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
-                            }?.isNotEmpty() == true
-                        }*//*
-
-                    assetsArray.clear()
-
-                    assetsArray.addAll(objects)
-
-                    adapter.replaceAll(assetsArray)
-                }*/
         }
 
         imageView2?.setOnClickListener {
             currentType = SCREENS.AUGMENTED_FACES
 
+            ivShare.setColorFilter(Color.WHITE)
             imageView1.setColorFilter(Color.WHITE)
             imageView2.setColorFilter(getColor(R.color.selectedColor))
             imageView3.setColorFilter(Color.WHITE)
@@ -228,6 +216,7 @@ class LibActivity : AppCompatActivity() {
         imageView1?.setOnClickListener {
             currentType = SCREENS.SPACE
 
+            ivShare.setColorFilter(Color.WHITE)
             imageView1.setColorFilter(getColor(R.color.selectedColor))
             imageView2.setColorFilter(Color.WHITE)
             imageView3.setColorFilter(Color.WHITE)
@@ -264,6 +253,39 @@ class LibActivity : AppCompatActivity() {
                 }
         }
 
+        ivShare?.setOnClickListener {
+            currentType = SCREENS.SHARED
+
+            ivShare.setColorFilter(getColor(R.color.selectedColor))
+            imageView1.setColorFilter(Color.WHITE)
+            imageView2.setColorFilter(Color.WHITE)
+            imageView3.setColorFilter(Color.WHITE)
+            imageView4.setColorFilter(Color.WHITE)
+
+            Log.e("SPLASH", "click 0")
+
+            Realm.getDefaultInstance()
+                .executeTransaction { realm ->
+                    val objects = realm.where(RealmDataPackageObject::class.java)
+                        .findAll()
+                        .map { it.toDataPackageObject() }
+                        .filter { packageItem ->
+                            realm.where(RealmDataItemObject::class.java)
+                                .findAll()
+                                .filter { it.dataPackageId == packageItem.id }
+                                .find { it.trigger?.type?.codeName == ArTypes.ArOSpaceType().codeName } != null
+                        }
+
+                    assetsArray.clear()
+
+                    Log.e("SPLASH", "click 1 ${objects.size}")
+
+                    assetsArray.addAll(objects)
+
+                    adapter.replaceAll(assetsArray)
+                }
+        }
+
         when (SettingsActivity.currentScreen) {
             SCREENS.SPACE -> {
                 imageView1.performClick()
@@ -276,6 +298,9 @@ class LibActivity : AppCompatActivity() {
             }
             SCREENS.LOCATION -> {
                 imageView3.performClick()
+            }
+            SCREENS.SHARED -> {
+                ivShare.performClick()
             }
         }
 

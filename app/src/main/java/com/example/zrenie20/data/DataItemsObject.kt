@@ -74,7 +74,10 @@ open class DataItemObject(
     val updatedAt: String? = null,
     val type: TypeItemObject? = null,
     val trigger: TriggerItemObject? = null,
-    val actionUrl: String? = null
+    val actionUrl: String? = null,
+    val offsetX: Int? = null,
+    val offsetY: Int? = null,
+    val offsetZ: Int? = null
 )
 
 fun DataItemObject.toRealmDataItemObject(): RealmDataItemObject {
@@ -94,7 +97,10 @@ fun DataItemObject.toRealmDataItemObject(): RealmDataItemObject {
         updatedAt = updatedAt,
         type = type?.toRealmTypeItemObject(),
         trigger = trigger?.toRealmTriggerItemObject(),
-        actionUrl = actionUrl
+        actionUrl = actionUrl,
+        offsetX = offsetX,
+        offsetY = offsetY,
+        offsetZ = offsetZ
     )
 }
 

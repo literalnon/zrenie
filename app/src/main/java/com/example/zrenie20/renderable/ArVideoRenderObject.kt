@@ -127,6 +127,20 @@ class ArVideoRenderObject(
                     )
                 }
 
+                val x = (dataItemObject.offsetX ?: 0).toFloat()
+                val y = (dataItemObject.offsetY ?: 0).toFloat()
+                val z = (dataItemObject.offsetZ ?: 0).toFloat()
+
+                //videoAnchorNode.localPosition = Vector3(x, y, z)
+
+                val localPosition = Vector3()
+                videoAnchorNode.localPosition = localPosition
+
+                val rotation = Quaternion()
+                rotation.w = 1f
+
+                //videoAnchorNode.worldRotation = rotation
+
                 externalTexture.surfaceTexture.setOnFrameAvailableListener {
                     Log.e(TAG, "externalTexture.surfaceTexture")
                     it.setOnFrameAvailableListener(null)

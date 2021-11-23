@@ -1,143 +1,9 @@
-<resources>
-    <string name="app_name">Zrenie 2.0</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">Zrenie 2.0</string>
 
-    <string name="cancel">Cancel</string>
-    <string name="host_button_text">Host</string>
-    <string name="host_dialog_title">Host an Anchor</string>
-    <string name="host_ok">Host</string>
-    <string name="initial_room_code">0000</string>
-    <string name="resolve_button_text">Resolve</string>
+    <string name="ApiKey" translatable="false">AIzaSyAsG6GJeJ4I3LzeADBB8Ouv1jZQTknvG3I</string>
 
-    <!-- Strings in the Resolve Dialog Box -->
-    <string name="resolve_dialog_ok">Resolve</string>
-    <string name="resolve_dialog_title">Resolve an Anchor</string>
-    <string name="resolve_dialog_text_hint">Enter Room Code</string>
-
-    <!-- Strings used in Snackbar messages -->
-    <string name="snackbar_anchor_placed">Now hosting anchor...</string>
-    <string name="snackbar_arcore_unavailable">Please install ARCore.</string>
-    <string name="snackbar_arcore_too_old">Please update ARCore.</string>
-    <string name="snackbar_arcore_sdk_too_old">Please update the app with a newer version of the ARCore SDK.</string>
-    <string name="snackbar_arcore_exception">This device does not support ARCore.</string>
-    <string name="snackbar_camera_unavailable">Camera unavailable. Try restarting the app.</string>
-    <string name="snackbar_cloud_id_shared">The anchor ID was shared via Firebase.</string>
-    <string name="snackbar_dismiss">Dismiss</string>
-    <string name="snackbar_firebase_error">There was a Firebase Error. Please check Logcat for more details.</string>
-    <string name="snackbar_host_error">Hosting Error: %1$s</string>
-    <string name="snackbar_initial_message">Please select Host or Resolve to continue.</string>
-    <string name="snackbar_on_host">Now in Hosting Mode. Press Cancel to Exit.</string>
-    <string name="snackbar_on_resolve">Now in Resolving Mode. Press Cancel to Exit.</string>
-    <string name="snackbar_resolve_error">Resolving Error: %1$s</string>
-    <string name="snackbar_resolve_success">The anchor was successfully resolved.</string>
-    <string name="snackbar_room_code_available">The room code is now available. Please place an anchor to host.</string>
-    <!-- Resolve anchor has no result yet. [CHAR_LIMIT=NONE] -->
-    <string name="snackbar_resolve_no_result_yet">Still resolving the anchor. Please make sure you\'re looking at where the Cloud Anchor was hosted. Or, try to re-join the room.</string>
-
-    <!-- Strings used in privacy notice dialog messages. [CHAR_LIMIT=NONE] -->
-    <string name="share_experience_title">Experience it together</string>
-    <!-- Privacy notice message. [CHAR_LIMIT=NONE] -->
-    <string name="share_experience_message">To power this session, Google will process visual data from your camera.</string>
-    <!-- Privacy notice accept. [CHAR_LIMIT=NONE] -->
-    <string name="agree_to_share">Start now</string>
-    <!-- Privacy notice learn more. [CHAR_LIMIT=NONE] -->
-    <string name="learn_more">Learn more</string>
-    <!-- Cloud anchor privacy website. [CHAR_LIMIT=NONE] -->
-    <string name="cloud_anchor_website">https://developers.google.com/ar/cloud-anchors-privacy</string>
-
-    <string name="label_low_res">Low Resolution</string>
-    <!-- Medium resolution label [CHAR_LIMIT=NONE] -->
-    <string name="label_medium_res">Medium Resolution</string>
-    <string name="label_high_res">High Resolution</string>
-    <string name="switch_cv_mode">Computer Vision</string>
-    <string name="switch_focus_mode">Auto Focus</string>
-
-
-    <string name="depth_use_explanation" translatable="false">When Depth is enabled on supported devices, virtual objects adapt to the environment by blending in with the real world.</string>
-    <string name="button_text_enable_depth" translatable="false">Enable</string>
-    <string name="button_text_disable_depth" translatable="false">Disable</string>
-    <string name="options_title_with_depth" translatable="false">Your device supports depth</string>
-    <string name="options_title_without_depth" translatable="false">Your device does not support depth</string>
-    <string name="done" translatable="false">Done</string>
-    <string-array name="depth_options_array" translatable="false">
-        <item>Enable depth</item>
-        <item>Show depth map</item>
-    </string-array>
-    <string name="options_title_instant_placement" translatable="false">Instant Placement options</string>
-    <string-array name="instant_placement_options_array" translatable="false">
-        <item>Enable Instant Placement</item>
-    </string-array>
-
-
-    <!--<string name="cancel">Cancel</string>
-    <string name="host_button_text">Begin hosting</string>-->
-    <string name="host_title_text">Host a Cloud Anchor</string>
-    <!-- [CHAR_LIMIT=NONE] -->
-    <string name="host_instructions_text">Scan your space to create a new cloud anchor accessible by others</string>
-    <string name="begin_resolve_button_text">Begin resolving</string>
-    <!-- [CHAR_LIMIT=NONE] -->
-    <string name="resolve_title_text">Resolve Cloud Anchor(s)</string>
-    <!-- [CHAR_LIMIT=NONE] -->
-    <string name="resolve_instructions_text">Localize this device against previously created Cloud Anchor(s)</string>
-    <string name="debug_text">Debug panel</string>
-    <string name="user_message_text">User text</string>
-
-    <!-- Strings in the resolve options page -->
-    <string name="resolve_an_anchor_text">Resolve anchor(s)</string>
-    <string name="resolve_an_anchor_instructions_text">Choose up to 40 anchors to resolve at once</string>
-    <string name="select_anchors_text">Select from anchors previously hosted from this device</string>
-    <string name="enter_anchor_text">Enter anchor ID(s) manually, separated by commas</string>
-    <string name="enter_anchor_hint">Anchor IDs...</string>
-    <!--<string name="resolve_button_text">Resolve</string>-->
-
-    <!-- Strings used in exceptions -->
-    <string name="arcore_unavailable">Please install ARCore.</string>
-    <string name="arcore_too_old">Please update ARCore.</string>
-    <string name="arcore_sdk_too_old">Please update the app with a newer version of the ARCore SDK.</string>
-    <string name="arcore_exception">This device does not support ARCore.</string>
-    <string name="camera_unavailable">Camera unavailable. Try restarting the app.</string>
-
-    <!-- Strings used in hosting flow-->
-    <string name="hosting_place_anchor">Tap to place an object.</string>
-    <string name="hosting_save">To save this location, walk around the object to capture it from different angles</string>
-    <string name="hosting_processing">Processing...</string>
-    <string name="hosting_success">Finished!</string>
-    <string name="hosting_error">Hosting Error: %1$s</string>
-    <string name="debug_hosting_place_anchor">Tap a vertical or horizontal plane...</string>
-    <string name="debug_hosting_save">Average Mapping Quality: %1$s\nNote: Horizontal and vertical planes have slightly
-    different hosting UIs for better visualization.</string>
-    <string name="debug_hosting_processing">FeatureMapQuality has reached SUFFICIENT-GOOD, triggering hostCloudAnchor().</string>
-    <string name="debug_hosting_success">Anchor %1$s created.</string>
-    <string name="debug_hosting_error">There was an error during Hosting: %1$s</string>
-    <string name="nickname_title_text">Enter name</string>
-    <string name="nickname_instructions_text">Enter a name for your anchor ID(to be stored in local app storage)</string>
-    <string name="nickname_default">CloudAnchor%1$d</string>
-    <string name="nickname_dialog_ok">OK</string>
-    <string name="too_close">You are too close; move backward.</string>
-    <string name="too_far">You are too far; come closer</string>
-
-    <!-- Strings used in the resolving flow-->
-    <string name="resolving_processing">Look at the location you expect the AR experience to appear.</string>
-    <string name="resolving_success">Resolve success!</string>
-    <string name="resolving_error">Resolving Error: %1$s</string>
-    <string name="debug_resolving_processing">Attempting to resolve %1$d anchors...</string>
-    <string name="debug_resolving_success">Resolved anchors; continuing to refine pose.</string>
-    <string name="debug_resolving_error">There was an error during Resolving: %1$s</string>
-    <string name="title_activity_splash">SplashActivity</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">Hello Square World!</string>
-    <string name="title_activity_base">BaseActivity</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-
+    <string name="cancel">Отмена</string>
 
     <string name="photo">Фото</string>
     <string name="video">Видео</string>
@@ -151,16 +17,17 @@
     <string name="location">Локация</string>
     <string name="bodyPart">Часть тела</string>
     <string name="space">Пространство</string>
+    <string name="share">Кооператив</string>
     <string name="ar_instruction">Смотреть <a href="https://www.google.ru/">инструкцию</a></string>
     <string name="ar_web">Перейти на <a href="https://www.google.ru/">веб-сайт</a></string>
     <string name="ar_search">Поиск AR</string>
     <string name="ar_lib">Библиотека Ar</string>
     <string name="ar_search_hint">Введите название и выберите контент</string>
     <string name="remove_cache">Удалить весь кэш</string>
+    <string name="packege_not_choosed">Пакет не выбран</string>
 
-    <string name="plane_finding">Searching for surfaces&#8230;</string>
+    <string name="plane_finding">Searching for surfaces</string>
     <string name="gps_network_not_enabled">gps network not enabled</string>
     <string name="open_location_settings">open location settings</string>
-
 
 </resources>

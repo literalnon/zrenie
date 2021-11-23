@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/sceneformsrc/sceneform" />
             <option value="$PROJECT_DIR$/sceneformux/ux" />
+            <option value="$PROJECT_DIR$/third_party/vecmath" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
