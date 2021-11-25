@@ -14,6 +14,7 @@ import com.google.ar.sceneform.Scene
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.ExternalTexture
 import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.ux.ArFragment
 import java.io.File
 
 interface IArRenderObjectFactory {
@@ -24,7 +25,8 @@ class ArRenderObjectFactory(
     private val context: Context,
     private val dataItemObject: DataItemObject,
     private val mScene: Scene? = null,
-    var renderableFile: File? = null
+    var renderableFile: File? = null,
+    var arFragment: ArFragment? = null
 ) : IArRenderObjectFactory {
     override fun createRenderable(): IArRenderObject {
         /*return ArWebViewRenderObject(
@@ -56,7 +58,8 @@ class ArRenderObjectFactory(
                     context = context,
                     dataItemObject = dataItemObject,
                     //mScene = mScene,
-                    renderableFile = renderableFile!!
+                    renderableFile = renderableFile!!,
+                    arFragment = arFragment
                 )
             }
             TypeItemObjectCodeNames.IMAGE.codeName -> {

@@ -9,8 +9,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.util.Log
-import android.view.MotionEvent
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -43,7 +41,6 @@ import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
-import android.view.PixelCopy
 
 import android.os.HandlerThread
 import androidx.fragment.app.FragmentActivity
@@ -58,7 +55,10 @@ import android.media.CamcorderProfile
 import com.example.zrenie20.space.VideoRecorder
 import android.provider.MediaStore
 import android.content.ContentValues
-import android.view.ViewGroup
+import android.hardware.SensorManager
+import android.view.*
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.R
 import com.example.zrenie20.renderable.ArRenderObjectFactory
 import com.google.ar.core.*
@@ -100,13 +100,15 @@ abstract class BaseArActivity : AppCompatActivity() {
     var anchorNode: AnchorNode? = null
     var node: TransformableNode? = null
 
+    lateinit var orientationListener: OrientationEventListener
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(layoutId)
 
         arFragment = mArFragment as ArFragment
         sceneView = arFragment?.arSceneView
-        sceneView?.planeRenderer?.isEnabled = false
+        sceneView?.planeRenderer?.isEnabled = true
 
         ivFlash?.setOnClickListener {
             Log.e("FLASH", "ivFlash setOnClickListener")
@@ -165,9 +167,13 @@ abstract class BaseArActivity : AppCompatActivity() {
             if (llFocus.visibility == View.VISIBLE) {
                 llFocus.visibility = View.GONE
                 llMainActivities.visibility = View.VISIBLE
+
+                sceneView?.planeRenderer?.isEnabled = true
             } else {
                 llFocus.visibility = View.VISIBLE
                 llMainActivities.visibility = View.GONE
+
+                sceneView?.planeRenderer?.isEnabled = false
             }
         }
 
@@ -296,6 +302,36 @@ abstract class BaseArActivity : AppCompatActivity() {
 
         flMirror?.post {
             flMirror?.visibility = View.GONE
+        }
+
+        orientationListener = object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
+            override fun onOrientationChanged(orientation: Int) {
+                Log.e("listener", "onOrientationChanged : ${orientation}")
+
+                val newOrientation = when (orientation) {
+                    in 0..45 -> {
+                        360
+                    }
+                    in 45..135 -> {
+                        270
+                    }
+                    in 135..225 -> {
+                        180
+                    }
+                    in 225..315 -> {
+                        90
+                    }
+                    in 315..360 -> {
+                        360
+                    }
+                    else -> {
+                        360
+                    }
+                }.toFloat()
+
+
+                ivChangeVisibility?.rotation = newOrientation
+            }
         }
     }
 
@@ -585,6 +621,10 @@ abstract class BaseArActivity : AppCompatActivity() {
                 if (ivStack != null && dataItems.isNotEmpty()) {
                     Glide.with(this)
                         .load(activePackage?.thumbnailPath)
+                        .apply(
+                            RequestOptions()
+                                .transform(RoundedCorners(16))
+                        )
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(ivStack)
                 }
@@ -719,12 +759,16 @@ abstract class BaseArActivity : AppCompatActivity() {
         super.onResume()
 
         startBinacular(true)
+
+        orientationListener.enable()
     }
 
     override fun onPause() {
         super.onPause()
 
         stopBinakular(true)
+
+        orientationListener.disable()
     }
 
     val fileDownloadManager = FileDownloadManager()

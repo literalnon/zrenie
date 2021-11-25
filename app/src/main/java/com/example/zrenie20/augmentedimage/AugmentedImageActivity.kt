@@ -15,9 +15,13 @@
  */
 package com.example.zrenie20.augmentedimage
 
+
+
+
 import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
+import android.hardware.SensorManager
 import android.media.CamcorderProfile
 import android.os.Bundle
 import android.os.Environment
@@ -25,12 +29,15 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.provider.MediaStore
 import android.util.Log
+import android.view.OrientationEventListener
 import android.view.PixelCopy
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
@@ -60,6 +67,8 @@ class AugmentedImageActivity : AppCompatActivity() {
 
     var choice = PHOTO
 
+    lateinit var orientationListener: OrientationEventListener
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.augmented_image_activity)
@@ -77,9 +86,13 @@ class AugmentedImageActivity : AppCompatActivity() {
             if (llFocus.visibility == View.VISIBLE) {
                 llFocus.visibility = View.GONE
                 llMainActivities.visibility = View.VISIBLE
+
+                arFragment?.arSceneView?.planeRenderer?.isEnabled = true
             } else {
                 llFocus.visibility = View.VISIBLE
                 llMainActivities.visibility = View.GONE
+
+                arFragment?.arSceneView?.planeRenderer?.isEnabled = false
             }
         }
 
@@ -112,11 +125,45 @@ class AugmentedImageActivity : AppCompatActivity() {
 
                 Glide.with(this)
                     .load(activePackage?.thumbnailPath)
+                    .apply(
+                        RequestOptions()
+                            .transform(RoundedCorners(16))
+                    )
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(ivStack)
             }
 
         photoVideoRecorderInit()
+
+        orientationListener = object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
+            override fun onOrientationChanged(orientation: Int) {
+                Log.e("listener", "onOrientationChanged : ${orientation}")
+
+                val newOrientation = when (orientation) {
+                    in 0..45 -> {
+                        360
+                    }
+                    in 45..135 -> {
+                        270
+                    }
+                    in 135..225 -> {
+                        180
+                    }
+                    in 225..315 -> {
+                        90
+                    }
+                    in 315..360 -> {
+                        360
+                    }
+                    else -> {
+                        360
+                    }
+                }.toFloat()
+
+
+                ivChangeVisibility?.rotation = newOrientation
+            }
+        }
     }
 
     fun photoVideoRecorderInit() {
@@ -218,6 +265,18 @@ class AugmentedImageActivity : AppCompatActivity() {
             }
             handlerThread.quitSafely()
         }, Handler(handlerThread.looper))
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        orientationListener.enable()
+    }
+
+    override fun onPause() {
+        super.onPause()
+
+        orientationListener.disable()
     }
 
     open fun saveBitmapToDisk(bitmap: Bitmap): File {

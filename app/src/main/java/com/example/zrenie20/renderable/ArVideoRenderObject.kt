@@ -5,6 +5,7 @@ import android.media.MediaPlayer
 import android.util.Log
 import com.example.zrenie20.R
 import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.myarsample.BaseArActivity
 import com.google.ar.core.Anchor
 import com.google.ar.core.AugmentedImage
 import com.google.ar.sceneform.AnchorNode
@@ -16,12 +17,15 @@ import com.google.ar.sceneform.rendering.Color
 import com.google.ar.sceneform.rendering.ExternalTexture
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.TransformableNode
 import java.io.File
 
 class ArVideoRenderObject(
     override val context: Context,
     override val dataItemObject: DataItemObject,
-    override val renderableFile: File
+    override val renderableFile: File,
+    val arFragment: ArFragment? = null
 ) : IArRenderObject {
     companion object {
         val TAG = "DOWNLOAD_VIDEO_FILE"
@@ -47,9 +51,11 @@ class ArVideoRenderObject(
     var videoRenderable: ModelRenderable? = null
     private val anchorNode = AnchorNode()
     var videoAnchorNode: AnchorNode = anchorNode
-        /*.apply {
-        setParent(mScene)
-    }*/
+
+    /*.apply {
+    setParent(mScene)
+}*/
+    var videoTransformableNode: TransformableNode? = null
 
     override fun setParent(parent: NodeParent) {
         videoAnchorNode.setParent(parent)
@@ -86,7 +92,7 @@ class ArVideoRenderObject(
     ) {
 
         ModelRenderable.builder()
-            .setSource(context, R.raw.chroma_key_video)
+            .setSource(context, R.raw.chroma_key_video)//R.raw.chroma_key_video
             .build()
             .thenAccept { renderable ->
                 videoRenderable = renderable
@@ -109,7 +115,44 @@ class ArVideoRenderObject(
 
                 videoAnchorNode = anchorNode
                 videoAnchorNode.anchor?.detach()
-                videoAnchorNode.anchor = anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
+                videoAnchorNode.anchor = null
+
+                Log.e(
+                    "ArVideoRenderObject",
+                    "1 videoAnchorNode.worldPosition : ${videoAnchorNode.worldPosition}"
+                )
+                Log.e(
+                    "ArVideoRenderObject",
+                    "1 videoAnchorNode.localPosition : ${videoAnchorNode.localPosition}"
+                )
+                val x =
+                    videoAnchorNode.localPosition.x + 0.1f//(dataItemObject.offsetX ?: 100).toFloat()
+                val y =
+                    videoAnchorNode.localPosition.y + 0.1f//(dataItemObject.offsetY ?: 100).toFloat()
+                val z = videoAnchorNode.localPosition.z + (dataItemObject.offsetZ ?: 10).toFloat()
+
+                videoAnchorNode.localPosition = Vector3(x, y, z)
+
+                Log.e(
+                    "ArVideoRenderObject",
+                    "2 videoAnchorNode.worldPosition : ${videoAnchorNode.worldPosition}"
+                )
+                Log.e(
+                    "ArVideoRenderObject",
+                    "2 videoAnchorNode.localPosition : ${videoAnchorNode.localPosition}"
+                )
+
+                videoAnchorNode.anchor =
+                    anchor//augmentedImage.createAnchor(augmentedImage.centerPose)
+
+                Log.e(
+                    "ArVideoRenderObject",
+                    "3 videoAnchorNode.worldPosition : ${videoAnchorNode.worldPosition}"
+                )
+                Log.e(
+                    "ArVideoRenderObject",
+                    "3 videoAnchorNode.localPosition : ${videoAnchorNode.localPosition}"
+                )
 
                 val scale = dataItemObject.scale?.toFloatOrNull() ?: 4f
 
@@ -127,24 +170,45 @@ class ArVideoRenderObject(
                     )
                 }
 
-                val x = (dataItemObject.offsetX ?: 0).toFloat()
-                val y = (dataItemObject.offsetY ?: 0).toFloat()
-                val z = (dataItemObject.offsetZ ?: 0).toFloat()
+                /*val x = 1000f//(dataItemObject.offsetX ?: 100).toFloat()
+                val y = 1000f//(dataItemObject.offsetY ?: 100).toFloat()
+                val z = (dataItemObject.offsetZ ?: 100).toFloat()
 
-                //videoAnchorNode.localPosition = Vector3(x, y, z)
-
-                val localPosition = Vector3()
-                videoAnchorNode.localPosition = localPosition
-
-                val rotation = Quaternion()
-                rotation.w = 1f
-
-                //videoAnchorNode.worldRotation = rotation
+                videoAnchorNode.worldPosition = Vector3(x, y, z)*/
 
                 externalTexture.surfaceTexture.setOnFrameAvailableListener {
                     Log.e(TAG, "externalTexture.surfaceTexture")
                     it.setOnFrameAvailableListener(null)
-                    videoAnchorNode.renderable = videoRenderable
+                    //videoAnchorNode.renderable = videoRenderable
+
+                    videoTransformableNode = TransformableNode(arFragment?.transformationSystem)
+                    videoTransformableNode?.setParent(videoAnchorNode)
+                    videoTransformableNode?.renderable = videoRenderable
+                    videoTransformableNode?.select()
+
+                    Log.e(
+                        "ArVideoRenderObject",
+                        "1 videoTransformableNode.worldPosition : ${videoTransformableNode?.worldPosition}"
+                    )
+                    Log.e(
+                        "ArVideoRenderObject",
+                        "1 videoTransformableNode?.localPosition : ${videoTransformableNode?.localPosition}"
+                    )
+
+                    val mx = (videoTransformableNode?.worldPosition?.x ?: 0f) + (dataItemObject.offsetX ?: 0).toFloat() / 1000f
+                    val my = (videoTransformableNode?.worldPosition?.y ?: 0f) + (dataItemObject.offsetY ?: 0).toFloat() / 1000f
+                    val mz = (videoTransformableNode?.worldPosition?.z ?: 0f) + (dataItemObject.offsetZ ?: 0).toFloat() / 1000f
+
+                    videoTransformableNode?.worldPosition = Vector3(mx, my, mz)
+
+                    Log.e(
+                        "ArVideoRenderObject",
+                        "2 videoTransformableNode?.worldPosition : ${videoTransformableNode?.worldPosition}"
+                    )
+                    Log.e(
+                        "ArVideoRenderObject",
+                        "2 videoTransformableNode?.localPosition : ${videoTransformableNode?.localPosition}"
+                    )
                 }
 
                 onSuccess()

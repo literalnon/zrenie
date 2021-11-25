@@ -6,6 +6,7 @@
         <entry key="../../../../layout/custom_preview.xml" value="0.21388888888888888" />
         <entry key="../../.gradle/caches/transforms-2/files-2.1/04d7a730c3cf557381af71f854cf03e7/jetified-sceneform-ux-1.17.1/res/layout/sceneform_ux_fragment_layout.xml" value="0.17604166666666668" />
         <entry key="app/src/main/res/drawable/arrow_tooltip.xml" value="0.2111111111111111" />
+        <entry key="app/src/main/res/drawable/gray_rounded_background.xml" value="0.17708333333333334" />
         <entry key="app/src/main/res/layout/activity_about.xml" value="0.18885869565217392" />
         <entry key="app/src/main/res/layout/activity_binacular.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_instruction.xml" value="0.13958333333333334" />
@@ -30,6 +31,7 @@
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.1609375" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.5072344646586047" />
         <entry key="app/src/main/res/layout/item_image_pager_layout.xml" value="0.15364583333333334" />
+        <entry key="app/src/main/res/layout/item_vr_object.xml" value="0.1609375" />
         <entry key="app/src/main/res/layout/layout_focus.xml" value="0.15070921985815602" />
         <entry key="app/src/main/res/layout/layout_main_activities.xml" value="0.1" />
         <entry key="app/src/main/res/layout/main_lobby.xml" value="0.1609375" />

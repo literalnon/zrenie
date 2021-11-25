@@ -40,6 +40,7 @@ import com.google.ar.sceneform.rendering.ExternalTexture
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ViewRenderable
+import com.google.ar.sceneform.ux.ArFragment
 import com.google.common.reflect.Reflection.getPackageName
 import java.io.File
 import java.lang.Exception
@@ -55,8 +56,18 @@ class AugmentedImageNode(
     val renderableFile: File?,
     val dataItemObject: DataItemObject,
     val mScene: Scene,
+    var arFragment: ArFragment
 ) : AnchorNode() {
 
+    init {
+        Log.e("AugmentedImageNode", "worldPosition : ${worldPosition}")
+
+        /*val x = worldPosition.x + 1000f//(dataItemObject.offsetX ?: 100).toFloat()
+        val y = worldPosition.y + 1000f//(dataItemObject.offsetY ?: 100).toFloat()
+        val z = worldPosition.z + (dataItemObject.offsetZ ?: 100).toFloat()
+
+        worldPosition = Vector3(x, y, z)*/
+    }
     // The augmented image represented by this node.
     var image: AugmentedImage? = null
         private set
@@ -76,7 +87,9 @@ class AugmentedImageNode(
         val rend = Companion.arRenderObjectMap[index]
 
         // Set the anchor based on the center of the image.
+
         anchor = image.createAnchor(image.centerPose)
+
         rend?.start(
             anchor = anchor,
             onSuccess = {},
@@ -85,7 +98,7 @@ class AugmentedImageNode(
         )
 
         rend?.setParent(this)
-
+        
         // Make the 4 corner nodes.
         //val localPosition = Vector3()
 
@@ -172,7 +185,8 @@ class AugmentedImageNode(
                 context = context,
                 dataItemObject = dataItemObject,
                 mScene = mScene,
-                renderableFile = renderableFile
+                renderableFile = renderableFile,
+                arFragment = arFragment
             ).createRenderable()
 
             try {

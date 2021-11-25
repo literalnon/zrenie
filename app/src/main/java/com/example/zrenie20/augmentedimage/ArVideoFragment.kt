@@ -67,7 +67,7 @@ open class ArVideoFragment : ArFragment() {
 
         planeDiscoveryController.hide()
         planeDiscoveryController.setInstructionView(null)
-        arSceneView.planeRenderer.isEnabled = false
+        arSceneView.planeRenderer.isEnabled = true
         arSceneView.isLightEstimationEnabled = false
 
         initializeSession()

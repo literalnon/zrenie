@@ -41,14 +41,14 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_close_frame" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+   <!-- <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="@+id/ivObject"
         app:layout_constraintEnd_toEndOf="@+id/ivObject"
         app:layout_constraintStart_toStartOf="@+id/ivObject"
-        app:layout_constraintTop_toTopOf="@+id/ivObject" />
+        app:layout_constraintTop_toTopOf="@+id/ivObject" />-->
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

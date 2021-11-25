@@ -1,5 +1,6 @@
 package com.example.zrenie20.myarsample
 
+import android.graphics.Bitmap
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +8,10 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.Transformation
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.R
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
 import com.example.zrenie20.data.DataItemObject
@@ -55,6 +59,10 @@ class VrObjectsAdapter(
 
         Glide.with(holder.ivObject)
             .load(vrDataClass.thumbnailPath)
+            .apply(
+                RequestOptions()
+                    .transform(RoundedCorners(16))
+            )
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(holder.ivObject)
 
@@ -75,7 +83,7 @@ class VrObjectsAdapter(
             holder.ivClose.visibility = View.GONE
         }
 
-        holder.tvName.text = item.name
+        //holder.tvName.text = item.name
         holder.view.setOnClickListener { view ->
             val context = view.context
 
@@ -165,6 +173,6 @@ class VrObjectsAdapter(
         var viewSelected = itemView.viewSelected
         var ivClose = itemView.ivClose
         var ivObject = itemView.ivObject
-        var tvName = itemView.tvName
+        //var tvName = itemView.tvName
     }
 }

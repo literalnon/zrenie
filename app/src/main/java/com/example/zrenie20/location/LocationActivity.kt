@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.hardware.SensorManager
 import android.media.CamcorderProfile
 import android.net.Uri
 import android.os.Bundle
@@ -20,6 +21,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.marginBottom
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.R
 import com.example.zrenie20.SCREENS
@@ -64,6 +67,8 @@ import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.activity_location.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_location.llFocus
 import kotlinx.android.synthetic.main.activity_location.llMainActivities
+import kotlinx.android.synthetic.main.activity_location.svMirror
+import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.io.File
 import java.io.FileOutputStream
@@ -103,6 +108,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
     var mapFragment: SupportMapFragment? = null
 
     var arFragment: LocationArFragment? = null
+    lateinit var orientationListener: OrientationEventListener
 
     fun removeCurrentLocationMarker(lat: Double, lon: Double) {
 
@@ -373,10 +379,14 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                 llFocus.visibility = View.GONE
                 llMainActivities.visibility = View.VISIBLE
                 mapViewFragment.view?.visibility = View.VISIBLE
+
+                arFragment?.arSceneView?.planeRenderer?.isEnabled = true
             } else {
                 llFocus.visibility = View.VISIBLE
                 llMainActivities.visibility = View.GONE
                 mapViewFragment.view?.visibility = View.GONE
+
+                arFragment?.arSceneView?.planeRenderer?.isEnabled = false
             }
         }
 
@@ -391,9 +401,37 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         photoVideoRecorderInit()
-        // Lastly request CAMERA & fine location permission which is required by ARCore-Location.
-        //ARLocationPermissionHelper.requestPermission(this)
-    }// Add  listeners etc here
+
+        orientationListener = object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
+            override fun onOrientationChanged(orientation: Int) {
+                Log.e("listener", "onOrientationChanged : ${orientation}")
+
+                val newOrientation = when (orientation) {
+                    in 0..45 -> {
+                        360
+                    }
+                    in 45..135 -> {
+                        270
+                    }
+                    in 135..225 -> {
+                        180
+                    }
+                    in 225..315 -> {
+                        90
+                    }
+                    in 315..360 -> {
+                        360
+                    }
+                    else -> {
+                        360
+                    }
+                }.toFloat()
+
+
+                ivChangeVisibility?.rotation = newOrientation
+            }
+        }
+    }
 
     fun photoVideoRecorderInit() {
         videoRecorder = VideoRecorder(this)
@@ -713,6 +751,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         startBinacular(true)
+
+        orientationListener.enable()
     }
 
     /**
@@ -725,6 +765,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
         arSceneView?.pause()
         stopBinakular(true)
+
+        orientationListener.disable()
     }
 
     public override fun onDestroy() {
@@ -914,6 +956,10 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                     if (dataItems.isNotEmpty()) {
                         Glide.with(this)
                             .load(activePackage?.thumbnailPath)
+                            .apply(
+                                RequestOptions()
+                                    .transform(RoundedCorners(16))
+                            )
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(ivStack)
                     }

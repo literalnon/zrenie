@@ -16,8 +16,10 @@
 package com.example.zrenie20.augmentedFace.augmentedfaces
 
 import android.content.Intent
+import android.hardware.SensorManager
 import android.os.Bundle
 import android.util.Log
+import android.view.OrientationEventListener
 import android.view.View
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
@@ -255,9 +257,13 @@ class AugmentedFacesActivity : BaseArActivity() {
             if (llFocus.visibility == View.VISIBLE) {
                 llFocus.visibility = View.GONE
                 llMainActivities.visibility = View.VISIBLE
+
+                arFragment?.arSceneView?.planeRenderer?.isEnabled = true
             } else {
                 llFocus.visibility = View.VISIBLE
                 llMainActivities.visibility = View.GONE
+
+                arFragment?.arSceneView?.planeRenderer?.isEnabled = false
             }
         }
 

@@ -149,6 +149,14 @@ dependencies {
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'
 
+
+apply plugin: 'com.google.ar.sceneform.plugin'
+//https://github.com/google-ar/sceneform-android-sdk/blob/v1.15.0/samples/chromakeyvideo/app/build.gradle
+sceneform.asset('sampledata/models/chroma_key_video.obj',
+        'sampledata/models/chroma_key_video_material.mat',
+        'sampledata/models/chroma_key_video.sfa',
+        'src/main/res/raw/chroma_key_video')
+
 /*sceneform.asset('sampledata/surprised.fbx',
         'default',
         'sampledata/surprised.sfa',

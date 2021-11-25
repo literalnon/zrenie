@@ -86,7 +86,7 @@ class ArAlphaVideoRenderObject(
         augmentedImage: AugmentedImage?
     ) {
 
-        ModelRenderable.builder()
+        /*ModelRenderable.builder()
             .setSource(context, R.raw.chroma_key_video)
             .build()
             .thenAccept { renderable ->
@@ -134,7 +134,7 @@ class ArAlphaVideoRenderObject(
                 Log.e(TAG, "Could not create ModelRenderable", throwable)
                 onFailure()
                 return@exceptionally null
-            }
+            }*/
     }
 
     override fun getRenderable(): Renderable? {

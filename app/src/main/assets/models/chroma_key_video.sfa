@@ -20,7 +20,7 @@
           disableChromaKey: false,
         },
       ],
-      source: 'sampledata/models/chroma_key_video_material.mat',
+      source: 'models/chroma_key_video_material.mat',
     },
   ],
   model: {
@@ -30,7 +30,7 @@
       'Orientation',
     ],
     collision: {},
-    file: 'sampledata/models/chroma_key_video.obj',
+    file: 'models/chroma_key_video.obj',
     name: 'chroma_key_video',
     recenter: 'root',
   },

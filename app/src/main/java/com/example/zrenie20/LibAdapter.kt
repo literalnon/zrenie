@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.base.adapters.AbstractAdapterDelegate
 import com.example.zrenie20.data.DataItemObject
 import com.example.zrenie20.data.DataPackageObject
@@ -45,6 +47,10 @@ class LibAdapter(
 
         Glide.with(holder.view.context)
             .load(item?.thumbnailPath)
+            .apply(
+                RequestOptions()
+                    .transform(RoundedCorners(16))
+            )
             .diskCacheStrategy(DiskCacheStrategy.ALL)
             .into(holder.ivLibAr)
 

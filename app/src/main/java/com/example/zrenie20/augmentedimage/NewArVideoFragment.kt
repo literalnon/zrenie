@@ -1,3 +1,5 @@
+
+
 package com.example.zrenie20.augmentedimage
 
 import android.graphics.Bitmap
@@ -41,7 +43,7 @@ open class AugmentedImageFragment : ArFragment() {
 
         planeDiscoveryController.hide()
         planeDiscoveryController.setInstructionView(null)
-        arSceneView.planeRenderer.isEnabled = false
+        arSceneView.planeRenderer.isEnabled = true
         arSceneView.isLightEstimationEnabled = false
 
         initializeSession()
@@ -188,11 +190,18 @@ open class AugmentedImageFragment : ArFragment() {
                         augmentedImage = augmentedImage,
                         renderableFile = null,
                         dataItemObject = mArItem,
-                        mScene = arSceneView.scene
+                        mScene = arSceneView.scene,
+                        arFragment = this
                     ).apply {
                         setImage(augmentedImage)
 
                         arSceneView.scene.addChild(this)
+
+                        val x = 1000f//(dataItemObject.offsetX ?: 100).toFloat()
+                        val y = 1000f//(dataItemObject.offsetY ?: 100).toFloat()
+                        val z = (dataItemObject.offsetZ ?: 100).toFloat()
+
+                        localPosition = Vector3(x, y, z)
                     }
                 }
 
@@ -210,10 +219,17 @@ open class AugmentedImageFragment : ArFragment() {
                                     augmentedImage = augmentedImage,
                                     renderableFile = renderableFile,
                                     dataItemObject = mArItem,
-                                    mScene = arSceneView.scene
+                                    mScene = arSceneView.scene,
+                                    arFragment = this
                                 ).apply {
                                     setImage(augmentedImage)
                                     arSceneView.scene.addChild(this)
+
+                                    val x = 1000f//(dataItemObject.offsetX ?: 100).toFloat()
+                                    val y = 1000f//(dataItemObject.offsetY ?: 100).toFloat()
+                                    val z = (dataItemObject.offsetZ ?: 100).toFloat()
+
+                                    localPosition = Vector3(x, y, z)
                                 }
 
                             //val augmentedImageNode = mapOfAugmentedImageNode[augmentedImage]!!
