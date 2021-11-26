@@ -15,6 +15,8 @@ import com.google.ar.core.HitResult
 import com.google.ar.core.Anchor.CloudAnchorState
 import com.example.zrenie20.cloudAnchor2.StorageManager.ShortCodeListener
 import com.example.zrenie20.data.DataItemId
+import com.example.zrenie20.data.DataItemObject
+import com.example.zrenie20.data.RenderableCloudId
 import com.google.ar.core.Anchor
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
@@ -23,6 +25,7 @@ import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.ux.TransformableNode
+import com.google.gson.Gson
 
 class MainActivity : BaseArActivity() {
     private var cloudAnchor: Anchor? = null
@@ -36,6 +39,7 @@ class MainActivity : BaseArActivity() {
     private var appAnchorState = AppAnchorState.NONE
     private val snackbarHelper = SnackbarHelper()
     private var storageManager: StorageManager? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -63,11 +67,18 @@ class MainActivity : BaseArActivity() {
         })*/
 
         storageManager = StorageManager(this)
-        storageManager!!.getCloudAnchor(object : StorageManager.CloudAnchorIdListener {
-            override fun onCloudAnchorIdAvailable(cloudAnchorId: String?, itemId: DataItemId?) {
-                Log.e("MainActivity", "onResolveOkPressed cloudAnchorId : $cloudAnchorId")
 
-                if (vrObjectsMap.keys.find { it.id == itemId } != null) {
+        storageManager!!.addSubscriber()
+
+        storageManager!!.getCloudAnchor(object : StorageManager.CloudAnchorIdListener {
+            override fun onChildAdded(
+                cloudAnchorId: String?,
+                itemId: DataItemId?,
+                renderableCloudId: RenderableCloudId?
+            ) {
+                Log.e("MainActivity", "onChildAdded cloudAnchorId : $cloudAnchorId")
+
+                if (vrObjectsMap.keys.find { it == itemId || it == renderableCloudId } != null) {
                     return
                 }
 
@@ -77,21 +88,51 @@ class MainActivity : BaseArActivity() {
                     ?.resolveCloudAnchor(cloudAnchorId)
 
                 setCloudAnchor(resolvedAnchor)
-                placeObject(cloudAnchor, itemId)
+                placeObject(
+                    anchor = cloudAnchor,
+                    itemId = itemId,
+                    renderableCloudId = renderableCloudId
+                )
                 snackbarHelper.showMessage(this@MainActivity, "Now Resolving Anchor...")
                 appAnchorState = AppAnchorState.RESOLVING
+            }
+
+            override fun onChildChanged(
+                cloudAnchorId: String?,
+                itemId: DataItemId?,
+                renderableId: RenderableCloudId?
+            ) {
+                Log.e("MainActivity", "onChildChanged cloudAnchorId : $cloudAnchorId")
+
+            }
+
+            override fun onChildRemoved(
+                cloudAnchorId: String?,
+                itemId: DataItemId?,
+                renderableCloudId: RenderableCloudId?
+            ) {
+                Log.e("MainActivity", "onChildRemoved cloudAnchorId : $cloudAnchorId")
+                val obj = assetsArray.find { it.id == itemId }
+
+                renderableRemove(
+                    dataItemObject = obj,
+                    renderableCloudId = renderableCloudId
+                )
             }
         })
     }
 
     override fun onTapArPlane(hitResult: HitResult, plane: Plane?, motionEvent: MotionEvent?) {
-        Log.e("MainActivity", "onTapArPlane ${plane?.type != Plane.Type.HORIZONTAL_UPWARD_FACING}, ${appAnchorState != AppAnchorState.NONE}, ${currentRenderable == null}")
+        Log.e(
+            "MainActivity",
+            "onTapArPlane ${plane?.type != Plane.Type.HORIZONTAL_UPWARD_FACING}, ${appAnchorState != AppAnchorState.NONE}, ${currentRenderable == null}"
+        )
 
         /*
         plane?.type != Plane.Type.HORIZONTAL_UPWARD_FACING ||
                 appAnchorState != AppAnchorState.NONE ||
                 */
-                if (currentRenderable == null
+        if (currentRenderable == null
         ) {
             return
         }
@@ -103,7 +144,7 @@ class MainActivity : BaseArActivity() {
         setCloudAnchor(newAnchor)
         appAnchorState = AppAnchorState.HOSTING
         snackbarHelper.showMessage(this, "Now hosting anchor...")
-        placeObject(cloudAnchor, currentRenderable!!.dataItemObject.id)
+        //placeObject(cloudAnchor, currentRenderable!!.dataItemObject.id)
     }
 
     /*private fun onResolveOkPressed(dialogValue: String) {
@@ -161,7 +202,10 @@ class MainActivity : BaseArActivity() {
                 storageManager!!.nextShortCode(object : ShortCodeListener {
                     override fun onShortCodeAvailable(shortCode: Int?) {
                         if (shortCode == null) {
-                            snackbarHelper.showMessageWithDismiss(this@MainActivity, "Could not get shortCode")
+                            snackbarHelper.showMessageWithDismiss(
+                                this@MainActivity,
+                                "Could not get shortCode"
+                            )
                             return
                         }
                         storageManager!!.storeUsingShortCodeWithId(
@@ -179,7 +223,10 @@ class MainActivity : BaseArActivity() {
             }
         } else if (appAnchorState == AppAnchorState.RESOLVING) {
             if (cloudState.isError) {
-                Log.e("MainActivity", "checkUpdatedAnchor error resolving cloudState : ${cloudState}")
+                Log.e(
+                    "MainActivity",
+                    "checkUpdatedAnchor error resolving cloudState : ${cloudState}"
+                )
                 snackbarHelper.showMessageWithDismiss(
                     this, "Error resolving anchor.. "
                             + cloudState
@@ -192,33 +239,51 @@ class MainActivity : BaseArActivity() {
         }
     }
 
-    fun showCurrentRenderable(anchor: Anchor?) {
-        Log.e("MainActivity", "showCurrentRenderable")
+    fun showCurrentRenderable(anchor: Anchor?, renderableCloudId: RenderableCloudId?) {
+        Log.e("MainActivity", "showCurrentRenderable : ${renderableCloudId}")
+
+        if (renderableCloudId == null) {
+            return
+        }
+
         anchorNode = AnchorNode(anchor)
-        Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
 
         anchorNode?.setParent(arFragment?.arSceneView?.scene)
         val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
 
         anchorNode?.localScale = Vector3(scale, scale, scale)
 
+        //val renderable = currentRenderable?.getRenderable() //?: return
+
         currentRenderable?.start(
             anchor = anchor,
             onSuccess = {
-                TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+                currentRenderable?.getRenderable()?.let { renderable ->
 
-                    mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
-                    mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
+                    TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
 
-                    node = mNode
-                    node?.setParent(anchorNode)
+                        mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
+                        mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
 
-                    node?.renderable = currentRenderable?.getRenderable()
-                    node?.select()
+                        node = mNode
+                        node?.setParent(anchorNode)
 
-                    vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
+                        Log.e(
+                            "MainActivity",
+                            "thread : ${Thread.currentThread().name} showCurrentRenderable renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}, ${renderable != null}, ${currentRenderable != null}, ${sceneView?.scene?.view?.renderer != null}, ${arFragment != null}"
+                        )
 
-                    adapter?.notifyDataSetChanged()
+                        node?.renderable = renderable
+                        node?.select()
+
+                        Log.e(
+                            "MainActivity",
+                            "showCurrentRenderable renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
+                        )
+                        vrObjectsMap[renderableCloudId] = Pair(currentRenderable?.dataItemObject?.id!!, mNode)
+
+                        adapter?.notifyDataSetChanged()
+                    }
                 }
             },
             onFailure = {
@@ -229,19 +294,109 @@ class MainActivity : BaseArActivity() {
         )
     }
 
-    private fun placeObject(anchor: Anchor?, itemId: DataItemId?) {
-        Log.e("MainActivity", "placeObject itemId : ${itemId},  currentRenderable?.dataItemObject?.id : ${ currentRenderable?.dataItemObject?.id}")
+    override fun renderableRemove(
+        dataItemObject: DataItemObject?,
+        renderableCloudId: RenderableCloudId?
+    ) {
+        Log.e(
+            "MainActivity",
+            "renderableRemove renderableCloudId : ${renderableCloudId}, dataItemObject?.id : ${dataItemObject?.id} : ${Gson().toJson(vrObjectsMap.keys)}"
+        )
+        Log.e(
+            "MainActivity",
+            "renderableRemove ${Gson().toJson(vrObjectsMap.keys)}"
+        )
+        Log.e(
+            "MainActivity",
+            "renderableRemove ${Gson().toJson(vrObjectsMap.values.map { it.first })}"
+        )
+        super.renderableRemove(dataItemObject, renderableCloudId)
+
+        val rCloudId = renderableCloudId ?: vrObjectsMap.filter {
+            it.value.first == dataItemObject?.id
+        }.keys.firstOrNull()
+
+        storageManager?.removeChild(rCloudId, dataItemObject?.id!!)
+    }
+
+    private fun placeObject(
+        anchor: Anchor?,
+        renderableCloudId: RenderableCloudId?,
+        itemId: DataItemId?
+    ) {
+        Log.e(
+            "MainActivity",
+            "placeObject renderableCloudId: ${renderableCloudId}, itemId : ${itemId},  currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
+        )
 
         if (itemId != null && currentRenderable?.dataItemObject?.id != itemId) {
-            if (cashedAssets[itemId] != null) {
-                currentRenderable = cashedAssets[itemId]
+            if (cashedAssets[renderableCloudId] != null) {
+                currentRenderable = cashedAssets[renderableCloudId]
             } else {
-                loadRenderableById(itemId, anchor)
+                loadRenderableById(itemId, anchor, renderableCloudId)
                 return
             }
-        } else {
-            showCurrentRenderable(anchor)
         }
+
+        showCurrentRenderable(anchor, renderableCloudId)
+    }
+
+    override fun positionRenderableOnPlane(anchor: Anchor?, renderableCloudId: RenderableCloudId?) {
+        if (renderableCloudId == null) {
+            return
+        }
+
+        anchorNode = AnchorNode(anchor)
+        Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}, renderableCloudId : ${renderableCloudId}")
+
+        anchorNode?.setParent(arFragment?.arSceneView?.scene)
+        val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
+
+        anchorNode?.localScale = Vector3(scale, scale, scale)
+
+        currentRenderable?.start(
+            anchor = anchor,
+            onSuccess = {
+                currentRenderable?.getRenderable()?.let { renderable ->
+                    TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+
+                        mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
+                        mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
+
+                        node = mNode
+                        node?.setParent(anchorNode)
+
+                        Log.e(
+                            "MainActivity",
+                            "thread : ${Thread.currentThread().name} positionRenderableOnPlane renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}, ${renderable != null}, ${currentRenderable != null}, ${sceneView?.scene?.view?.renderer != null}, ${arFragment != null}"
+                        )
+
+                        node?.renderable = renderable
+                        node?.select()
+
+                        Log.e(
+                            "MainActivity",
+                            "positionRenderableOnPlane renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
+                        )
+
+                        vrObjectsMap[renderableCloudId] =
+                            Pair(currentRenderable?.dataItemObject?.id!!, mNode)
+
+                        adapter?.notifyDataSetChanged()
+                    }
+                }
+            },
+            onFailure = {
+                if (currentRenderable != null && isSelectedRenderable(currentRenderable!!.dataItemObject)) {
+                    renderableUploadedFailed(currentRenderable!!.dataItemObject)
+                }
+            }
+        )
+    }
+
+    override fun onDestroy() {
+        storageManager?.removeSubscriber()
+        super.onDestroy()
     }
 
 }

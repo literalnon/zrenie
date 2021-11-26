@@ -181,34 +181,41 @@ class ArVideoRenderObject(
                     it.setOnFrameAvailableListener(null)
                     //videoAnchorNode.renderable = videoRenderable
 
-                    videoTransformableNode = TransformableNode(arFragment?.transformationSystem)
-                    videoTransformableNode?.setParent(videoAnchorNode)
-                    videoTransformableNode?.renderable = videoRenderable
-                    videoTransformableNode?.select()
+                    if (augmentedImage != null) {
+                        videoTransformableNode = TransformableNode(arFragment?.transformationSystem)
+                        videoTransformableNode?.setParent(videoAnchorNode)
+                        videoTransformableNode?.renderable = videoRenderable
+                        videoTransformableNode?.select()
 
-                    Log.e(
-                        "ArVideoRenderObject",
-                        "1 videoTransformableNode.worldPosition : ${videoTransformableNode?.worldPosition}"
-                    )
-                    Log.e(
-                        "ArVideoRenderObject",
-                        "1 videoTransformableNode?.localPosition : ${videoTransformableNode?.localPosition}"
-                    )
+                        Log.e(
+                            "ArVideoRenderObject",
+                            "1 videoTransformableNode.worldPosition : ${videoTransformableNode?.worldPosition}"
+                        )
+                        Log.e(
+                            "ArVideoRenderObject",
+                            "1 videoTransformableNode?.localPosition : ${videoTransformableNode?.localPosition}"
+                        )
 
-                    val mx = (videoTransformableNode?.worldPosition?.x ?: 0f) + (dataItemObject.offsetX ?: 0).toFloat() / 1000f
-                    val my = (videoTransformableNode?.worldPosition?.y ?: 0f) + (dataItemObject.offsetY ?: 0).toFloat() / 1000f
-                    val mz = (videoTransformableNode?.worldPosition?.z ?: 0f) + (dataItemObject.offsetZ ?: 0).toFloat() / 1000f
+                        val mx = (videoTransformableNode?.worldPosition?.x
+                            ?: 0f) + (dataItemObject.offsetX ?: 0).toFloat() / 1000f
+                        val my = (videoTransformableNode?.worldPosition?.y
+                            ?: 0f) + (dataItemObject.offsetY ?: 0).toFloat() / 1000f
+                        val mz = (videoTransformableNode?.worldPosition?.z
+                            ?: 0f) + (dataItemObject.offsetZ ?: 0).toFloat() / 1000f
 
-                    videoTransformableNode?.worldPosition = Vector3(mx, my, mz)
+                        videoTransformableNode?.worldPosition = Vector3(mx, my, mz)
 
-                    Log.e(
-                        "ArVideoRenderObject",
-                        "2 videoTransformableNode?.worldPosition : ${videoTransformableNode?.worldPosition}"
-                    )
-                    Log.e(
-                        "ArVideoRenderObject",
-                        "2 videoTransformableNode?.localPosition : ${videoTransformableNode?.localPosition}"
-                    )
+                        Log.e(
+                            "ArVideoRenderObject",
+                            "2 videoTransformableNode?.worldPosition : ${videoTransformableNode?.worldPosition}"
+                        )
+                        Log.e(
+                            "ArVideoRenderObject",
+                            "2 videoTransformableNode?.localPosition : ${videoTransformableNode?.localPosition}"
+                        )
+                    } else {
+                        videoAnchorNode.renderable = videoRenderable
+                    }
                 }
 
                 onSuccess()

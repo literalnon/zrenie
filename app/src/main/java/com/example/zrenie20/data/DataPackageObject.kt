@@ -5,6 +5,7 @@ import io.realm.RealmObject
 
 typealias DataPackageId = Long
 typealias DataItemId = Long
+typealias RenderableCloudId = Long
 typealias TriggerId = Long
 typealias TypeId = Long
 

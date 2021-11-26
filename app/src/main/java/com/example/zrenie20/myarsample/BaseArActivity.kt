@@ -60,6 +60,7 @@ import android.view.*
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.R
+import com.example.zrenie20.cloudAnchor2.StorageManager
 import com.example.zrenie20.renderable.ArRenderObjectFactory
 import com.google.ar.core.*
 import com.google.ar.sceneform.assets.RenderableSource
@@ -88,7 +89,9 @@ abstract class BaseArActivity : AppCompatActivity() {
     abstract val layoutId: Int
     var arFragment: ArFragment? = null
     var sceneView: ArSceneView? = null
-    val vrObjectsMap = hashMapOf<DataItemObject, Node>()
+
+    //val vrObjectsMap = hashMapOf<DataItemObject, Node>()
+    val vrObjectsMap = hashMapOf<DataItemId, Pair<DataItemId, Node>>()
 
     var videoRecorder: VideoRecorder? = null
 
@@ -202,19 +205,20 @@ abstract class BaseArActivity : AppCompatActivity() {
                     renderableUploadedFailed(vrObjectDataClass)
                 },
                 renderableRemoveCallback = { dataItemObject ->
+                    renderableRemove(dataItemObject)
                     //node?.renderable = null
-                    vrObjectsMap[dataItemObject]?.apply {
-                        cashedAssets[dataItemObject.id]?.stop()
-                        renderable = null
-                        arFragment?.arSceneView?.scene?.removeChild(this)
-                        vrObjectsMap.remove(dataItemObject)
-                    }
+                    /* vrObjectsMap[dataItemObject.id]?.apply {
+                         cashedAssets[dataItemObject.id]?.stop()
+                         renderable = null
+                         arFragment?.arSceneView?.scene?.removeChild(this)
+                         vrObjectsMap.remove(dataItemObject.id)
+                     }*/
 
                     //currentRenderable?.stop()
                     adapter?.notifyDataSetChanged()
                 },
                 isCanRemoveRenderable = {
-                    vrObjectsMap[it] != null
+                    isCanRemoveRenderable(it)
                 }
             )
         )
@@ -304,40 +308,47 @@ abstract class BaseArActivity : AppCompatActivity() {
             flMirror?.visibility = View.GONE
         }
 
-        orientationListener = object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
-            override fun onOrientationChanged(orientation: Int) {
-                Log.e("listener", "onOrientationChanged : ${orientation}")
+        orientationListener =
+            object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
+                override fun onOrientationChanged(orientation: Int) {
+                    //Log.e("listener", "onOrientationChanged : ${orientation}")
 
-                val newOrientation = when (orientation) {
-                    in 0..45 -> {
-                        360
-                    }
-                    in 45..135 -> {
-                        270
-                    }
-                    in 135..225 -> {
-                        180
-                    }
-                    in 225..315 -> {
-                        90
-                    }
-                    in 315..360 -> {
-                        360
-                    }
-                    else -> {
-                        360
-                    }
-                }.toFloat()
+                    val newOrientation = when (orientation) {
+                        in 0..45 -> {
+                            360
+                        }
+                        in 45..135 -> {
+                            270
+                        }
+                        in 135..225 -> {
+                            180
+                        }
+                        in 225..315 -> {
+                            90
+                        }
+                        in 315..360 -> {
+                            360
+                        }
+                        else -> {
+                            360
+                        }
+                    }.toFloat()
 
 
-                ivChangeVisibility?.rotation = newOrientation
+                    ivChangeVisibility?.rotation = newOrientation
+                }
             }
-        }
     }
 
-    fun positionRenderableOnPlane(anchor: Anchor?) {
+    open fun positionRenderableOnPlane(
+        anchor: Anchor?,
+        renderableCloudId: RenderableCloudId? = null
+    ) {
         anchorNode = AnchorNode(anchor)
-        Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}")
+        Log.e(
+            "renderable",
+            "anchorNode.worldPosition : ${anchorNode?.worldPosition}, renderableCloudId : ${renderableCloudId}"
+        )
 
         anchorNode?.setParent(arFragment?.arSceneView?.scene)
         val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f
@@ -358,7 +369,12 @@ abstract class BaseArActivity : AppCompatActivity() {
                     node?.renderable = currentRenderable?.getRenderable()
                     node?.select()
 
-                    vrObjectsMap[currentRenderable?.dataItemObject!!] = mNode
+                    Log.e(
+                        "MainActivityBase",
+                        "positionRenderableOnPlane renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
+                    )
+                    vrObjectsMap[renderableCloudId ?: currentRenderable?.dataItemObject?.id!!] =
+                        Pair(currentRenderable!!.dataItemObject.id!!, mNode)
 
                     adapter?.notifyDataSetChanged()
                 }
@@ -713,6 +729,15 @@ abstract class BaseArActivity : AppCompatActivity() {
         return currentRenderable?.dataItemObject?.id == dataItemObjectDataClass.id
     }
 
+    open fun isCanRemoveRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
+        return vrObjectsMap
+            .filter {
+                it.key == dataItemObjectDataClass.id
+                        || it.value.first == dataItemObjectDataClass.id
+            }
+            .isNotEmpty()
+    }
+
     open fun selectedRenderable(dataItemObjectDataClass: DataItemObject): Boolean {
         currentRenderable?.pause()
         currentRenderable = cashedAssets[dataItemObjectDataClass.id]
@@ -728,20 +753,47 @@ abstract class BaseArActivity : AppCompatActivity() {
         }
     }
 
+    open fun renderableRemove(
+        dataItemObject: DataItemObject? = null,
+        renderableCloudId: RenderableCloudId? = null
+    ) {
+        Log.e(
+            "MainActivity",
+            "renderableRemove : ${dataItemObject?.id}, ${renderableCloudId}"
+        )
+
+        Log.e(
+            "MainActivity",
+            "renderableRemove : ${vrObjectsMap[dataItemObject?.id] != null}, ${vrObjectsMap[renderableCloudId] != null}"
+        )
+
+
+        (vrObjectsMap[renderableCloudId] ?: vrObjectsMap[dataItemObject?.id])?.apply {
+            (cashedAssets[renderableCloudId] ?: cashedAssets[dataItemObject?.id])?.stop()
+            second.renderable = null
+            arFragment?.arSceneView?.scene?.removeChild(second)
+            vrObjectsMap.remove(renderableCloudId)
+            vrObjectsMap.remove(dataItemObject?.id)
+
+            adapter.notifyDataSetChanged()
+        }
+    }
+
     open fun renderableUploaded(
         dataItemObjectDataClass: DataItemObject,
         renderable: IArRenderObject,
-        anchor: Anchor? = null
+        anchor: Anchor? = null,
+        renderableCloudId: RenderableCloudId? = null
     ) {
         flProgressBar.visibility = View.GONE
 
         currentRenderable = renderable
-        cashedAssets[dataItemObjectDataClass.id!!] = renderable
+        cashedAssets[renderableCloudId ?: dataItemObjectDataClass.id!!] = renderable
 
         adapter.notifyDataSetChanged()
 
         if (anchor != null) {
-            positionRenderableOnPlane(anchor)
+            positionRenderableOnPlane(anchor, renderableCloudId)
         }
     }
 
@@ -773,7 +825,15 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     val fileDownloadManager = FileDownloadManager()
 
-    fun loadRenderableById(itemId: DataItemId, anchor: Anchor? = null) {
+    fun loadRenderableById(
+        itemId: DataItemId,
+        anchor: Anchor? = null,
+        renderableCloudId: RenderableCloudId? = null
+    ) {
+        Log.e(
+            "MainActivity",
+            "loadRenderableById itemId : ${itemId},  currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}, renderableCloudId : ${renderableCloudId}"
+        )
         val context = this
 
         val item = assetsArray.find { it.id == itemId } ?: return
@@ -791,7 +851,7 @@ abstract class BaseArActivity : AppCompatActivity() {
 
                 Log.e("renderable", "isSelectedRenderable : ${isSelectedRenderable(item)}")
 
-                renderableUploaded(item, arRenderObject, anchor)
+                renderableUploaded(item, arRenderObject, anchor, renderableCloudId)
 
             }, {
                 Log.e("renderable", "error : ${it.message}")
