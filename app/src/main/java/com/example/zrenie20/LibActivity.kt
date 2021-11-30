@@ -69,7 +69,7 @@ class LibActivity : AppCompatActivity() {
                     onBackPressed()
                 }*/
 
-                when(currentType) {
+                when (currentType) {
                     SCREENS.SPACE -> {
                         SettingsActivity.currentScreen = SCREENS.SPACE
                         startActivity(Intent(this, SpaceActivity::class.java))
@@ -118,26 +118,33 @@ class LibActivity : AppCompatActivity() {
 
         val allFiles = fileDownloadManager.getAllFiles(this)
 
-         val isContainsInObj: (RealmDataItemObject) -> Boolean = { item ->
-            val searchText =
-                etSearch.text.toString()
-            searchText.isEmpty() ||
-            item.name?.contains(searchText) == true ||
-            item.description?.contains(searchText) == true ||
-            item.thumbnailPath?.contains(searchText) == true ||
-            item.scale?.contains(searchText) == true ||
-            item.filePath?.contains(searchText) == true ||
-            item.triggerId?.contains(searchText) == true ||
-            item.platform?.contains(searchText) == true ||
-            item.isHidden?.contains(searchText) == true ||
-            item.createdAt?.contains(searchText) == true ||
-            item.updatedAt?.contains(searchText) == true ||
-            item.type?.name?.contains(searchText) == true ||
-            item.type?.codeName?.contains(searchText) == true ||
-            item.trigger?.name?.contains(searchText) == true ||
-            item.trigger?.description?.contains(searchText) == true ||
-            item.actionUrl?.contains(searchText) == true
-        }
+        val isContainsInObj: (DataPackageObject, RealmDataItemObject) -> Boolean =
+            { mPackage, item ->
+                val searchText =
+                    etSearch.text.toString()
+                searchText.isEmpty() ||
+                        item.name?.contains(searchText, true) == true ||
+                        item.description?.contains(searchText, true) == true ||
+                        item.thumbnailPath?.contains(searchText, true) == true ||
+                        item.scale?.contains(searchText, true) == true ||
+                        item.filePath?.contains(searchText, true) == true ||
+                        item.triggerId?.contains(searchText, true) == true ||
+                        item.platform?.contains(searchText, true) == true ||
+                        item.isHidden?.contains(searchText, true) == true ||
+                        item.createdAt?.contains(searchText, true) == true ||
+                        item.updatedAt?.contains(searchText, true) == true ||
+                        item.type?.name?.contains(searchText, true) == true ||
+                        item.type?.codeName?.contains(searchText, true) == true ||
+                        item.trigger?.name?.contains(searchText, true) == true ||
+                        item.trigger?.description?.contains(searchText, true) == true ||
+                        item.actionUrl?.contains(searchText, true) == true ||
+                        mPackage.name?.contains(searchText, true) == true ||
+                        mPackage.description?.contains(searchText, true) == true ||
+                        mPackage.thumbnailPath?.contains(searchText, true) == true ||
+                        mPackage.order?.contains(searchText, true) == true ||
+                        mPackage.createdAt?.contains(searchText, true) == true ||
+                        mPackage.updatedAt?.contains(searchText, true) == true
+            }
 
         val getElemets: (mType: ArTypes) -> List<DataPackageObject> = { mType ->
             var objects = listOf<DataPackageObject>()
@@ -150,7 +157,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(packageItem, it) }
                                 .find { it.trigger?.type?.codeName == mType.codeName } != null
                         }
                 }
@@ -198,14 +205,14 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(packageItem, it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArImageType().codeName } != null
                         }
-                        /*.filter { dataItemObj ->
-                            allFiles?.filter {
-                                it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
-                            }?.isNotEmpty() == true
-                        }*/
+                    /*.filter { dataItemObj ->
+                        allFiles?.filter {
+                            it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
+                        }?.isNotEmpty() == true
+                    }*/
 
                     assetsArray.clear()
 
@@ -233,7 +240,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(packageItem, it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName } != null
                         }
                     /*.filter { dataItemObj ->
@@ -268,7 +275,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it)  }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(packageItem, it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArFaceType().codeName } != null
                         }
 
@@ -300,7 +307,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it)  }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(packageItem, it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArOSpaceType().codeName } != null
                         }
 
@@ -341,7 +348,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(packageItem, it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArOSpaceType().codeName } != null
                         }
 
@@ -393,12 +400,6 @@ class LibActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                /*ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
-                imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
-                imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
-                imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
-                imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
-*/
                 lastClickView?.performClick()
             }
 

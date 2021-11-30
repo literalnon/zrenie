@@ -18,15 +18,14 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.FileProvider
 import androidx.core.view.marginBottom
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import com.example.zrenie20.LibActivity
+import com.example.zrenie20.*
 import com.example.zrenie20.R
-import com.example.zrenie20.SCREENS
-import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.arcorelocation.LocationMarker
 import com.example.zrenie20.location.arcorelocation.LocationScene
@@ -73,6 +72,7 @@ import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.URLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.random.Random
@@ -501,6 +501,8 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
             values.put(MediaStore.Video.Media.DATA, videoPath)
             contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+
+            shareFile(File(videoPath))
         }
     }
 
@@ -537,6 +539,43 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+    fun shareFile(file: File) {
+        val intentShareFile = Intent(Intent.ACTION_SEND)
+
+        Log.e("SHARE_FILE", "URLConnection.guessContentTypeFromName(file.name) : ${URLConnection.guessContentTypeFromName(file.name)}")
+        Log.e("SHARE_FILE", "file.name : ${file.name}")
+
+        intentShareFile.apply {
+            type = URLConnection.guessContentTypeFromName(file.name)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+            putExtra(
+                Intent.EXTRA_SUBJECT,
+                getString(R.string.app_name)
+            )
+
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Sharing file from ${getString(R.string.app_name)}"
+            )
+
+            val fileURI = FileProvider.getUriForFile(
+                Objects.requireNonNull(getApplicationContext()),
+                BuildConfig.APPLICATION_ID + ".fileprovider",
+                file
+            )
+
+            putExtra(
+                Intent.EXTRA_STREAM,
+                fileURI
+            )
+        }
+
+        startActivity(Intent.createChooser(intentShareFile, "Share File"))
+    }
+
     fun takePhoto() {
         val view = arFragment!!.arSceneView
 
@@ -554,7 +593,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             if (copyResult === PixelCopy.SUCCESS) {
                 try {
                     val file = saveBitmapToDisk(bitmap)
-
+                    shareFile(file)
                     /* val toast: Toast = Toast.makeText(
                          this, "Screenshot saved in : ${file.canonicalPath}",
                          Toast.LENGTH_LONG

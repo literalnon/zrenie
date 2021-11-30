@@ -57,8 +57,11 @@ import android.provider.MediaStore
 import android.content.ContentValues
 import android.hardware.SensorManager
 import android.view.*
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import com.example.zrenie20.BuildConfig
 import com.example.zrenie20.R
 import com.example.zrenie20.cloudAnchor2.StorageManager
 import com.example.zrenie20.renderable.ArRenderObjectFactory
@@ -69,6 +72,7 @@ import kotlinx.android.synthetic.main.activity_my_sample.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_my_sample.llFocus
 import kotlinx.android.synthetic.main.activity_my_sample.llMainActivities
 import kotlinx.android.synthetic.main.activity_my_sample.svMirror
+import java.net.URLConnection
 
 
 abstract class BaseArActivity : AppCompatActivity() {
@@ -468,6 +472,8 @@ abstract class BaseArActivity : AppCompatActivity() {
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
             values.put(MediaStore.Video.Media.DATA, videoPath)
             contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+
+            shareFile(File(videoPath))
         }
     }
 
@@ -489,6 +495,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                 try {
                     val file = saveBitmapToDisk(bitmap)
 
+                    shareFile(file)
                     /* val toast: Toast = Toast.makeText(
                          this, "Screenshot saved in : ${file.canonicalPath}",
                          Toast.LENGTH_LONG
@@ -511,6 +518,43 @@ abstract class BaseArActivity : AppCompatActivity() {
             }
             handlerThread.quitSafely()
         }, Handler(handlerThread.looper))
+    }
+
+    fun shareFile(file: File) {
+        val intentShareFile = Intent(Intent.ACTION_SEND)
+
+        Log.e("SHARE_FILE", "URLConnection.guessContentTypeFromName(file.name) : ${URLConnection.guessContentTypeFromName(file.name)}")
+        Log.e("SHARE_FILE", "file.name : ${file.name}")
+
+        intentShareFile.apply {
+            type = URLConnection.guessContentTypeFromName(file.name)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+            putExtra(
+                Intent.EXTRA_SUBJECT,
+                getString(R.string.app_name)
+            )
+
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Sharing file from ${getString(R.string.app_name)}"
+            )
+
+            val fileURI = FileProvider.getUriForFile(
+                Objects.requireNonNull(getApplicationContext()),
+                BuildConfig.APPLICATION_ID + ".fileprovider",
+                file
+            )
+
+            putExtra(
+                Intent.EXTRA_STREAM,
+                fileURI
+            )
+        }
+
+        startActivity(Intent.createChooser(intentShareFile, "Share File"))
     }
 
     open fun saveBitmapToDisk(bitmap: Bitmap): File {

@@ -1,9 +1,13 @@
 package com.example.zrenie20
 
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -13,6 +17,7 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -183,6 +188,7 @@ class SettingsActivity : AppCompatActivity() {
         const val APP_PREFERENCES = "mysettings"
         const val APP_PREFERENCES_CHECKED = "APP_PREFERENCES_CHECKED"
         const val APP_INSTRUCTION = "APP_INSTRUCTION"
+        const val MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 9871
 
         fun getImageData(
             llProgress: View?,
@@ -389,10 +395,21 @@ class SettingsActivity : AppCompatActivity() {
                 }
         }
 
-        fun checkLocationSettings(context: Context): Boolean {
+        fun checkLocationSettings(context: Activity): Boolean {
             val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
             var gps_enabled = false
             var network_enabled = false
+
+            if (ActivityCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(context, ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    context,
+                    arrayOf(ACCESS_FINE_LOCATION),
+                    MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
+                );
+
+                return gps_enabled
+            }
 
             try {
                 gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)

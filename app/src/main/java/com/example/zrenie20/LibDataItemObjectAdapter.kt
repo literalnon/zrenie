@@ -16,7 +16,8 @@ import kotlinx.android.synthetic.main.item_lib_object.view.*
 
 
 class LibDataItemObjectAdapter(
-    val onSelectedItem: (DataItemObject) -> Unit
+    val onSelectedItem: (DataItemObject) -> Unit,
+    val onSelectedIcon: (DataItemObject) -> Unit = {}
 ) :
     AbstractAdapterDelegate<Any, Any, LibDataItemObjectAdapter.VrObjectsAdapterHolder>() {
 
@@ -58,6 +59,10 @@ class LibDataItemObjectAdapter(
 
         holder.view.setOnClickListener {
             onSelectedItem(item)
+        }
+
+        holder.view.ivObjType.setOnClickListener {
+            onSelectedIcon(item)
         }
 
         holder.ivObjType.setImageResource(

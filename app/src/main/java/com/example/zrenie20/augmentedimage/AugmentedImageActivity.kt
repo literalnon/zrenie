@@ -34,10 +34,12 @@ import android.view.PixelCopy
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import com.example.zrenie20.BuildConfig
 import com.example.zrenie20.LibActivity
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
@@ -53,6 +55,7 @@ import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.URLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -79,6 +82,10 @@ class AugmentedImageActivity : AppCompatActivity() {
                 it.beginTransaction()
                     .replace(R.id.fragmentContainer, mArFragment)
                     .commit()
+            }
+
+            arFragment?.setOnSessionInitializationListener {
+                photoVideoRecorderInit()
             }
         }
 
@@ -137,8 +144,6 @@ class AugmentedImageActivity : AppCompatActivity() {
                     .into(ivStack)
             }
 
-        photoVideoRecorderInit()
-
         orientationListener = object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
             override fun onOrientationChanged(orientation: Int) {
                 Log.e("listener", "onOrientationChanged : ${orientation}")
@@ -174,7 +179,7 @@ class AugmentedImageActivity : AppCompatActivity() {
         videoRecorder = VideoRecorder(this)
         val orientation = resources.configuration.orientation
         videoRecorder?.setVideoQuality(CamcorderProfile.QUALITY_2160P, orientation)
-        videoRecorder?.setSceneView(arFragment!!.arSceneView)
+        videoRecorder?.setSceneView(arFragment!!.arSceneView!!)
 
         choice = PHOTO
 
@@ -226,7 +231,46 @@ class AugmentedImageActivity : AppCompatActivity() {
             values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
             values.put(MediaStore.Video.Media.DATA, videoPath)
             contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+
+            shareFile(File(videoPath))
         }
+    }
+
+    fun shareFile(file: File) {
+        val intentShareFile = Intent(Intent.ACTION_SEND)
+
+        Log.e("SHARE_FILE", "URLConnection.guessContentTypeFromName(file.name) : ${URLConnection.guessContentTypeFromName(file.name)}")
+        Log.e("SHARE_FILE", "file.name : ${file.name}")
+
+        intentShareFile.apply {
+            type = URLConnection.guessContentTypeFromName(file.name)
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+            putExtra(
+                Intent.EXTRA_SUBJECT,
+                getString(R.string.app_name)
+            )
+
+            putExtra(
+                Intent.EXTRA_TEXT,
+                "Sharing file from ${getString(R.string.app_name)}"
+            )
+
+            val fileURI = FileProvider.getUriForFile(
+                Objects.requireNonNull(getApplicationContext()),
+                BuildConfig.APPLICATION_ID + ".fileprovider",
+                file
+            )
+
+            putExtra(
+                Intent.EXTRA_STREAM,
+                fileURI
+            )
+        }
+
+        startActivity(Intent.createChooser(intentShareFile, "Share File"))
     }
 
     fun takePhoto() {
@@ -247,6 +291,7 @@ class AugmentedImageActivity : AppCompatActivity() {
                 try {
                     val file = saveBitmapToDisk(bitmap)
 
+                    shareFile(file)
                     /* val toast: Toast = Toast.makeText(
                          this, "Screenshot saved in : ${file.canonicalPath}",
                          Toast.LENGTH_LONG
