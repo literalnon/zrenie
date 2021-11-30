@@ -901,36 +901,41 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                 )
                 .bearing(location!!.bearing)
                 .target(LatLng(location.latitude, location.longitude))
+                .zoom(17f)
                 .build()
 
-            mGoogleMap?.animateCamera(CameraUpdateFactory.newCameraPosition(camPos))
+            mGoogleMap?.animateCamera(
+                CameraUpdateFactory.newCameraPosition(camPos)
+            )
         }
 
         val mapView = mapFragment?.view
 
         var isFullscreen = false
-        val minHeight = mapView?.layoutParams?.height
-        val minWidth = mapView?.layoutParams?.width
-        val minMarginBottom = mapView?.marginBottom
+        val minHeight = mapFrame?.layoutParams?.height
+        val minWidth = mapFrame?.layoutParams?.width
+        val minMarginBottom = mapFrame?.marginBottom
 
         mGoogleMap?.setOnMapClickListener {
 
             if (isFullscreen) {
-                mapView?.layoutParams?.height = minHeight
-                mapView?.layoutParams?.width = minWidth
-                (mapView?.layoutParams as? ConstraintLayout.LayoutParams)?.setMargins(
+                mapFrame?.isNeedCrop = true
+                mapFrame?.layoutParams?.height = minHeight
+                mapFrame?.layoutParams?.width = minWidth
+                (mapFrame?.layoutParams as? ConstraintLayout.LayoutParams)?.setMargins(
                     0,
                     0,
                     0,
                     minMarginBottom ?: 0
                 )
             } else {
-                mapView?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
-                mapView?.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
-                (mapView?.layoutParams as? ConstraintLayout.LayoutParams)?.setMargins(0, 0, 0, 0)
+                mapFrame?.isNeedCrop = false
+                mapFrame?.layoutParams?.height = ViewGroup.LayoutParams.MATCH_PARENT
+                mapFrame?.layoutParams?.width = ViewGroup.LayoutParams.MATCH_PARENT
+                (mapFrame?.layoutParams as? ConstraintLayout.LayoutParams)?.setMargins(0, 0, 0, 0)
             }
 
-            mapView?.requestLayout()
+            mapFrame?.requestLayout()
 
             isFullscreen = !isFullscreen
         }

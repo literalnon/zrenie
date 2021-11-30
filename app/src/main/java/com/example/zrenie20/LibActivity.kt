@@ -584,11 +584,11 @@ class LibActivity : AppCompatActivity() {
                         }, {
                             Log.e(SettingsActivity.TAG, "subscribe 4 error : ${it.message}")
                             llProgress?.visibility = View.GONE
-                            Toast.makeText(
+                            /*Toast.makeText(
                                 this,
                                 "error load data from network : ${it.message}",
                                 Toast.LENGTH_LONG
-                            ).show()
+                            ).show()*/
                             it.printStackTrace()
                         })
             }

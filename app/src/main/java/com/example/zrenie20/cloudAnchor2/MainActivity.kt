@@ -93,7 +93,7 @@ class MainActivity : BaseArActivity() {
                     itemId = itemId,
                     renderableCloudId = renderableCloudId
                 )
-                snackbarHelper.showMessage(this@MainActivity, "Now Resolving Anchor...")
+                snackbarHelper.showMessage(this@MainActivity, getString(R.string.resolving_anchor))
                 appAnchorState = AppAnchorState.RESOLVING
             }
 
@@ -143,7 +143,7 @@ class MainActivity : BaseArActivity() {
 
         setCloudAnchor(newAnchor)
         appAnchorState = AppAnchorState.HOSTING
-        snackbarHelper.showMessage(this, "Now hosting anchor...")
+        snackbarHelper.showMessage(this, getString(R.string.hosting_anchor))
         //placeObject(cloudAnchor, currentRenderable!!.dataItemObject.id)
     }
 
@@ -194,7 +194,7 @@ class MainActivity : BaseArActivity() {
             if (cloudState.isError) {
                 Log.e("MainActivity", "checkUpdatedAnchor error hosting cloudState : ${cloudState}")
                 snackbarHelper.showMessageWithDismiss(
-                    this, "Error hosting anchor.. "
+                    this, ""
                             + cloudState
                 )
                 appAnchorState = AppAnchorState.NONE
@@ -233,7 +233,7 @@ class MainActivity : BaseArActivity() {
                 )
                 appAnchorState = AppAnchorState.NONE
             } else if (cloudState == CloudAnchorState.SUCCESS) {
-                snackbarHelper.showMessageWithDismiss(this, "Anchor resolved successfully")
+                snackbarHelper.showMessageWithDismiss(this, getString(R.string.hosting_anchor))
                 appAnchorState = AppAnchorState.RESOLVED
             }
         }

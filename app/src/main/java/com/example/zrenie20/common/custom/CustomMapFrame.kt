@@ -16,6 +16,8 @@ class RoundCornerLayout : FrameLayout {
     private var mMaskPaint: Paint? = null
     private var mMetrics: DisplayMetrics? = null
 
+    var isNeedCrop = true
+
     constructor(context: Context) : super(context) {
         init(context)
     }
@@ -47,44 +49,46 @@ class RoundCornerLayout : FrameLayout {
     }
 
     override fun dispatchDraw(canvas: Canvas) {
-        val centerHorizontal = measuredWidth.toFloat() / 2
-        val radius = measuredWidth.toFloat() / 2
+        if (isNeedCrop) {
+            val centerHorizontal = measuredWidth.toFloat() / 2
+            val radius = measuredWidth.toFloat() / 2
 
-        val centerVertical = measuredHeight.toFloat()
+            val centerVertical = measuredHeight.toFloat()
 
-        val path1 = Path()
+            val path1 = Path()
 
-        path1.arcTo(
-            RectF(
-                centerHorizontal - radius,
-                centerVertical - radius,
-                centerHorizontal + radius,
-                centerVertical + radius
-            ),
-            -180f,
-            180f,
-            false
-        )
+            path1.arcTo(
+                RectF(
+                    centerHorizontal - radius,
+                    centerVertical - radius,
+                    centerHorizontal + radius,
+                    centerVertical + radius
+                ),
+                -180f,
+                180f,
+                false
+            )
 
-        val path2 = Path()
+            val path2 = Path()
 
-        val radius2 = radius / 4
+            val radius2 = radius / 4
 
-        path2.arcTo(
-            RectF(
-                centerHorizontal - radius2,
-                centerVertical - radius2,
-                centerHorizontal + radius2,
-                centerVertical + radius2
-            ),
-            -180f,
-            180f,
-            false
-        )
+            path2.arcTo(
+                RectF(
+                    centerHorizontal - radius2,
+                    centerVertical - radius2,
+                    centerHorizontal + radius2,
+                    centerVertical + radius2
+                ),
+                -180f,
+                180f,
+                false
+            )
 
-        val path3 = path1.minus(path2)
+            val path3 = path1.minus(path2)
 
-        canvas.clipPath(path3)
+            canvas.clipPath(path3)
+        }
 
         super.dispatchDraw(canvas)
     }

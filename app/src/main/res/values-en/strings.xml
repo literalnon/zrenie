@@ -38,4 +38,6 @@
 
     <string name="resolving_anchor">Placing the object in space ...</string>
     <string name="hosting_anchor">Object is found in space</string>
+    <string name="resolve_anchor">Object placed in space</string>
+
 </resources>

@@ -41,6 +41,7 @@
 
     <string name="resolving_anchor">Размещаем объект в пространстве...</string>
     <string name="hosting_anchor">Объект найден в пространстве</string>
+    <string name="resolve_anchor">Объект размещен в пространстве</string>
 
     <!-- - Изменить цвет переключателя: #fcc506-->
     <!--<string name="resolving_anchor">Ошибка, попробуйте снова

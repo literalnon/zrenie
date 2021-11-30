@@ -502,11 +502,11 @@ abstract class BaseArActivity : AppCompatActivity() {
                      )
                      toast.show()*/
                 } catch (e: IOException) {
-                    val toast: Toast = Toast.makeText(
+                    /*val toast: Toast = Toast.makeText(
                         this, e.toString(),
                         Toast.LENGTH_LONG
-                    )
-                    toast.show()
+                    )*/
+                    //toast.show()
                     return@request
                 }
 
@@ -826,10 +826,10 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     open fun renderableUploadedFailed(dataItemObjectDataClass: DataItemObject) {
         flProgressBar.visibility = View.GONE
-        Toast.makeText(
+        /*Toast.makeText(
             this,
             "Unable to load renderable " + dataItemObjectDataClass.filePath, Toast.LENGTH_LONG
-        ).show()
+        ).show()*/
 
         adapter.notifyDataSetChanged()
     }
