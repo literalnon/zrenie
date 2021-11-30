@@ -30,4 +30,19 @@
     <string name="gps_network_not_enabled">gps network not enabled</string>
     <string name="open_location_settings">open location settings</string>
 
+    <string name="instruction_dialog">Команда ZRENIE 2.0 рада Вас приветствовать! За подробной инструкцией обращайтесь в настройки приложения. Время исследовать новую точку зрения.</string>
+    <string name="instruction_dialog_title">Инструкция</string>
+    <string name="instruction_dialog_positive_button">Смотреть инструкцию</string>
+
+    <string name="flush">Данная версия ARCore не поддерживает вспышку. Ждем обновления от Google.</string>
+
+    <!--<string name="resolving_anchor">Определяем геометрию пространства...</string>
+    <string name="resolving_anchor">Determining the geometry of space ...</string>-->
+
+    <string name="resolving_anchor">Размещаем объект в пространстве...</string>
+    <string name="hosting_anchor">Объект найден в пространстве</string>
+
+    <!-- - Изменить цвет переключателя: #fcc506-->
+    <!--<string name="resolving_anchor">Ошибка, попробуйте снова
+    Error, please try again-->
 </resources>

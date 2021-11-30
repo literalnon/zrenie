@@ -114,24 +114,7 @@ abstract class BaseArActivity : AppCompatActivity() {
         sceneView?.planeRenderer?.isEnabled = true
 
         ivFlash?.setOnClickListener {
-            Log.e("FLASH", "ivFlash setOnClickListener")
-
-            sceneView?.pause()
-
-            val camManager = getSystemService(CAMERA_SERVICE) as CameraManager
-
-            var cameraId: String? = null
-            if (camManager != null) {
-                camManager.cameraIdList?.forEach {
-                    Log.e("FLASH", "cameraIdList : ${it}")
-                }
-
-                cameraId = camManager.cameraIdList[0]
-                Log.e("FLASH", "cameraId : ${cameraId}")
-
-                camManager.setTorchMode(cameraId, true)
-            }
-
+            Toast.makeText(this, R.string.flush, Toast.LENGTH_LONG).show()
         }
 
         /*val node = Node()

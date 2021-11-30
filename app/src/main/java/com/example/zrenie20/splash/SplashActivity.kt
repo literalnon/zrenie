@@ -1,10 +1,13 @@
 package com.example.zrenie20.splash
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.example.zrenie20.InstructionActivity
 import com.example.zrenie20.R
 import com.example.zrenie20.SCREENS
 import com.example.zrenie20.SettingsActivity
@@ -33,7 +36,36 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+    }
 
+    override fun onResume() {
+        super.onResume()
+
+        val mSettings = getSharedPreferences(SettingsActivity.APP_INSTRUCTION, Context.MODE_PRIVATE)
+        val isShow = mSettings.getBoolean(SettingsActivity.APP_INSTRUCTION, false)
+
+        if (!isShow) {
+            mSettings.edit().putBoolean(SettingsActivity.APP_INSTRUCTION, true).apply()
+
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(R.string.instruction_dialog_title)
+                .setMessage(R.string.instruction_dialog)
+                .setPositiveButton(R.string.instruction_dialog_positive_button) { dialog, id ->
+                    dialog.cancel()
+                    startActivity(Intent(this, InstructionActivity::class.java))
+                }
+                .setNegativeButton(R.string.cancel) { dialog, id ->
+                    dialog.cancel()
+                    loadData()
+                }
+            builder.create()
+            builder.show()
+        } else {
+            loadData()
+        }
+    }
+
+    fun loadData() {
         subscription.add(service.getEntryTypes()
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
@@ -61,13 +93,7 @@ class SplashActivity : AppCompatActivity() {
                 it.printStackTrace()
             })
         )
-
-        /*Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this, LocationActivity::class.java))
-            this.finish()
-        }, 1000)*/
     }
-
     private fun showDeepLinkOffer(intent: Intent) {
 
         val appLinkAction: String? = intent?.action

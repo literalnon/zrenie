@@ -3,6 +3,7 @@ package com.example.zrenie20.space
 import android.content.Context
 import android.util.Log
 import androidx.core.net.toUri
+import com.example.zrenie20.data.DataItemObject
 import com.google.ar.sceneform.assets.RenderableSource
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.oussaki.rxfilesdownloader.*
@@ -10,6 +11,7 @@ import io.reactivex.Observable
 import io.reactivex.Single
 import java.io.File
 import java.net.URL
+import kotlin.math.exp
 
 
 interface IFileDownloadManager {
@@ -100,6 +102,21 @@ class FileDownloadManager : IFileDownloadManager {
     fun removeFile(filePath: String) {
         val file = File(filePath)
         file.delete()
+    }
+
+    fun getAllSize(context: Context): Long {
+        val dirPath = context.cacheDir.path
+
+        return File(dirPath)
+            .listFiles()
+            .fold(0L, { inp, expr ->
+                Log.e("FileDownloadManager", "expr : ${expr.name}, ${expr.usableSpace}, ${expr.length()}")
+
+                inp + expr.length()
+
+            }) / 1048576
+
+
     }
 }
 /*

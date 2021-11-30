@@ -30,4 +30,12 @@
     <string name="gps_network_not_enabled">gps network not enabled</string>
     <string name="open_location_settings">open location settings</string>
 
+    <string name="instruction_dialog">The ZRENIE 2.0 team is glad to welcome You! For detailed instructions, refer to the application menu "Settings". It’s time to explore a new perspective.</string>
+    <string name="instruction_dialog_title">Instruction</string>
+    <string name="instruction_dialog_positive_button">Check instructions</string>
+
+    <string name="flush">The current version of ARCore does not support flash. We are waiting for updates from Google.</string>
+
+    <string name="resolving_anchor">Placing the object in space ...</string>
+    <string name="hosting_anchor">Object is found in space</string>
 </resources>

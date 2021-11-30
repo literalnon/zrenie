@@ -18,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatTextView
+   <!-- <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/ivLibAr"
         app:layout_constraintEnd_toEndOf="@+id/ivLibAr"
         app:layout_constraintStart_toStartOf="@+id/ivLibAr"
-        app:layout_constraintTop_toTopOf="@+id/ivLibAr" />
+        app:layout_constraintTop_toTopOf="@+id/ivLibAr" />-->
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvTitle"

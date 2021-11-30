@@ -36,7 +36,7 @@ class ViewPagerAdapter : RecyclerView.Adapter<PagerVH>() {
     override fun getItemCount(): Int = images.size
 
     override fun onBindViewHolder(holder: PagerVH, position: Int) {
-        holder.ivImage.setBackgroundResource(images[position])
+        holder.ivImage.setImageResource(images[position])
     }
 }
 

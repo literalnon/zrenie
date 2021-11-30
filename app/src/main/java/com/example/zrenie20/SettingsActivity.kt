@@ -98,6 +98,8 @@ class SettingsActivity : AppCompatActivity() {
         tvRemoveAr?.setOnClickListener {
             val fileDownloadManager = FileDownloadManager()
             fileDownloadManager?.removeAllFiles(this)
+
+            tvRemoveArMb.text = ""
         }
 
         tvLibAr?.setOnClickListener {
@@ -158,28 +160,21 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        val fileDownloadManager = FileDownloadManager()
-        val allFiles = fileDownloadManager.getAllFiles(this)
-
-        if (lastModified > 0) {
-            Realm.getDefaultInstance()
-                .executeTransaction { realm ->
-                    val objects = realm.where(RealmDataItemObject::class.java)
-                        .findAll()
-                        .map { it.toDataItemObject() }
-                        .filter { dataItemObj ->
-                            allFiles?.filter {
-                                it.contains(dataItemObj.filePath?.split("/")?.lastOrNull() ?: " ")
-                            }?.isNotEmpty() == true
-                        }
-
-                    tvRemoveAr.text = tvRemoveAr.text.toString() + " : " + (objects?.count() ?: "")
-                }
-        }
-
         tvInstruction?.setOnClickListener {
             startActivity(Intent(this, InstructionActivity::class.java))
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        val fileDownloadManager = FileDownloadManager()
+
+        //Log.e("MainActivity", "0 : ${lastModified}, ${lastModified > 0}")
+
+        tvRemoveArMb.text = fileDownloadManager
+            .getAllSize(this)
+            .toString() + " MB"
     }
 
     companion object {
@@ -187,6 +182,7 @@ class SettingsActivity : AppCompatActivity() {
         val TAG = "SettingsActivity"
         const val APP_PREFERENCES = "mysettings"
         const val APP_PREFERENCES_CHECKED = "APP_PREFERENCES_CHECKED"
+        const val APP_INSTRUCTION = "APP_INSTRUCTION"
 
         fun getImageData(
             llProgress: View?,

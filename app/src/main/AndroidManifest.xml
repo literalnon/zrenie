@@ -48,6 +48,7 @@
         android:theme="@style/Theme.Zrenie20">
         <activity
             android:name=".InstructionActivity"
+            android:theme="@style/Theme.Zrenie20.NoActionBar"
             android:exported="false" />
 
         <activity

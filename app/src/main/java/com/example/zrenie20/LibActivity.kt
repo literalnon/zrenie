@@ -11,6 +11,8 @@ import android.location.LocationManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -116,14 +118,77 @@ class LibActivity : AppCompatActivity() {
 
         val allFiles = fileDownloadManager.getAllFiles(this)
 
+         val isContainsInObj: (RealmDataItemObject) -> Boolean = { item ->
+            val searchText =
+                etSearch.text.toString()
+            searchText.isEmpty() ||
+            item.name?.contains(searchText) == true ||
+            item.description?.contains(searchText) == true ||
+            item.thumbnailPath?.contains(searchText) == true ||
+            item.scale?.contains(searchText) == true ||
+            item.filePath?.contains(searchText) == true ||
+            item.triggerId?.contains(searchText) == true ||
+            item.platform?.contains(searchText) == true ||
+            item.isHidden?.contains(searchText) == true ||
+            item.createdAt?.contains(searchText) == true ||
+            item.updatedAt?.contains(searchText) == true ||
+            item.type?.name?.contains(searchText) == true ||
+            item.type?.codeName?.contains(searchText) == true ||
+            item.trigger?.name?.contains(searchText) == true ||
+            item.trigger?.description?.contains(searchText) == true ||
+            item.actionUrl?.contains(searchText) == true
+        }
+
+        val getElemets: (mType: ArTypes) -> List<DataPackageObject> = { mType ->
+            var objects = listOf<DataPackageObject>()
+
+            Realm.getDefaultInstance()
+                .executeTransaction { realm ->
+                    objects = realm.where(RealmDataPackageObject::class.java)
+                        .findAll()
+                        .map { it.toDataPackageObject() }
+                        .filter { packageItem ->
+                            realm.where(RealmDataItemObject::class.java)
+                                .findAll()
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
+                                .find { it.trigger?.type?.codeName == mType.codeName } != null
+                        }
+                }
+
+            objects
+        }
+
+        val setColor: (SCREENS, ArTypes) -> Int = { mCurrentType, mType ->
+            var color = getColor(R.color.grayTextColor)//Color.WHITE
+
+            val isContains = getElemets(mType).find {
+                it is DataPackageObject && it.dataItems?.find { dataItem ->
+                    dataItem.trigger?.type?.codeName == mType.codeName
+                } != null
+            }
+
+            Log.e("LibActivity", "isContains : ${isContains}")
+
+            if (mCurrentType == currentType) {
+                color = getColor(R.color.selectedColor)
+            } else if (isContains == null) {
+                color = getColor(R.color.grayColor)
+            }
+
+            color
+        }
+
+        var lastClickView: View? = null
+
         imageView4?.setOnClickListener {
+            lastClickView = it
             currentType = SCREENS.AUGMENTED_IMAGE
 
-            ivShare.setColorFilter(Color.WHITE)
-            imageView1.setColorFilter(Color.WHITE)
-            imageView2.setColorFilter(Color.WHITE)
-            imageView3.setColorFilter(Color.WHITE)
-            imageView4.setColorFilter(getColor(R.color.selectedColor))
+            ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
+            imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
+            imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
+            imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
+            imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
 
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
@@ -133,7 +198,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArImageType().codeName } != null
                         }
                         /*.filter { dataItemObj ->
@@ -151,13 +216,14 @@ class LibActivity : AppCompatActivity() {
         }
 
         imageView3?.setOnClickListener {
+            lastClickView = it
             currentType = SCREENS.LOCATION
 
-            ivShare.setColorFilter(Color.WHITE)
-            imageView1.setColorFilter(Color.WHITE)
-            imageView2.setColorFilter(Color.WHITE)
-            imageView3.setColorFilter(getColor(R.color.selectedColor))
-            imageView4.setColorFilter(Color.WHITE)
+            ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
+            imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
+            imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
+            imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
+            imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
 
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
@@ -167,7 +233,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArGeoType().codeName } != null
                         }
                     /*.filter { dataItemObj ->
@@ -185,13 +251,14 @@ class LibActivity : AppCompatActivity() {
         }
 
         imageView2?.setOnClickListener {
+            lastClickView = it
             currentType = SCREENS.AUGMENTED_FACES
 
-            ivShare.setColorFilter(Color.WHITE)
-            imageView1.setColorFilter(Color.WHITE)
-            imageView2.setColorFilter(getColor(R.color.selectedColor))
-            imageView3.setColorFilter(Color.WHITE)
-            imageView4.setColorFilter(Color.WHITE)
+            ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
+            imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
+            imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
+            imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
+            imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
 
             Realm.getDefaultInstance()
                 .executeTransaction { realm ->
@@ -201,7 +268,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it)  }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArFaceType().codeName } != null
                         }
 
@@ -214,13 +281,14 @@ class LibActivity : AppCompatActivity() {
         }
 
         imageView1?.setOnClickListener {
+            lastClickView = it
             currentType = SCREENS.SPACE
 
-            ivShare.setColorFilter(Color.WHITE)
-            imageView1.setColorFilter(getColor(R.color.selectedColor))
-            imageView2.setColorFilter(Color.WHITE)
-            imageView3.setColorFilter(Color.WHITE)
-            imageView4.setColorFilter(Color.WHITE)
+            ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
+            imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
+            imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
+            imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
+            imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
 
             Log.e("SPLASH", "click 0")
 
@@ -232,7 +300,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it)  }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArOSpaceType().codeName } != null
                         }
 
@@ -254,13 +322,14 @@ class LibActivity : AppCompatActivity() {
         }
 
         ivShare?.setOnClickListener {
+            lastClickView = it
             currentType = SCREENS.SHARED
 
-            ivShare.setColorFilter(getColor(R.color.selectedColor))
-            imageView1.setColorFilter(Color.WHITE)
-            imageView2.setColorFilter(Color.WHITE)
-            imageView3.setColorFilter(Color.WHITE)
-            imageView4.setColorFilter(Color.WHITE)
+            ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
+            imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
+            imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
+            imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
+            imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
 
             Log.e("SPLASH", "click 0")
 
@@ -272,7 +341,7 @@ class LibActivity : AppCompatActivity() {
                         .filter { packageItem ->
                             realm.where(RealmDataItemObject::class.java)
                                 .findAll()
-                                .filter { it.dataPackageId == packageItem.id }
+                                .filter { it.dataPackageId == packageItem.id && isContainsInObj(it) }
                                 .find { it.trigger?.type?.codeName == ArTypes.ArOSpaceType().codeName } != null
                         }
 
@@ -317,6 +386,27 @@ class LibActivity : AppCompatActivity() {
 
                 adapter.replaceAll(assetsArray)
             }*/
+
+        etSearch?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                /*ivShare.setColorFilter(setColor(SCREENS.SHARED, ArTypes.ArOSpaceType()))
+                imageView1.setColorFilter(setColor(SCREENS.SPACE, ArTypes.ArOSpaceType()))
+                imageView2.setColorFilter(setColor(SCREENS.AUGMENTED_FACES, ArTypes.ArFaceType()))
+                imageView3.setColorFilter(setColor(SCREENS.LOCATION, ArTypes.ArGeoType()))
+                imageView4.setColorFilter(setColor(SCREENS.AUGMENTED_IMAGE, ArTypes.ArImageType()))
+*/
+                lastClickView?.performClick()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+
+            }
+
+        })
 
         ivBack?.setOnClickListener {
             onBackPressed()

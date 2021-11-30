@@ -64,7 +64,7 @@ class LibAdapter(
         var view = itemView
 
         var ivLibAr = itemView.ivLibAr
-        var tvLabel = itemView.tvLabel
+        //var tvLabel = itemView.tvLabel
         var tvTitle = itemView.tvTitle
         var tvContent = itemView.tvContent
         var tvTags = itemView.tvTags

@@ -41,7 +41,7 @@ class LibDataItemObjectAdapter(
     ) {
         item as DataItemObject
 
-        holder.tvLabel.text = item.id.toString()//"Label"
+        //holder.tvLabel.text = item.id.toString()//"Label"
         holder.tvTitle.text = item.name//"Название пакета"
         holder.tvContent.text = item.description//"Краткое описание"
         holder.tvTags.text = item.type?.codeName//"#теги #теги #теги"
@@ -85,7 +85,7 @@ class LibDataItemObjectAdapter(
         var view = itemView
 
         var ivLibAr = itemView.ivLibAr
-        var tvLabel = itemView.tvLabel
+        //var tvLabel = itemView.tvLabel
         var tvTitle = itemView.tvTitle
         var tvContent = itemView.tvContent
         var tvTags = itemView.tvTags

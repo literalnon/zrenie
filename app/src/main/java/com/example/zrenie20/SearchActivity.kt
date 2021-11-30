@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.zrenie20.base.adapters.DelegationAdapter
 import com.example.zrenie20.data.*
@@ -12,11 +13,9 @@ import com.example.zrenie20.myarsample.BaseArActivity
 import com.example.zrenie20.space.FileDownloadManager
 import com.tsuryo.swipeablerv.SwipeLeftRightCallback
 import io.realm.Realm
-import kotlinx.android.synthetic.main.activity_lib.*
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.activity_search.ivBack
 import kotlinx.android.synthetic.main.activity_search.rvAr
-import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.File
 
 class SearchActivity : AppCompatActivity() {
@@ -137,5 +136,21 @@ class SearchActivity : AppCompatActivity() {
 
         //mAlphaMovie2?.setVideoFromAssets("ball.mp4")
         //mAlphaMovie2?.
+
+        val fileDownloadManager = FileDownloadManager()
+
+        Log.e("MainActivity", "0 : ${lastModified}, ${lastModified > 0}")
+
+        tvRemoveArMb.text = fileDownloadManager
+            .getAllSize(this)
+            .toString() + " MB"
+
+        tvRemoveCache?.setOnClickListener {
+            fileDownloadManager?.removeAllFiles(this)
+
+            tvRemoveArMb.text = ""
+
+            onBackPressed()
+        }
     }
 }

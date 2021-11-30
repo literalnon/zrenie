@@ -374,6 +374,10 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
 
+        ivFlash?.setOnClickListener {
+            Toast.makeText(this, R.string.flush, Toast.LENGTH_LONG).show()
+        }
+
         ivChangeVisibility?.setOnClickListener {
             if (llFocus.visibility == View.VISIBLE) {
                 llFocus.visibility = View.GONE

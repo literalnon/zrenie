@@ -21,6 +21,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.OrientationEventListener
 import android.view.View
+import android.widget.Toast
 import com.example.zrenie20.R
 import com.example.zrenie20.SettingsActivity
 import com.example.zrenie20.data.DataItemObject
@@ -252,6 +253,9 @@ class AugmentedFacesActivity : BaseArActivity() {
 
             return@setOnTouchListener false
         }*/
+        ivFlash?.setOnClickListener {
+            Toast.makeText(this, R.string.flush, Toast.LENGTH_LONG).show()
+        }
 
         ivChangeVisibility?.setOnClickListener {
             if (llFocus.visibility == View.VISIBLE) {

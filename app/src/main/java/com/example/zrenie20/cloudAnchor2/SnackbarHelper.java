@@ -17,6 +17,7 @@ package com.example.zrenie20.cloudAnchor2;
 import android.app.Activity;
 import android.view.View;
 
+import com.example.zrenie20.R;
 import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -82,7 +83,7 @@ public final class SnackbarHelper {
             messageSnackbar.getView().setBackgroundColor(BACKGROUND_COLOR);
             if (dismissBehavior != DismissBehavior.HIDE) {
               messageSnackbar.setAction(
-                  "Dismiss",
+                  R.string.cancel,
                   new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
