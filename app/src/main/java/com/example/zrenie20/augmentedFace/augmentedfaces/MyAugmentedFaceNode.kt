@@ -19,10 +19,12 @@ import java.util.*
 import com.example.zrenie20.R
 import com.example.zrenie20.data.TypeItemObjectCodeNames
 import com.example.zrenie20.renderable.IArRenderObject
+import com.google.ar.sceneform.ux.TransformableNode
+import com.google.ar.sceneform.ux.TransformationSystem
 import java.util.concurrent.ExecutionException
 import java.util.function.BiFunction
 
-class MyAugmentedFaceNode: Node {
+class MyAugmentedFaceNode : Node {
     /** Returns the AugmentedFace that this Node is applying visual effects to.  */
     /** Sets the AugmentedFace that this node is applying visual effects to.  */
     // The augmented face to render visual effects for.
@@ -50,7 +52,10 @@ class MyAugmentedFaceNode: Node {
     private var faceMeshTexture: Texture? = null
 
     /** Create an AugmentedFaceNode with the given AugmentedFace.  */
-    constructor(augmentedFace: AugmentedFace?) : super() {
+    constructor(
+        augmentedFace: AugmentedFace?,
+        transformationSystem: TransformationSystem
+    ) : super() {
         this.augmentedFace = augmentedFace
     }
 
@@ -70,7 +75,7 @@ class MyAugmentedFaceNode: Node {
      *
      * Note: This is only used if the face mesh material hasn't been overridden.
      */
-    fun setFaceMeshTexture (texture: Texture?) {
+    fun setFaceMeshTexture(texture: Texture?) {
         faceMeshTexture = texture
         updateSubmeshes()
     }
@@ -165,19 +170,9 @@ class MyAugmentedFaceNode: Node {
     private val isTracking: Boolean
         private get() = augmentedFace != null && augmentedFace!!.trackingState == TrackingState.TRACKING
 
-    private fun updateTransform() {
-        // Update this node to be positioned at the center pose of the face.
-        val pose: Pose = if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
-            checkNotNull<AugmentedFace>(augmentedFace)
-                .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
-        } else {
-            checkNotNull<AugmentedFace>(augmentedFace)
-                .centerPose
-        }
+    fun getRotation(): Quaternion? {
+        val pose = getPose()
 
-        worldPosition = Vector3(pose.tx(), pose.ty(), pose.tz())
-        /*worldRotation =
-            Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())*/
         var rotation: Quaternion? = Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())
         /*val inverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
         rotation = Quaternion.multiply(rotation, inverse)*/
@@ -192,19 +187,62 @@ class MyAugmentedFaceNode: Node {
 
             worldScale = Vector3(
                 0.2f,
-                0.2f,
+                1f,
                 0.2f
             )
         } else if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.IMAGE.codeName) {
             //localPosition = Vector3(0f, -0.5f, 0f)
+
+            worldPosition = Vector3(pose.tx(), pose.ty() - 0.1f, pose.tz())
+
+            worldScale = Vector3(
+                1f,
+                1f,
+                1f
+            )
+
+        } else {
+            rotation = Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())
+            var mInverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
+            rotation = Quaternion.multiply(rotation, mInverse)
+            //mInverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
+            //rotation = Quaternion.multiply(rotation, mInverse)
+            worldScale = Vector3(
+                0.5f,
+                0.5f,
+                1f
+            )
         }
-        worldRotation = rotation
+
+        return rotation
+    }
+
+    fun getPose(): Pose {
+      return if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName ||
+                iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.IMAGE.codeName
+            ) {
+                checkNotNull<AugmentedFace>(augmentedFace)
+                    .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
+            } else {
+                checkNotNull<AugmentedFace>(augmentedFace)
+                    .centerPose
+            }
+    }
+
+    private fun updateTransform() {
+        // Update this node to be positioned at the center pose of the face.
+        val pose = getPose()
+
+        worldPosition = Vector3(pose.tx(), pose.ty(), pose.tz())
+        /*worldRotation =
+            Quaternion(pose.qx(), pose.qy(), pose.qz(), pose.qw())*/
+        worldRotation = getRotation()
     }//[x=0.06771831, y=-0.14871326, z=-0.8137579]
 
     private fun updateRegionNodes() {
         // Update the pose of all the region nodes so that the bones in the face regions renderable
         // are driven by the regions of the augmented face.
-        for (regionType in RegionType.values()) {
+        /*for (regionType in RegionType.values()) {
             val regionNode: Node = checkNotNull<Node>(
                 faceRegionsSkeletonNode.getBoneAttachment(
                     boneNameForRegion(
@@ -212,17 +250,20 @@ class MyAugmentedFaceNode: Node {
                     )
                 )
             )
-            /*val pose: Pose = checkNotNull<AugmentedFace>(augmentedFace)
-                .getRegionPose(regionType)*/
-            val pose: Pose = if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName) {
-                checkNotNull<AugmentedFace>(augmentedFace)
-                    .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
-            } else {
-                checkNotNull<AugmentedFace>(augmentedFace)
-                    .centerPose
-            }
-             //   checkNotNull<AugmentedFace>(augmentedFace)
-               //     .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)
+            *//*val pose: Pose = checkNotNull<AugmentedFace>(augmentedFace)
+                .getRegionPose(regionType)*//*
+            val pose: Pose =
+                if (iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName ||
+                    iArRenderObject?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.IMAGE.codeName
+                ) {
+                    checkNotNull<AugmentedFace>(augmentedFace)
+                        .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)//.getCenterPose()
+                } else {
+                    checkNotNull<AugmentedFace>(augmentedFace)
+                        .centerPose
+                }
+            //   checkNotNull<AugmentedFace>(augmentedFace)
+            //     .getRegionPose(AugmentedFace.RegionType.NOSE_TIP)
             regionNode.worldPosition = Vector3(pose.tx(), pose.ty(), pose.tz())
 
             Log.e("FACE_BUG", "regionNode.worldPosition : ${regionNode.worldPosition}")
@@ -233,7 +274,7 @@ class MyAugmentedFaceNode: Node {
             //val inverse = Quaternion(Vector3(0.0f, 1.0f, 0.0f), 180.0f)
             //rotation = Quaternion.multiply(rotation, inverse)
             regionNode.worldRotation = rotation
-        }
+        }*/
     }
 
     private fun updateFaceMesh() {
@@ -397,7 +438,7 @@ class MyAugmentedFaceNode: Node {
         // Used to help ensure that the face mesh texture is rendered below the face mesh regions.
         // This helps prevent z-sorting issues with transparent materials.
         private val FACE_MESH_RENDER_PRIORITY = Renderable.RENDER_PRIORITY_LAST
-            //Math.max(Renderable.RENDER_PRIORITY_FIRST, Renderable.RENDER_PRIORITY_DEFAULT - 1)
+        //Math.max(Renderable.RENDER_PRIORITY_FIRST, Renderable.RENDER_PRIORITY_DEFAULT - 1)
 
         private fun boneNameForRegion(regionType: RegionType): String {
             return regionType.name
@@ -426,13 +467,17 @@ class MyAugmentedFaceNode: Node {
                 ), regionNode
             )
         }
-        faceMeshDefinition =
-            RenderableDefinition.builder().setVertices(vertices).setSubmeshes(submeshes).build()
+        faceMeshDefinition = RenderableDefinition
+            .builder()
+            .setVertices(vertices)
+            .setSubmeshes(submeshes)
+            .build()
     }
 
     fun pause() {
         iArRenderObject?.pause()
     }
+
     fun resume() {
         iArRenderObject?.resume()
     }

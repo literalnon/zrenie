@@ -43,7 +43,7 @@ open class AugmentedImageFragment : ArFragment() {
 
         planeDiscoveryController.hide()
         planeDiscoveryController.setInstructionView(null)
-        arSceneView.planeRenderer.isEnabled = true
+        arSceneView.planeRenderer.isEnabled = false
         arSceneView.isLightEstimationEnabled = false
 
         initializeSession()

@@ -147,14 +147,16 @@ class ArImageRenderObject(
                 val ivMarker = renderable.view?.findViewById<ImageView>(R.id.ivMarker)
                 ivMarker?.setImageURI(renderableFile.toUri())
 
-                ivMarker?.setOnClickListener {
-                    val address = Uri.parse(dataItemObject.actionUrl)
-                    val openLinkIntent = Intent(Intent.ACTION_VIEW, address)
+                if (dataItemObject.actionUrl?.isNotEmpty() == true) {
+                    ivMarker?.setOnClickListener {
+                        val address = Uri.parse(dataItemObject.actionUrl)
+                        val openLinkIntent = Intent(Intent.ACTION_VIEW, address)
 
-                    if (openLinkIntent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(openLinkIntent)
-                    } else {
-                        Log.d("Intent", "Не получается обработать намерение!");
+                        if (openLinkIntent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(openLinkIntent)
+                        } else {
+                            Log.d("Intent", "Не получается обработать намерение!");
+                        }
                     }
                 }
 

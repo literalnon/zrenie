@@ -3,12 +3,75 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/mainBackground"
     android:id="@+id/llContainer">
 
-  <fragment android:name="com.example.zrenie20.augmentedFace.augmentedfaces.FaceArFragment"
-      android:id="@+id/mArFragment"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent" />
+  <FrameLayout
+      android:id="@+id/flMirror"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+      android:visibility="gone"
+      app:layout_constraintBottom_toTopOf="@+id/flArFragment"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent">
+
+    <SurfaceView
+        android:id="@+id/svMirror"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_gravity="bottom"
+        app:layout_constraintBottom_toTopOf="@+id/mArFragment"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+  </FrameLayout>
+
+  <FrameLayout
+      android:id="@+id/flArFragment"
+      android:layout_width="0dp"
+      android:layout_height="0dp"
+
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.5"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/flMirror">
+
+    <FrameLayout
+        android:id="@+id/flInArFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+      <fragment
+          android:id="@+id/mArFragment"
+          android:name="com.example.zrenie20.augmentedFace.augmentedfaces.FaceArFragment"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:layout_gravity="top"
+          app:layout_constraintBottom_toBottomOf="parent"
+          app:layout_constraintEnd_toEndOf="parent"
+          app:layout_constraintHorizontal_bias="0.5"
+          app:layout_constraintStart_toStartOf="parent"
+          app:layout_constraintTop_toBottomOf="@+id/flMirror" />
+
+    </FrameLayout>
+
+  </FrameLayout>
+
+  <androidx.appcompat.widget.AppCompatImageView
+      android:id="@+id/ivArrowBack"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_margin="16dp"
+      android:rotation="90"
+      android:visibility="gone"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:srcCompat="@drawable/ic_arrow_back" />
 
   <androidx.appcompat.widget.AppCompatImageView
       android:id="@+id/ivChangeVisibility"

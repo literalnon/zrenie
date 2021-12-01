@@ -67,7 +67,6 @@ import com.example.zrenie20.cloudAnchor2.StorageManager
 import com.example.zrenie20.renderable.ArRenderObjectFactory
 import com.google.ar.core.*
 import com.google.ar.sceneform.assets.RenderableSource
-import kotlinx.android.synthetic.main.activity_location.*
 import kotlinx.android.synthetic.main.activity_my_sample.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_my_sample.llFocus
 import kotlinx.android.synthetic.main.activity_my_sample.llMainActivities

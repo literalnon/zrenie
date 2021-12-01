@@ -63,11 +63,13 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_location.*
+import kotlinx.android.synthetic.main.activity_location.flInArFragment
+import kotlinx.android.synthetic.main.activity_location.flMirror
+import kotlinx.android.synthetic.main.activity_location.ivArrowBack
 import kotlinx.android.synthetic.main.activity_location.ivChangeVisibility
 import kotlinx.android.synthetic.main.activity_location.llFocus
 import kotlinx.android.synthetic.main.activity_location.llMainActivities
 import kotlinx.android.synthetic.main.activity_location.svMirror
-import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.io.File
 import java.io.FileOutputStream
@@ -472,13 +474,49 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
-        ivVirtualReality.setOnClickListener {
-            if (svMirror.visibility == View.GONE) {
-                startBinacular(false)
-            } else {
-                stopBinakular(false)
-            }
+        ivVirtualReality?.setOnClickListener {
+            ivArrowBack?.visibility = View.VISIBLE
+            mapFrame?.visibility = View.GONE
+
+            llFocus.visibility = View.GONE
+            llMainActivities.visibility = View.GONE
+
+            val height = pxFromDp(350)
+
+            val mArFragmentLayoutParams = flInArFragment.layoutParams
+            mArFragmentLayoutParams.height = height
+            flInArFragment.layoutParams = mArFragmentLayoutParams
+
+            ivChangeVisibility.visibility = View.GONE
+
+            flMirror?.visibility = View.VISIBLE
+
+            startBinacular(false)
         }
+
+        ivArrowBack?.setOnClickListener {
+            ivArrowBack?.visibility = View.GONE
+            mapFrame?.visibility = View.VISIBLE
+
+            llFocus.visibility = View.GONE
+            llMainActivities.visibility = View.VISIBLE
+
+            val height = ViewGroup.LayoutParams.MATCH_PARENT
+
+            flMirror?.visibility = View.GONE
+
+            val mArFragmentLayoutParams = flInArFragment.layoutParams
+            mArFragmentLayoutParams.height = height
+            flInArFragment.layoutParams = mArFragmentLayoutParams
+
+            ivChangeVisibility.visibility = View.VISIBLE
+
+            stopBinakular(false)
+        }
+    }
+
+    fun pxFromDp(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 
     fun toggleRecording() {
@@ -506,7 +544,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    fun startBinacular(isLifecycle: Boolean) {
+    /*fun startBinacular(isLifecycle: Boolean) {
         if (svMirror?.visibility == View.GONE && isLifecycle) {
             return
         }
@@ -531,6 +569,39 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         if (!isLifecycle) {
             svMirror?.visibility = View.GONE
         }
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+                arFragment?.arSceneView?.renderer?.stopMirroring(surface)
+            }
+        }
+    }*/
+
+    fun startBinacular(isLifecycle: Boolean) {
+        if (isLifecycle) {
+            return
+        }
+
+        //svMirror?.visibility = View.VISIBLE
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+
+                arFragment?.arSceneView?.renderer?.startMirroring(
+                    surface,
+                    0,
+                    0,
+                    svMirror.width,
+                    svMirror.height
+                )
+            }
+        }
+    }
+
+    fun stopBinakular(isLifecycle: Boolean) {
+        /*if (!isLifecycle) {
+            svMirror?.visibility = View.GONE
+        }*/
 
         svMirror?.post {
             svMirror?.holder?.surface?.let { surface ->

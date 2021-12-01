@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -38,8 +39,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_settings.*
+import java.io.File
 import java.io.IOException
 import java.util.*
+
 enum class SCREENS(val type: ArTypes) {
     SPACE(type = ArTypes.ArOSpaceType()),
     AUGMENTED_FACES(type = ArTypes.ArFaceType()),
@@ -104,7 +107,7 @@ class SettingsActivity : AppCompatActivity() {
             val fileDownloadManager = FileDownloadManager()
             fileDownloadManager?.removeAllFiles(this)
 
-            tvRemoveArMb.text = ""
+            tvRemoveArMb.text = "0 MB"
         }
 
         tvLibAr?.setOnClickListener {
@@ -168,6 +171,13 @@ class SettingsActivity : AppCompatActivity() {
         tvInstruction?.setOnClickListener {
             startActivity(Intent(this, InstructionActivity::class.java))
         }
+
+        tvWeb?.setOnClickListener {
+            val url = "https://www.zrenie20.info"
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse(url)
+            startActivity(i)
+        }
     }
 
     override fun onResume() {
@@ -177,9 +187,40 @@ class SettingsActivity : AppCompatActivity() {
 
         //Log.e("MainActivity", "0 : ${lastModified}, ${lastModified > 0}")
 
-        tvRemoveArMb.text = fileDownloadManager
-            .getAllSize(this)
-            .toString() + " MB"
+        val allFiles = fileDownloadManager.getAllFiles(this)
+
+        var mAssets = arrayListOf<DataItemObject>()
+        val mSettings = getSharedPreferences(SettingsActivity.APP_PREFERENCES, Context.MODE_PRIVATE)
+        val lastModified = mSettings.getLong(SettingsActivity.APP_PREFERENCES_CHECKED, 0L)
+
+        Realm.getDefaultInstance()
+            .executeTransaction { realm ->
+                val objects = realm.where(RealmDataItemObject::class.java)
+                    .findAll()
+                    .map { it.toDataItemObject() }
+                    .filter { dataItemObj ->
+                        val file = allFiles?.firstOrNull {
+                            it.contains(
+                                dataItemObj
+                                    .filePath
+                                    ?.split("/")
+                                    ?.lastOrNull() ?: " "
+                            )
+                        }
+                        file != null && (lastModified == 0L || File(file)?.lastModified() < lastModified)
+                    }
+
+                mAssets.clear()
+
+                mAssets.addAll(objects)
+            }
+        tvRemoveArMb.text = if (mAssets.isNotEmpty()) {
+            fileDownloadManager
+                .getAllSize(this)
+                .toString()
+        } else {
+            "0"
+        } + " MB"
     }
 
     companion object {
@@ -400,8 +441,15 @@ class SettingsActivity : AppCompatActivity() {
             var gps_enabled = false
             var network_enabled = false
 
-            if (ActivityCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(context, ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(
+                    context,
+                    ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 ActivityCompat.requestPermissions(
                     context,
                     arrayOf(ACCESS_FINE_LOCATION),

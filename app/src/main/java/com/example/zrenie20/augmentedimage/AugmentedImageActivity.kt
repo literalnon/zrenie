@@ -93,17 +93,19 @@ class AugmentedImageActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.flush, Toast.LENGTH_LONG).show()
         }
 
+        //arFragment?.arSceneView?.planeRenderer?.isEnabled = false
+
         ivChangeVisibility?.setOnClickListener {
             if (llFocus.visibility == View.VISIBLE) {
                 llFocus.visibility = View.GONE
                 llMainActivities.visibility = View.VISIBLE
 
-                arFragment?.arSceneView?.planeRenderer?.isEnabled = true
+                //arFragment?.arSceneView?.planeRenderer?.isEnabled = true
             } else {
                 llFocus.visibility = View.VISIBLE
                 llMainActivities.visibility = View.GONE
 
-                arFragment?.arSceneView?.planeRenderer?.isEnabled = false
+                //arFragment?.arSceneView?.planeRenderer?.isEnabled = false
             }
         }
 

@@ -40,6 +40,10 @@ class ArVideoRenderObject(
             videoAnchorNode.setOnTouchListener { hitTestResult, motionEvent ->
                 return@setOnTouchListener value?.onTouch(hitTestResult, motionEvent) ?: false
             }
+
+            videoTransformableNode?.setOnTouchListener { hitTestResult, motionEvent ->
+                return@setOnTouchListener value?.onTouch(hitTestResult, motionEvent) ?: false
+            }
         }
 
     private var mediaPlayer: MediaPlayer = MediaPlayer()
@@ -63,6 +67,8 @@ class ArVideoRenderObject(
 
     override fun pause() {
         if (mediaPlayer.isPlaying) {
+            //videoAnchorNode?.parent?.removeChild(videoAnchorNode)
+            videoTransformableNode?.renderable = null
             videoAnchorNode.renderable = null
             mediaPlayer.pause()
         }
@@ -73,6 +79,7 @@ class ArVideoRenderObject(
             videoAnchorNode = anchorNode
             mediaPlayer.start()
             videoAnchorNode.renderable = videoRenderable
+            videoTransformableNode?.renderable = videoRenderable
         }
     }
 
@@ -80,6 +87,7 @@ class ArVideoRenderObject(
         if (mediaPlayer.isPlaying) {
             videoAnchorNode.anchor?.detach()
             videoAnchorNode.renderable = null
+            videoTransformableNode?.renderable = null
             mediaPlayer.reset()
         }
     }
@@ -92,7 +100,12 @@ class ArVideoRenderObject(
     ) {
 
         ModelRenderable.builder()
-            .setSource(context, R.raw.chroma_key_video)//R.raw.chroma_key_video
+            .setSource(context,
+            if (dataItemObject.alphaChannel == true) {
+                R.raw.chroma_key_video
+            } else {
+                R.raw.augmented_video_model
+            })//R.raw.chroma_key_video
             .build()
             .thenAccept { renderable ->
                 videoRenderable = renderable
@@ -233,6 +246,8 @@ class ArVideoRenderObject(
 
     override fun setWorldRotation(rotation: Quaternion) {
         videoAnchorNode?.worldRotation = rotation
+        videoTransformableNode?.worldRotation = rotation
+
         //videoAnchorNode?.localRotation = rotation
     }
 }

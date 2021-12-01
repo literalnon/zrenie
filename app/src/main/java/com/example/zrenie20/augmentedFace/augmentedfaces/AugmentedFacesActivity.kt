@@ -164,13 +164,13 @@ class AugmentedFacesActivity : BaseArActivity() {
 
                 if (!faceNodeMap.containsKey(face)) {
                     var faceNode: Node =
-                        if (currentRenderable?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName ||
+                        /*if (currentRenderable?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.VIDEO.codeName ||
                             currentRenderable?.dataItemObject?.type?.codeName == TypeItemObjectCodeNames.OBJECT.codeName
-                        ) {
-                            MyAugmentedFaceNode(face)
-                        } else {
+                        ) {*/
+                            MyAugmentedFaceNode(face, arFragment?.transformationSystem!!)
+                        /*} else {
                             AugmentedFaceNode(face)//MyAugmentedFaceNode(this, face)//face.createAnchor(face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP))
-                        }
+                        }*/
 
                     faceNode.setParent(scene)
 

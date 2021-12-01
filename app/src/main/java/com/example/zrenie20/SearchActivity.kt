@@ -179,9 +179,14 @@ class SearchActivity : AppCompatActivity() {
 
         Log.e("MainActivity", "0 : ${lastModified}, ${lastModified > 0}")
 
-        tvRemoveArMb.text = fileDownloadManager
-            .getAllSize(this)
-            .toString() + " MB"
+        tvRemoveArMb.text =
+            if (assetsArray.isNotEmpty()) {
+                fileDownloadManager
+                    .getAllSize(this)
+                    .toString()
+            } else {
+              "0"
+            } + " MB"
 
         tvRemoveCache?.setOnClickListener {
             fileDownloadManager?.removeAllFiles(this)
