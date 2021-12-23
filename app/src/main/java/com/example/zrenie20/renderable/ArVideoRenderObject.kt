@@ -17,8 +17,7 @@ import com.google.ar.sceneform.rendering.Color
 import com.google.ar.sceneform.rendering.ExternalTexture
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
-import com.google.ar.sceneform.ux.ArFragment
-import com.google.ar.sceneform.ux.TransformableNode
+import com.google.ar.sceneform.ux.*
 import java.io.File
 
 class ArVideoRenderObject(
@@ -195,7 +194,9 @@ class ArVideoRenderObject(
                     //videoAnchorNode.renderable = videoRenderable
 
                     if (augmentedImage != null) {
-                        videoTransformableNode = TransformableNode(arFragment?.transformationSystem)
+                        videoTransformableNode = TransformableNode(arFragment?.transformationSystem).apply {
+                            transformationSystem?.selectionVisualizer = CustomVisualizer()
+                        }
                         videoTransformableNode?.setParent(videoAnchorNode)
                         videoTransformableNode?.renderable = videoRenderable
                         videoTransformableNode?.select()
@@ -249,5 +250,15 @@ class ArVideoRenderObject(
         videoTransformableNode?.worldRotation = rotation
 
         //videoAnchorNode?.localRotation = rotation
+    }
+}
+
+class CustomVisualizer: SelectionVisualizer {
+    override fun applySelectionVisual(node: BaseTransformableNode?) {
+
+    }
+
+    override fun removeSelectionVisual(node: BaseTransformableNode?) {
+
     }
 }

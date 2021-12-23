@@ -244,6 +244,17 @@ class SettingsActivity : AppCompatActivity() {
                 itemObject.trigger?.filePath?.isNotEmpty() == true
             }
 
+            if (nonEmptyAssetsArray.isEmpty()) {
+                BaseArActivity.checkedPackageId = null
+
+                context.startActivity(
+                    Intent(
+                        context,
+                        AugmentedImageActivity::class.java
+                    )
+                )
+            }
+
             AugmentedImageFragment.assetsArray.clear()
             AugmentedImageFragment.assetsArray.addAll(nonEmptyAssetsArray)
 
@@ -312,7 +323,10 @@ class SettingsActivity : AppCompatActivity() {
                         .map { it.toDataPackageObject() }
                         .sortedBy { it.order?.toLongOrNull() }
 
-                    val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                    val activePackage = packages.firstOrNull {
+                        it.id == BaseArActivity.checkedPackageId
+                    }
+                    /*if (BaseArActivity.checkedPackageId == null) {
                         val ap = packages.firstOrNull()
                         BaseArActivity.checkedPackageId = ap?.id
                         ap
@@ -320,7 +334,7 @@ class SettingsActivity : AppCompatActivity() {
                         packages.firstOrNull {
                             it.id == BaseArActivity.checkedPackageId
                         }
-                    }
+                    }*/
 
                     Log.e(
                         TAG,

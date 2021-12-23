@@ -17,6 +17,7 @@ import com.example.zrenie20.cloudAnchor2.StorageManager.ShortCodeListener
 import com.example.zrenie20.data.DataItemId
 import com.example.zrenie20.data.DataItemObject
 import com.example.zrenie20.data.RenderableCloudId
+import com.example.zrenie20.renderable.CustomVisualizer
 import com.google.ar.core.Anchor
 import com.google.ar.core.Plane
 import com.google.ar.sceneform.AnchorNode
@@ -262,6 +263,8 @@ class MainActivity : BaseArActivity() {
 
                     TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
 
+                        mNode.transformationSystem?.selectionVisualizer = CustomVisualizer()
+
                         mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
                         mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
 
@@ -359,6 +362,8 @@ class MainActivity : BaseArActivity() {
             onSuccess = {
                 currentRenderable?.getRenderable()?.let { renderable ->
                     TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
+
+                        mNode.transformationSystem?.selectionVisualizer = CustomVisualizer()
 
                         mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
                         mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE

@@ -16,10 +16,10 @@
 package com.example.zrenie20.augmentedimage
 
 
-
-
+import android.Manifest
 import android.content.ContentValues
 import android.content.Intent
+import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.graphics.Bitmap
 import android.hardware.SensorManager
 import android.media.CamcorderProfile
@@ -32,17 +32,16 @@ import android.util.Log
 import android.view.OrientationEventListener
 import android.view.PixelCopy
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
-import com.example.zrenie20.BuildConfig
-import com.example.zrenie20.LibActivity
-import com.example.zrenie20.R
-import com.example.zrenie20.SettingsActivity
+import com.example.zrenie20.*
 import com.example.zrenie20.data.RealmDataPackageObject
 import com.example.zrenie20.data.toDataPackageObject
 import com.example.zrenie20.myarsample.BaseArActivity
@@ -60,6 +59,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class AugmentedImageActivity : AppCompatActivity() {
+
+    companion object {
+        val CODE = 278
+    }
+
     private var arFragment: ArFragment? = null
     private val augmentedImageMap: MutableMap<AugmentedImage, AugmentedImageNode?> = HashMap()
 
@@ -126,7 +130,10 @@ class AugmentedImageActivity : AppCompatActivity() {
                     .map { it.toDataPackageObject() }
                     .sortedBy { it.order?.toLongOrNull() }
 
-                val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                val activePackage = packages.firstOrNull {
+                    it.id == BaseArActivity.checkedPackageId
+                }
+                /*if (BaseArActivity.checkedPackageId == null) {
                     val ap = packages.firstOrNull()
                     BaseArActivity.checkedPackageId = ap?.id
                     ap
@@ -134,45 +141,128 @@ class AugmentedImageActivity : AppCompatActivity() {
                     packages.firstOrNull {
                         it.id == BaseArActivity.checkedPackageId
                     }
-                }
+                }*/
 
-                Glide.with(this)
-                    .load(activePackage?.thumbnailPath)
-                    .apply(
-                        RequestOptions()
-                            .transform(RoundedCorners(16))
-                    )
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(ivStack)
+                activePackage?.thumbnailPath?.let {
+                    Glide.with(this)
+                        .load(it)
+                        .apply(
+                            RequestOptions()
+                                .transform(RoundedCorners(16))
+                        )
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(ivStack)
+                }
             }
 
-        orientationListener = object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
-            override fun onOrientationChanged(orientation: Int) {
-                Log.e("listener", "onOrientationChanged : ${orientation}")
+        orientationListener =
+            object : OrientationEventListener(this, SensorManager.SENSOR_DELAY_UI) {
+                override fun onOrientationChanged(orientation: Int) {
+                    Log.e("listener", "onOrientationChanged : ${orientation}")
 
-                val newOrientation = when (orientation) {
-                    in 0..45 -> {
-                        360
-                    }
-                    in 45..135 -> {
-                        270
-                    }
-                    in 135..225 -> {
-                        180
-                    }
-                    in 225..315 -> {
-                        90
-                    }
-                    in 315..360 -> {
-                        360
-                    }
-                    else -> {
-                        360
-                    }
-                }.toFloat()
+                    val newOrientation = when (orientation) {
+                        in 0..45 -> {
+                            360
+                        }
+                        in 45..135 -> {
+                            270
+                        }
+                        in 135..225 -> {
+                            180
+                        }
+                        in 225..315 -> {
+                            90
+                        }
+                        in 315..360 -> {
+                            360
+                        }
+                        else -> {
+                            360
+                        }
+                    }.toFloat()
 
 
-                ivChangeVisibility?.rotation = newOrientation
+                    ivChangeVisibility?.rotation = newOrientation
+                }
+            }
+
+        ivArrowBack?.setOnClickListener {
+
+            ivArrowBack?.visibility = View.GONE
+
+            llFocus.visibility = View.GONE
+            llMainActivities.visibility = View.VISIBLE
+
+            val height = ViewGroup.LayoutParams.MATCH_PARENT
+
+            flMirror?.visibility = View.GONE
+
+            val mArFragmentLayoutParams = flInArFragment.layoutParams
+            mArFragmentLayoutParams.height = height
+            flInArFragment.layoutParams = mArFragmentLayoutParams
+
+            ivChangeVisibility.visibility = View.VISIBLE
+
+            stopBinakular(false)
+        }
+
+        ivVirtualReality?.setOnClickListener {
+            ivArrowBack?.visibility = View.VISIBLE
+
+            llFocus.visibility = View.GONE
+            llMainActivities.visibility = View.GONE
+
+            val height = pxFromDp(350)
+
+            val mArFragmentLayoutParams = flInArFragment.layoutParams
+            mArFragmentLayoutParams.height = height
+            flInArFragment.layoutParams = mArFragmentLayoutParams
+
+            ivChangeVisibility.visibility = View.GONE
+
+            flMirror?.visibility = View.VISIBLE
+
+            startBinacular(false)
+        }
+
+        flMirror?.post {
+            flMirror?.visibility = View.GONE
+        }
+    }
+
+    fun pxFromDp(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    fun startBinacular(isLifecycle: Boolean) {
+        if (isLifecycle) {
+            return
+        }
+
+        //svMirror?.visibility = View.VISIBLE
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+
+                arFragment?.arSceneView?.renderer?.startMirroring(
+                    surface,
+                    0,
+                    0,
+                    svMirror.width,
+                    svMirror.height
+                )
+            }
+        }
+    }
+
+    fun stopBinakular(isLifecycle: Boolean) {
+        /*if (!isLifecycle) {
+            svMirror?.visibility = View.GONE
+        }*/
+
+        svMirror?.post {
+            svMirror?.holder?.surface?.let { surface ->
+                arFragment?.arSceneView?.renderer?.stopMirroring(surface)
             }
         }
     }
@@ -241,7 +331,12 @@ class AugmentedImageActivity : AppCompatActivity() {
     fun shareFile(file: File) {
         val intentShareFile = Intent(Intent.ACTION_SEND)
 
-        Log.e("SHARE_FILE", "URLConnection.guessContentTypeFromName(file.name) : ${URLConnection.guessContentTypeFromName(file.name)}")
+        Log.e(
+            "SHARE_FILE",
+            "URLConnection.guessContentTypeFromName(file.name) : ${
+                URLConnection.guessContentTypeFromName(file.name)
+            }"
+        )
         Log.e("SHARE_FILE", "file.name : ${file.name}")
 
         intentShareFile.apply {
@@ -291,9 +386,22 @@ class AugmentedImageActivity : AppCompatActivity() {
         PixelCopy.request(view, bitmap, { copyResult ->
             if (copyResult === PixelCopy.SUCCESS) {
                 try {
-                    val file = saveBitmapToDisk(bitmap)
+                    if (
+                        ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        ) != PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            CODE
+                        )
+                    } else {
+                        val file = saveBitmapToDisk(bitmap)
 
-                    shareFile(file)
+                        shareFile(file)
+                    }
                     /* val toast: Toast = Toast.makeText(
                          this, "Screenshot saved in : ${file.canonicalPath}",
                          Toast.LENGTH_LONG
@@ -332,13 +440,46 @@ class AugmentedImageActivity : AppCompatActivity() {
 
     open fun saveBitmapToDisk(bitmap: Bitmap): File {
 
-        val videoDirectory = File(
-            Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
+        val androidDirectory = File(
+            Environment.getExternalStorageDirectory(), "Android"
         )
 
-        if (!videoDirectory.exists()) {
-            videoDirectory.mkdir()
+        if (!androidDirectory.exists()) {
+            androidDirectory.mkdirs()
         }
+
+        Log.e("AugmentedImageActivity", "saveBitmapToDisk 1.1 : ${androidDirectory.exists()}")
+
+        val dataDirectory = File(
+            androidDirectory, "data"
+        )
+
+        if (!dataDirectory.exists()) {
+            dataDirectory.mkdirs()
+        }
+
+        Log.e("AugmentedImageActivity", "saveBitmapToDisk 1.2 : ${dataDirectory.exists()}")
+
+        /* val videoDirectory = File(
+             Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
+         )*/
+
+        /*val videoDirectory = File(
+            dataDirectory, "zrenie"//packageName
+        )*/
+
+        val videoDirectory = Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_PICTURES
+        )
+
+        Log.e("AugmentedImageActivity", "saveBitmapToDisk 1 : ${videoDirectory.exists()}")
+        /*if (!videoDirectory.exists()) {
+            videoDirectory.mkdirs()
+            Log.e("AugmentedImageActivity", "saveBitmapToDisk 1.5 : ${videoDirectory.exists()}")
+            videoDirectory.mkdir()
+        }*/
+
+        Log.e("AugmentedImageActivity", "saveBitmapToDisk 2 : ${videoDirectory.exists()}")
 
         /*val videoDirectory = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
@@ -356,13 +497,18 @@ class AugmentedImageActivity : AppCompatActivity() {
             "FieldVisualizer$formattedDate.jpeg"
         )
 
-        try {
+        if (!mediaFile.parentFile.exists())
+            mediaFile.parentFile.mkdirs();
+        if (!mediaFile.exists())
+            mediaFile.createNewFile();
+
+        /*try {
             mediaFile.createNewFile()
         } catch (e: IOException) {
             e.printStackTrace()
-        }
+        }*/
 
-        Log.e("AugmentedImageActivity", "mediaFile: ${mediaFile.canonicalPath}")
+        Log.e("BaseArActivity", "mediaFile: ${mediaFile.canonicalPath}")
 
         val fileOutputStream = FileOutputStream(mediaFile)
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fileOutputStream)

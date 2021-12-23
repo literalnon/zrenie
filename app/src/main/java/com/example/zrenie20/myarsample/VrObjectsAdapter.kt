@@ -123,6 +123,8 @@ class VrObjectsAdapter(
                             renderableUploaded(item, arRenderObject)
                         //}
 
+                        //selectedRenderable(item)
+
 
                         /*ModelRenderable.builder()
                             .setSource(

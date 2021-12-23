@@ -1,8 +1,10 @@
 package com.example.zrenie20.location
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.hardware.SensorManager
 import android.media.CamcorderProfile
@@ -18,6 +20,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.marginBottom
 import com.bumptech.glide.Glide
@@ -26,6 +29,7 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.*
 import com.example.zrenie20.R
+import com.example.zrenie20.augmentedimage.AugmentedImageActivity.Companion.CODE
 import com.example.zrenie20.data.*
 import com.example.zrenie20.location.arcorelocation.LocationMarker
 import com.example.zrenie20.location.arcorelocation.LocationScene
@@ -663,8 +667,22 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
         PixelCopy.request(view, bitmap, { copyResult ->
             if (copyResult === PixelCopy.SUCCESS) {
                 try {
-                    val file = saveBitmapToDisk(bitmap)
-                    shareFile(file)
+                    if (
+                        ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            CODE
+                        )
+                    } else {
+                        val file = saveBitmapToDisk(bitmap)
+
+                        shareFile(file)
+                    }
                     /* val toast: Toast = Toast.makeText(
                          this, "Screenshot saved in : ${file.canonicalPath}",
                          Toast.LENGTH_LONG
@@ -1027,7 +1045,10 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                     .sortedBy { it.order?.toLongOrNull() }
                 //.filter { it.dataItems?.filter { it.trigger?.latitude != null } != null }
 
-                val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                val activePackage = packages.firstOrNull {
+                    it.id == BaseArActivity.checkedPackageId
+                }
+                    /*if (BaseArActivity.checkedPackageId == null) {
                     val ap = packages.firstOrNull()
                     BaseArActivity.checkedPackageId = ap?.id
                     ap
@@ -1035,7 +1056,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
                     packages.firstOrNull {
                         it.id == BaseArActivity.checkedPackageId
                     }
-                }
+                }*/
 
 
 

@@ -41,7 +41,6 @@ import io.realm.Realm
 import kotlinx.android.synthetic.main.activity_lib.*
 import kotlinx.android.synthetic.main.activity_lib.ivBack
 import kotlinx.android.synthetic.main.activity_lib.ivShare
-import kotlinx.android.synthetic.main.activity_settings.*
 import java.io.IOException
 import java.util.*
 
@@ -490,7 +489,10 @@ class LibActivity : AppCompatActivity() {
                     .map { it.toDataPackageObject() }
                     .sortedBy { it.order?.toLongOrNull() }
 
-                val activePackage = if (BaseArActivity.checkedPackageId == null) {
+                val activePackage = packages.firstOrNull {
+                    it.id == BaseArActivity.checkedPackageId
+                }
+                /*if (BaseArActivity.checkedPackageId == null) {
                     val ap = packages.firstOrNull()
                     BaseArActivity.checkedPackageId = ap?.id
                     ap
@@ -498,7 +500,7 @@ class LibActivity : AppCompatActivity() {
                     packages.firstOrNull {
                         it.id == BaseArActivity.checkedPackageId
                     }
-                }
+                }*/
 
                 Log.e(
                     SettingsActivity.TAG,

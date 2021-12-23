@@ -274,6 +274,8 @@ class AugmentedFacesActivity : BaseArActivity() {
         ivSettings?.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        ivVirtualReality?.visibility = View.GONE
     }
 
     fun setRenderableFace(faceNode: Node): Node {

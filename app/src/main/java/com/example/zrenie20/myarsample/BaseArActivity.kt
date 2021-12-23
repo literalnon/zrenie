@@ -1,5 +1,6 @@
 package com.example.zrenie20.myarsample
 
+import android.Manifest
 import android.app.ActionBar
 import android.content.Intent
 import android.graphics.Bitmap
@@ -55,16 +56,20 @@ import android.media.CamcorderProfile
 import com.example.zrenie20.space.VideoRecorder
 import android.provider.MediaStore
 import android.content.ContentValues
+import android.content.pm.PackageManager
 import android.hardware.SensorManager
 import android.view.*
+import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.example.zrenie20.BuildConfig
 import com.example.zrenie20.R
+import com.example.zrenie20.augmentedimage.AugmentedImageActivity.Companion.CODE
 import com.example.zrenie20.cloudAnchor2.StorageManager
 import com.example.zrenie20.renderable.ArRenderObjectFactory
+import com.example.zrenie20.renderable.CustomVisualizer
 import com.google.ar.core.*
 import com.google.ar.sceneform.assets.RenderableSource
 import kotlinx.android.synthetic.main.activity_my_sample.ivChangeVisibility
@@ -346,6 +351,8 @@ abstract class BaseArActivity : AppCompatActivity() {
             onSuccess = {
                 TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
 
+                    mNode.transformationSystem?.selectionVisualizer = CustomVisualizer()
+
                     mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
                     mNode.scaleController.maxScale = BASE_MAX_SCALE//5f//Float.MAX_VALUE
 
@@ -492,9 +499,22 @@ abstract class BaseArActivity : AppCompatActivity() {
         PixelCopy.request(view, bitmap, { copyResult ->
             if (copyResult === PixelCopy.SUCCESS) {
                 try {
-                    val file = saveBitmapToDisk(bitmap)
+                    if (
+                        ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                            CODE
+                        )
+                    } else {
+                        val file = saveBitmapToDisk(bitmap)
 
-                    shareFile(file)
+                        shareFile(file)
+                    }
                     /* val toast: Toast = Toast.makeText(
                          this, "Screenshot saved in : ${file.canonicalPath}",
                          Toast.LENGTH_LONG
@@ -811,16 +831,17 @@ abstract class BaseArActivity : AppCompatActivity() {
         anchor: Anchor? = null,
         renderableCloudId: RenderableCloudId? = null
     ) {
-        flProgressBar.visibility = View.GONE
-
         currentRenderable = renderable
         cashedAssets[renderableCloudId ?: dataItemObjectDataClass.id!!] = renderable
-
         adapter.notifyDataSetChanged()
 
         if (anchor != null) {
             positionRenderableOnPlane(anchor, renderableCloudId)
         }
+
+        selectedRenderable(dataItemObjectDataClass)
+
+        flProgressBar.visibility = View.GONE
     }
 
     open fun renderableUploadedFailed(dataItemObjectDataClass: DataItemObject) {
