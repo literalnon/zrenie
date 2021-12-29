@@ -84,7 +84,7 @@ abstract class BaseArActivity : AppCompatActivity() {
         var checkedPackageId: DataPackageId? = null
 
         const val BASE_MIN_SCALE = 0.01f
-        const val BASE_MAX_SCALE = 5f
+        const val BASE_MAX_SCALE = 10f
     }
 
     open var isNeedCreateAnchor: Boolean = true
@@ -351,6 +351,7 @@ abstract class BaseArActivity : AppCompatActivity() {
             onSuccess = {
                 TransformableNode(arFragment?.transformationSystem)?.let { mNode ->
 
+                    mNode.scaleController.sensitivity = 0.1f
                     mNode.transformationSystem?.selectionVisualizer = CustomVisualizer()
 
                     mNode.scaleController.minScale = BASE_MIN_SCALE//0.01f//Float.MIN_VALUE
@@ -366,9 +367,17 @@ abstract class BaseArActivity : AppCompatActivity() {
                         "MainActivityBase",
                         "positionRenderableOnPlane renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
                     )
-                    vrObjectsMap[renderableCloudId ?: currentRenderable?.dataItemObject?.id!!] =
-                        Pair(currentRenderable!!.dataItemObject.id!!, mNode)
 
+                    if (vrObjectsMap[renderableCloudId ?: currentRenderable?.dataItemObject?.id!!] != null) {
+                        vrObjectsMap[(renderableCloudId ?: currentRenderable?.dataItemObject?.id!!) - 10000 * (
+                                vrObjectsMap.count { it.value.first == currentRenderable!!.dataItemObject.id }
+                                )] =
+                            Pair(currentRenderable!!.dataItemObject.id!!, mNode)
+                    } else {
+                        vrObjectsMap[renderableCloudId ?: currentRenderable?.dataItemObject?.id!!] =
+                            Pair(currentRenderable!!.dataItemObject.id!!, mNode)
+
+                    }
                     adapter?.notifyDataSetChanged()
                 }
             },
@@ -465,7 +474,7 @@ abstract class BaseArActivity : AppCompatActivity() {
             btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
             tvVideo.text = "stop"
         } else {
-            tvVideo.text = "start"
+            tvVideo.text = VIDEO
             btnPhoto.setImageResource(R.drawable.ic_video_button)
             //recordButton.setImageResource(R.drawable.round_videocam)
             val videoPath = videoRecorder?.videoPath?.absolutePath
@@ -510,7 +519,18 @@ abstract class BaseArActivity : AppCompatActivity() {
                             arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                             CODE
                         )
-                    } else {
+                    } /*else if (
+                        ActivityCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.MANAGE_EXTERNAL_STORAGE
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.MANAGE_EXTERNAL_STORAGE),
+                            CODE
+                        )
+                    }*/ else {
                         val file = saveBitmapToDisk(bitmap)
 
                         shareFile(file)
@@ -813,13 +833,19 @@ abstract class BaseArActivity : AppCompatActivity() {
             "renderableRemove : ${vrObjectsMap[dataItemObject?.id] != null}, ${vrObjectsMap[renderableCloudId] != null}"
         )
 
+        vrObjectsMap?.filter {
+            it.key == renderableCloudId ||
+                    it.key == dataItemObject?.id ||
+                    it.value.first == dataItemObject?.id ||
+                    it.value.first == renderableCloudId
+        }?.forEach { mapItem ->
 
-        (vrObjectsMap[renderableCloudId] ?: vrObjectsMap[dataItemObject?.id])?.apply {
+        //(vrObjectsMap[renderableCloudId] ?: vrObjectsMap[dataItemObject?.id])?.apply {
             (cashedAssets[renderableCloudId] ?: cashedAssets[dataItemObject?.id])?.stop()
-            second.renderable = null
-            arFragment?.arSceneView?.scene?.removeChild(second)
-            vrObjectsMap.remove(renderableCloudId)
-            vrObjectsMap.remove(dataItemObject?.id)
+            mapItem.value.second.renderable = null
+            arFragment?.arSceneView?.scene?.removeChild(mapItem.value.second)
+            vrObjectsMap.remove(mapItem.key)
+            //vrObjectsMap.remove(dataItemObject?.id)
 
             adapter.notifyDataSetChanged()
         }

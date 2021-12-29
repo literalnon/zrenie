@@ -530,7 +530,7 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
             btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
             tvVideo.text = "stop"
         } else {
-            tvVideo.text = "start"
+            tvVideo.text = VIDEO
             btnPhoto.setImageResource(R.drawable.ic_video_button)
             //recordButton.setImageResource(R.drawable.round_videocam)
             val videoPath = videoRecorder?.videoPath?.absolutePath

@@ -310,7 +310,7 @@ class AugmentedImageActivity : AppCompatActivity() {
             btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
             tvVideo.text = "stop"
         } else {
-            tvVideo.text = "start"
+            tvVideo.text = VIDEO
             btnPhoto.setImageResource(R.drawable.ic_video_button)
             //recordButton.setImageResource(R.drawable.round_videocam)
             val videoPath = videoRecorder?.videoPath?.absolutePath
@@ -497,11 +497,15 @@ class AugmentedImageActivity : AppCompatActivity() {
             "FieldVisualizer$formattedDate.jpeg"
         )
 
-        if (!mediaFile.parentFile.exists())
-            mediaFile.parentFile.mkdirs();
-        if (!mediaFile.exists())
-            mediaFile.createNewFile();
+        try {
+            if (!mediaFile.parentFile.exists())
+                mediaFile.parentFile.mkdirs();
 
+            if (!mediaFile.exists())
+                mediaFile.createNewFile();
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         /*try {
             mediaFile.createNewFile()
         } catch (e: IOException) {

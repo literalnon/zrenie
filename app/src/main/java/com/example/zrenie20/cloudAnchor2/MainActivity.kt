@@ -313,6 +313,7 @@ class MainActivity : BaseArActivity() {
             "MainActivity",
             "renderableRemove ${Gson().toJson(vrObjectsMap.values.map { it.first })}"
         )
+
         super.renderableRemove(dataItemObject, renderableCloudId)
 
         val rCloudId = renderableCloudId ?: vrObjectsMap.filter {
@@ -397,6 +398,14 @@ class MainActivity : BaseArActivity() {
                 }
             }
         )
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        cashedAssets?.forEach { t, u ->
+            u.pause()
+        }
     }
 
     override fun onDestroy() {
