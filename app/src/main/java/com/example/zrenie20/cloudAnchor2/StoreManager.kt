@@ -144,10 +144,10 @@ class StorageManager(context: Context?) {
                     val itemId = ids.lastOrNull()
                         ?.toLongOrNull()
 
-                    Log.e(
+                    /*Log.e(
                         TAG,
                         "onChildAdded cloudId : ${cloudId}, itemId : ${itemId}, renderableCloudId : ${renderableCloudId}"
-                    )
+                    )*/
                     if (cloudId != null && itemId != null) {
                         listener.onChildAdded(cloudId, itemId, renderableCloudId)
                     }
@@ -231,7 +231,7 @@ class StorageManager(context: Context?) {
     fun removeChild(renderableCloudId: RenderableCloudId?, itemId: DataItemId) {
         Log.e(
             TAG,
-            "removeChild ${KEY_PREFIX + renderableCloudId + DELIMITER + itemId}"
+            "renderableRemove 2removeChild ${KEY_PREFIX + renderableCloudId + DELIMITER + itemId}"
         )
 
         rootRef?.child(KEY_PREFIX + renderableCloudId + DELIMITER + itemId)

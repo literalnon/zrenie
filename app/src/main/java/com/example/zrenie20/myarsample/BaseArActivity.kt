@@ -103,8 +103,8 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     var videoRecorder: VideoRecorder? = null
 
-    val VIDEO = "video"
-    val PHOTO = "photo"
+    val VIDEO = R.string.video
+    val PHOTO = R.string.photo
 
     var choice = PHOTO
 
@@ -472,9 +472,9 @@ abstract class BaseArActivity : AppCompatActivity() {
         if (recording) {
             //recordButton.setImageResource(R.drawable.round_stop)
             btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
-            tvVideo.text = "stop"
+            tvVideo.setText(R.string.stop)
         } else {
-            tvVideo.text = VIDEO
+            tvVideo.setText(VIDEO)
             btnPhoto.setImageResource(R.drawable.ic_video_button)
             //recordButton.setImageResource(R.drawable.round_videocam)
             val videoPath = videoRecorder?.videoPath?.absolutePath
@@ -825,12 +825,12 @@ abstract class BaseArActivity : AppCompatActivity() {
     ) {
         Log.e(
             "MainActivity",
-            "renderableRemove : ${dataItemObject?.id}, ${renderableCloudId}"
+            "renderableRemove 3: ${dataItemObject?.id}, ${renderableCloudId}"
         )
 
         Log.e(
             "MainActivity",
-            "renderableRemove : ${vrObjectsMap[dataItemObject?.id] != null}, ${vrObjectsMap[renderableCloudId] != null}"
+            "renderableRemove 4 : ${vrObjectsMap[dataItemObject?.id] != null}, ${vrObjectsMap[renderableCloudId] != null}"
         )
 
         vrObjectsMap?.filter {

@@ -80,6 +80,8 @@ class MainActivity : BaseArActivity() {
                 Log.e("MainActivity", "onChildAdded cloudAnchorId : $cloudAnchorId")
 
                 if (vrObjectsMap.keys.find { it == itemId || it == renderableCloudId } != null) {
+                    Log.e("MainActivity", "onChildAdded return")
+
                     return
                 }
 
@@ -88,12 +90,16 @@ class MainActivity : BaseArActivity() {
                     ?.session
                     ?.resolveCloudAnchor(cloudAnchorId)
 
+                Log.e("MainActivity", "onChildAdded 1")
                 setCloudAnchor(resolvedAnchor)
+
+                Log.e("MainActivity", "onChildAdded 2")
                 placeObject(
                     anchor = cloudAnchor,
                     itemId = itemId,
                     renderableCloudId = renderableCloudId
                 )
+                Log.e("MainActivity", "onChildAdded 3")
                 snackbarHelper.showMessage(this@MainActivity, getString(R.string.resolving_anchor))
                 appAnchorState = AppAnchorState.RESOLVING
             }
@@ -276,6 +282,11 @@ class MainActivity : BaseArActivity() {
                             "thread : ${Thread.currentThread().name} showCurrentRenderable renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}, ${renderable != null}, ${currentRenderable != null}, ${sceneView?.scene?.view?.renderer != null}, ${arFragment != null}"
                         )
 
+                        Log.e(
+                            "MainActivity",
+                            "scene : ${node?.scene}"
+                        )
+
                         node?.renderable = renderable
                         node?.select()
 
@@ -283,7 +294,8 @@ class MainActivity : BaseArActivity() {
                             "MainActivity",
                             "showCurrentRenderable renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
                         )
-                        vrObjectsMap[renderableCloudId] = Pair(currentRenderable?.dataItemObject?.id!!, mNode)
+                        vrObjectsMap[renderableCloudId] =
+                            Pair(currentRenderable?.dataItemObject?.id!!, mNode)
 
                         adapter?.notifyDataSetChanged()
                     }
@@ -303,24 +315,46 @@ class MainActivity : BaseArActivity() {
     ) {
         Log.e(
             "MainActivity",
-            "renderableRemove renderableCloudId : ${renderableCloudId}, dataItemObject?.id : ${dataItemObject?.id} : ${Gson().toJson(vrObjectsMap.keys)}"
+            "renderableRemove renderableCloudId : ${renderableCloudId}, dataItemObject?.id : ${dataItemObject?.id} : ${
+                Gson().toJson(
+                    vrObjectsMap.keys
+                )
+            }"
         )
         Log.e(
             "MainActivity",
-            "renderableRemove ${Gson().toJson(vrObjectsMap.keys)}"
+            "renderableRemove 0 ${Gson().toJson(vrObjectsMap.keys)}"
         )
         Log.e(
             "MainActivity",
-            "renderableRemove ${Gson().toJson(vrObjectsMap.values.map { it.first })}"
+            "renderableRemove 01 ${Gson().toJson(vrObjectsMap.values.map { it.first })}, ${renderableCloudId == null}"
+        )
+
+        val rCloudId = if (renderableCloudId == null) {
+            Log.e(
+                "MainActivity",
+                "renderableCloudId == null"
+            )
+
+            vrObjectsMap.filter {
+                Log.e(
+                    "MainActivity",
+                    "renderableRemove 1 ${it.value.first}, ${dataItemObject?.id}, ${it.value.first == dataItemObject?.id}"
+                )
+                it.value.first == dataItemObject?.id
+            }
+                .keys
+                .firstOrNull()
+        } else {
+            renderableCloudId
+        }
+
+        storageManager?.removeChild(
+            renderableCloudId = rCloudId,
+            itemId = dataItemObject?.id!!
         )
 
         super.renderableRemove(dataItemObject, renderableCloudId)
-
-        val rCloudId = renderableCloudId ?: vrObjectsMap.filter {
-            it.value.first == dataItemObject?.id
-        }.keys.firstOrNull()
-
-        storageManager?.removeChild(rCloudId, dataItemObject?.id!!)
     }
 
     private fun placeObject(
@@ -334,9 +368,22 @@ class MainActivity : BaseArActivity() {
         )
 
         if (itemId != null && currentRenderable?.dataItemObject?.id != itemId) {
+            /*Log.e(
+                "MainActivity",
+                "placeObject 1 : ${Gson().toJson(cashedAssets)}"
+            )*/
+
             if (cashedAssets[renderableCloudId] != null) {
+                /*Log.e(
+                    "MainActivity",
+                    "placeObject 2"
+                )*/
                 currentRenderable = cashedAssets[renderableCloudId]
             } else {
+                Log.e(
+                    "MainActivity",
+                    "placeObject 3"
+                )
                 loadRenderableById(itemId, anchor, renderableCloudId)
                 return
             }
@@ -351,7 +398,10 @@ class MainActivity : BaseArActivity() {
         }
 
         anchorNode = AnchorNode(anchor)
-        Log.e("renderable", "anchorNode.worldPosition : ${anchorNode?.worldPosition}, renderableCloudId : ${renderableCloudId}")
+        Log.e(
+            "renderable",
+            "anchorNode.worldPosition : ${anchorNode?.worldPosition}, renderableCloudId : ${renderableCloudId}"
+        )
 
         anchorNode?.setParent(arFragment?.arSceneView?.scene)
         val scale = currentRenderable?.dataItemObject?.scale?.toFloatOrNull() ?: 4f

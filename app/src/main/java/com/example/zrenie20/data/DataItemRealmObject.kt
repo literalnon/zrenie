@@ -70,7 +70,8 @@ open class RealmDataItemObject(
     var actionUrl: String? = null,
     var offsetX: Int? = null,
     var offsetY: Int? = null,
-    var offsetZ: Int? = null
+    var offsetZ: Int? = null,
+    var movableContent: Boolean? = null
 ) : RealmObject()
 
 fun RealmDataItemObject.toDataItemObject(): DataItemObject {
@@ -94,6 +95,7 @@ fun RealmDataItemObject.toDataItemObject(): DataItemObject {
         actionUrl = actionUrl,
         offsetX = offsetX,
         offsetY = offsetY,
-        offsetZ = offsetZ
+        offsetZ = offsetZ,
+        movableContent = movableContent
     )
 }

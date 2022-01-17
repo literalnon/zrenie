@@ -79,7 +79,8 @@ open class DataItemObject(
     val actionUrl: String? = null,
     val offsetX: Int? = null,
     val offsetY: Int? = null,
-    val offsetZ: Int? = null
+    val offsetZ: Int? = null,
+    val movableContent: Boolean? = null
 )
 
 fun DataItemObject.toRealmDataItemObject(): RealmDataItemObject {

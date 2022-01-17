@@ -69,8 +69,8 @@ class AugmentedImageActivity : AppCompatActivity() {
 
     var videoRecorder: VideoRecorder? = null
 
-    val VIDEO = "video"
-    val PHOTO = "photo"
+    val VIDEO = R.string.video
+    val PHOTO = R.string.photo
 
     var choice = PHOTO
 
@@ -308,9 +308,9 @@ class AugmentedImageActivity : AppCompatActivity() {
         if (recording) {
             //recordButton.setImageResource(R.drawable.round_stop)
             btnPhoto.setImageResource(R.drawable.ic_video_recording_button)
-            tvVideo.text = "stop"
+            tvVideo.setText(R.string.stop)
         } else {
-            tvVideo.text = VIDEO
+            tvVideo.setText(VIDEO)
             btnPhoto.setImageResource(R.drawable.ic_video_button)
             //recordButton.setImageResource(R.drawable.round_videocam)
             val videoPath = videoRecorder?.videoPath?.absolutePath

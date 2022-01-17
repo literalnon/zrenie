@@ -65,7 +65,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
 
-    implementation 'com.google.ar:core:1.25.0'
+    implementation 'com.google.ar:core:1.29.0'
 
     // Obj - a simple Wavefront OBJ file loader
     // https://github.com/javagl/Obj
@@ -150,12 +150,12 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'
 
 
-apply plugin: 'com.google.ar.sceneform.plugin'
+//apply plugin: 'com.google.ar.sceneform.plugin'
 //https://github.com/google-ar/sceneform-android-sdk/blob/v1.15.0/samples/chromakeyvideo/app/build.gradle
-sceneform.asset('sampledata/models/chroma_key_video.obj',
+/*sceneform.asset('sampledata/models/chroma_key_video.obj',
         'sampledata/models/chroma_key_video_material.mat',
         'sampledata/models/chroma_key_video.sfa',
-        'src/main/res/raw/chroma_key_video')
+        'src/main/res/raw/chroma_key_video')*/
 
 /*sceneform.asset('sampledata/surprised.fbx',
         'default',
