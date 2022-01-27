@@ -10,13 +10,13 @@ plugins {
 def API_KEY = '"' + ApiKey + '"' ?: '"Define your ApiKey in gradle.properties"'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.example.zrenie20"
         minSdkVersion 24
-        targetSdkVersion 29
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 

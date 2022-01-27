@@ -4,10 +4,12 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.media.CamcorderProfile
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.util.Size
 import android.view.Surface
+import com.example.zrenie20.myarsample.BaseArActivity
 import com.google.ar.sceneform.SceneView
 import java.io.File
 import java.io.IOException
@@ -118,9 +120,7 @@ class VideoRecorder(val activity: Activity) {
     }
 
     fun createFile() {
-        val videoDirectory = File(
-            Environment.getExternalStorageDirectory().toString() + "/Android/data/" + activity.packageName
-        )
+        val videoDirectory = BaseArActivity.commonDocumentDirPath("VideoRecorder")
 
         if (!videoDirectory.exists()) {
             videoDirectory.mkdir()

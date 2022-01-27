@@ -6,9 +6,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.hardware.camera2.CameraManager
 import android.net.Uri
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -43,7 +40,6 @@ import kotlinx.android.synthetic.main.activity_my_sample.*
 import kotlinx.android.synthetic.main.layout_main_activities.*
 import java.util.*
 
-import android.os.HandlerThread
 import androidx.fragment.app.FragmentActivity
 import java.io.File
 import java.io.FileOutputStream
@@ -58,6 +54,7 @@ import android.provider.MediaStore
 import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.hardware.SensorManager
+import android.os.*
 import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.FileProvider
@@ -85,6 +82,17 @@ abstract class BaseArActivity : AppCompatActivity() {
 
         const val BASE_MIN_SCALE = 0.01f
         const val BASE_MAX_SCALE = 10f
+
+        fun commonDocumentDirPath(FolderName: String): File {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                        .toString() + "/" + FolderName
+                )
+            } else {
+                File(Environment.getExternalStorageDirectory().toString() + "/" + FolderName)
+            }
+        }
     }
 
     open var isNeedCreateAnchor: Boolean = true
@@ -368,8 +376,11 @@ abstract class BaseArActivity : AppCompatActivity() {
                         "positionRenderableOnPlane renderableCloudId : ${renderableCloudId}, currentRenderable?.dataItemObject?.id : ${currentRenderable?.dataItemObject?.id}"
                     )
 
-                    if (vrObjectsMap[renderableCloudId ?: currentRenderable?.dataItemObject?.id!!] != null) {
-                        vrObjectsMap[(renderableCloudId ?: currentRenderable?.dataItemObject?.id!!) - 10000 * (
+                    if (vrObjectsMap[renderableCloudId
+                            ?: currentRenderable?.dataItemObject?.id!!] != null
+                    ) {
+                        vrObjectsMap[(renderableCloudId
+                            ?: currentRenderable?.dataItemObject?.id!!) - 10000 * (
                                 vrObjectsMap.count { it.value.first == currentRenderable!!.dataItemObject.id }
                                 )] =
                             Pair(currentRenderable!!.dataItemObject.id!!, mNode)
@@ -562,7 +573,12 @@ abstract class BaseArActivity : AppCompatActivity() {
     fun shareFile(file: File) {
         val intentShareFile = Intent(Intent.ACTION_SEND)
 
-        Log.e("SHARE_FILE", "URLConnection.guessContentTypeFromName(file.name) : ${URLConnection.guessContentTypeFromName(file.name)}")
+        Log.e(
+            "SHARE_FILE",
+            "URLConnection.guessContentTypeFromName(file.name) : ${
+                URLConnection.guessContentTypeFromName(file.name)
+            }"
+        )
         Log.e("SHARE_FILE", "file.name : ${file.name}")
 
         intentShareFile.apply {
@@ -598,9 +614,9 @@ abstract class BaseArActivity : AppCompatActivity() {
 
     open fun saveBitmapToDisk(bitmap: Bitmap): File {
 
-        val videoDirectory = File(
+        val videoDirectory = BaseArActivity.commonDocumentDirPath("VideoRecorder")/* File(
             Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
-        )
+        )*/
 
         if (!videoDirectory.exists()) {
             videoDirectory.mkdir()
@@ -840,7 +856,7 @@ abstract class BaseArActivity : AppCompatActivity() {
                     it.value.first == renderableCloudId
         }?.forEach { mapItem ->
 
-        //(vrObjectsMap[renderableCloudId] ?: vrObjectsMap[dataItemObject?.id])?.apply {
+            //(vrObjectsMap[renderableCloudId] ?: vrObjectsMap[dataItemObject?.id])?.apply {
             (cashedAssets[renderableCloudId] ?: cashedAssets[dataItemObject?.id])?.stop()
             mapItem.value.second.renderable = null
             arFragment?.arSceneView?.scene?.removeChild(mapItem.value.second)
@@ -858,7 +874,12 @@ abstract class BaseArActivity : AppCompatActivity() {
         renderableCloudId: RenderableCloudId? = null
     ) {
         currentRenderable = renderable
-        cashedAssets[renderableCloudId ?: dataItemObjectDataClass.id!!] = renderable
+        Log.e(
+            "MainActivity",
+            "renderableUploaded renderableCloudId : ${renderableCloudId}, dataItemObjectDataClass.id : ${dataItemObjectDataClass.id}, ${anchor != null}"
+        )
+
+        cashedAssets[dataItemObjectDataClass.id!!] = renderable
         adapter.notifyDataSetChanged()
 
         if (anchor != null) {
@@ -909,11 +930,25 @@ abstract class BaseArActivity : AppCompatActivity() {
         )
         val context = this
 
-        val item = assetsArray.find { it.id == itemId } ?: return
+        val item = assetsArray.find { it.id == itemId }
+
+        Log.e(
+            "MainActivity",
+            "loadRenderableById item : ${item}"
+        )
+
+        assetsArray.forEach {
+            Log.e(
+                "MainActivity",
+                "loadRenderableById assets : ${it.id}"
+            )
+        }
+
+        if (item == null) return
 
         fileDownloadManager.downloadFile(item.filePath!!, context)
             .subscribe({ file ->
-                Log.e("renderable", "item.filePath : ${item.filePath}")
+                Log.e("MainActivity", "rend item.filePath : ${item.filePath}")
 
                 val arRenderObject = ArRenderObjectFactory(
                     context = context,
@@ -922,13 +957,13 @@ abstract class BaseArActivity : AppCompatActivity() {
                     renderableFile = file
                 ).createRenderable()
 
-                Log.e("renderable", "isSelectedRenderable : ${isSelectedRenderable(item)}")
+                Log.e("MainActivity", "rend isSelectedRenderable : ${isSelectedRenderable(item)}")
 
                 renderableUploaded(item, arRenderObject, anchor, renderableCloudId)
 
             }, {
-                Log.e("renderable", "error : ${it.message}")
-                Log.e("FileDownloadManager", "subscribe 2 ${it.message}")
+                Log.e("MainActivity", "rend error : ${it.message}")
+                Log.e("MainActivity", "rend subscribe 2 ${it.message}")
                 if (isSelectedRenderable(item)) {
                     renderableUploadedFailed(item)
                 }

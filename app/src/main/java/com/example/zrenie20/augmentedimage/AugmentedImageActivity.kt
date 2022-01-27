@@ -440,7 +440,7 @@ class AugmentedImageActivity : AppCompatActivity() {
 
     open fun saveBitmapToDisk(bitmap: Bitmap): File {
 
-        val androidDirectory = File(
+        /*val androidDirectory = File(
             Environment.getExternalStorageDirectory(), "Android"
         )
 
@@ -457,8 +457,8 @@ class AugmentedImageActivity : AppCompatActivity() {
         if (!dataDirectory.exists()) {
             dataDirectory.mkdirs()
         }
-
-        Log.e("AugmentedImageActivity", "saveBitmapToDisk 1.2 : ${dataDirectory.exists()}")
+*/
+        //Log.e("AugmentedImageActivity", "saveBitmapToDisk 1.2 : ${dataDirectory.exists()}")
 
         /* val videoDirectory = File(
              Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
@@ -468,9 +468,9 @@ class AugmentedImageActivity : AppCompatActivity() {
             dataDirectory, "zrenie"//packageName
         )*/
 
-        val videoDirectory = Environment.getExternalStoragePublicDirectory(
+        val videoDirectory = BaseArActivity.commonDocumentDirPath("VideoRecorder")/*Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_PICTURES
-        )
+        )*/
 
         Log.e("AugmentedImageActivity", "saveBitmapToDisk 1 : ${videoDirectory.exists()}")
         /*if (!videoDirectory.exists()) {

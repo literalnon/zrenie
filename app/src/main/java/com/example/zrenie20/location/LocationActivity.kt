@@ -709,9 +709,9 @@ class LocationActivity : AppCompatActivity(), OnMapReadyCallback {
 
     open fun saveBitmapToDisk(bitmap: Bitmap): File {
 
-        val videoDirectory = File(
+        val videoDirectory = BaseArActivity.commonDocumentDirPath("VideoRecorder")/*File(
             Environment.getExternalStorageDirectory().toString() + "/Android/data/" + packageName
-        )
+        )*/
 
         if (!videoDirectory.exists()) {
             videoDirectory.mkdir()
