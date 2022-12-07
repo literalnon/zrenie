@@ -1,6 +1,20 @@
 apply plugin: 'com.android.library'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/Users/dyadichko_da/AndroidStudioProjects/Zrenie20/keystore.jks')
+            storePassword 'zrenie456123'
+            keyPassword 'zrenie456123'
+            keyAlias 'zrenie'
+        }
+        release {
+            storeFile file('/Users/dyadichko_da/AndroidStudioProjects/Zrenie20/zreniekeystore')
+            storePassword '456123qwe'
+            keyPassword '456123qwe'
+            keyAlias 'zrenie'
+        }
+    }
     compileSdkVersion 27
 
 

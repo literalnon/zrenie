@@ -5,11 +5,27 @@ plugins {
     id 'realm-android'
     id 'kotlin-android-extensions'
     id 'com.google.secrets_gradle_plugin' version '0.5'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.gms.google-services'
 }
 
 def API_KEY = '"' + ApiKey + '"' ?: '"Define your ApiKey in gradle.properties"'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/Users/dyadichko_da/AndroidStudioProjects/Zrenie20/keystore.jks')
+            storePassword 'zrenie456123'
+            keyPassword 'zrenie456123'
+            keyAlias 'zrenie'
+        }
+        release {
+            storePassword '456123qwe'
+            keyPassword '456123qwe'
+            storeFile file('/Users/dyadichko_da/AndroidStudioProjects/Zrenie20/zreniekeystore')
+            keyAlias 'zrenie'
+        }
+    }
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
@@ -29,10 +45,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
@@ -143,10 +165,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:20.0.2'
     implementation 'com.google.firebase:firebase-auth:21.0.1'
     implementation 'com.google.firebase:firebase-crash:16.2.1'
+
+    implementation 'com.google.firebase:firebase-crashlytics:18.2.8'
+    implementation 'com.google.firebase:firebase-analytics:20.1.0'
 }
 
 //apply plugin: 'com.google.ar.sceneform.plugin'
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'
 
 
